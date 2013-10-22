@@ -7,9 +7,15 @@ namespace OctoGhast
         int ScreenWidth { get; set; }
         int ScreenHeight { get; set; }
 
+        int PlayerX { get; set; }
+        int PlayerY { get; set; }
+
         public Engine(int screenWidth, int screenHeight) {
             ScreenWidth = screenWidth;
             ScreenHeight = screenHeight;
+
+            PlayerX = ScreenWidth/2;
+            PlayerY = ScreenHeight/2;
         }
 
         public void Setup() {
@@ -20,12 +26,45 @@ namespace OctoGhast
         }
 
         public void Tick() {
-            var root = TCODConsole.root;
+            Draw(TCODConsole.root);
+            TCODConsole.root.putChar(PlayerX, PlayerY, ' ');
+            HandleInput();
+        }
 
+        public void Draw(TCODConsole root) {
             root.setBackgroundColor(TCODColor.black);
             root.setForegroundColor(TCODColor.white);
-            root.putChar(1, 1, '@');
+            root.putChar(PlayerX, PlayerY, '@');
             TCODConsole.flush();
+        }
+
+        public void HandleInput() {
+            var key = TCODConsole.waitForKeypress(true);
+
+            // TODO: Replace with a mapping system.
+            switch (key.KeyCode)
+            {
+                case TCODKeyCode.Up:
+                    {
+                        PlayerY -= 1;
+                        break;
+                    }
+                case TCODKeyCode.Down:
+                    {
+                        PlayerY += 1;
+                        break;
+                    }
+                case TCODKeyCode.Left:
+                    {
+                        PlayerX -= 1;
+                        break;
+                    }
+                case TCODKeyCode.Right:
+                    {
+                        PlayerX += 1;
+                        break;
+                    }
+            }
         }
     }
 }
