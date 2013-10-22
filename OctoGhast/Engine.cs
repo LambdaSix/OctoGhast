@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using libtcod;
 
 namespace OctoGhast
@@ -14,15 +16,46 @@ namespace OctoGhast
         TCODConsole Buffer { get; set; }
         private IList<Object> _objects = new List<Object>();
 
+        public int MapHeight { get; set; }
+        public int MapWidth { get; set; }
+
+        private static TCODColor colorDarkWall = new TCODColor(0, 0, 100);
+        private static TCODColor colorDarkGround = new TCODColor(50, 50, 150);
+        private int[,] _map;
+
         public Engine(int screenWidth, int screenHeight) {
             ScreenWidth = screenWidth;
             ScreenHeight = screenHeight;
+
+            MapWidth = 20;
+            MapHeight = 15;
 
             _player = new Object(ScreenWidth/2, ScreenHeight/2, '@', TCODColor.white);
             var npc = new Object(ScreenWidth/2 - 5, ScreenHeight/2, '@', TCODColor.yellow);
 
             _objects.Add(_player);
             _objects.Add(npc);
+            _map = MakeMap();
+        }
+
+        private int[,] MakeMap() {
+            return new int[,] {
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0},
+                {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0},
+                {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0},
+                {0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+            };
         }
 
         public void Setup() {
@@ -44,7 +77,14 @@ namespace OctoGhast
         }
 
         public void Draw(TCODConsole root) {
-            foreach (var obj in _objects) {
+            for (int x = 0; x < MapHeight; ++x) {
+                for (int y = 0; y < MapWidth; ++y) {
+                    Buffer.putChar(x, y, _map[x, y] == 0 ? '.' : '#');
+                }
+            }
+
+            foreach (var obj in _objects)
+            {
                 obj.Draw(Buffer);
             }
 
