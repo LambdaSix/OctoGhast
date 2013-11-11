@@ -3,7 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OctoGhast", "OctoGhast\OctoGhast.csproj", "{02E6A779-B800-47D9-9E6D-05F3362362EB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OctoGhast.Util", "OctoGhast.Util\OctoGhast.Util.csproj", "{5C9971DC-EAC2-4120-94DC-1B1A157F6F47}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OctoGhast.Spatial", "OctoGhast.Spatial\OctoGhast.Spatial.csproj", "{23DB428F-E97F-4C80-910A-FDD91C548A8C}"
+EndProject
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,10 +16,10 @@ Global
 		{02E6A779-B800-47D9-9E6D-05F3362362EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02E6A779-B800-47D9-9E6D-05F3362362EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02E6A779-B800-47D9-9E6D-05F3362362EB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5C9971DC-EAC2-4120-94DC-1B1A157F6F47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5C9971DC-EAC2-4120-94DC-1B1A157F6F47}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5C9971DC-EAC2-4120-94DC-1B1A157F6F47}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5C9971DC-EAC2-4120-94DC-1B1A157F6F47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23DB428F-E97F-4C80-910A-FDD91C548A8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23DB428F-E97F-4C80-910A-FDD91C548A8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23DB428F-E97F-4C80-910A-FDD91C548A8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23DB428F-E97F-4C80-910A-FDD91C548A8C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
