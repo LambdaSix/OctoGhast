@@ -41,6 +41,13 @@
   <ItemGroup>
     <Compile Include="Map\Class1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Renderer\ICamera.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OctoGhast.Spatial\OctoGhast.Spatial.csproj">
+      <Project>{23DB428F-E97F-4C80-910A-FDD91C548A8C}</Project>
+      <Name>OctoGhast.Spatial</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
