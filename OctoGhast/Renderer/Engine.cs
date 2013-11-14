@@ -1,7 +1,9 @@
 ﻿using System;
 using libtcod;
+using OctoGhast.DataStructures.Map;
 using OctoGhast.Entity;
 using OctoGhast.Map;
+using OctoGhast.MapGeneration;
 using OctoGhast.Spatial;
 
 namespace OctoGhast.Renderer
@@ -20,22 +22,13 @@ namespace OctoGhast.Renderer
             Height = height;
             Width = width;
 
-            _map = new Map.Map(64*3, 64*3);
+            var mapGen = new SimpleMapGenerator(0xDEADBEEF);
+            mapGen.GenerateMap(new Rect(Width*3, Height*3));
+
+            _map = new Map.Map(Width*3, Height*3) {MapArray = mapGen.Map};
         }
 
         public void Setup() {
-            _map.MapArray.Fill(new Tile() { Glyph = '.', IsVisible = true, IsWalkable = true });
-
-            for (int x = 0; x < _map.MapArray.Width; x++) {
-                _map.MapArray[x, 0] = new Tile() {Glyph = x % 2 == 0 ? '-' : '[', IsVisible = true, IsWalkable = false};
-                _map.MapArray[x, _map.MapArray.Height-1] = new Tile() {Glyph = x % 2 == 0 ? '-' : '[', IsVisible = true, IsWalkable = false};
-            }
-
-            for (int y = 0; y < _map.MapArray.Width; y++) {
-                _map.MapArray[0, y] = new Tile {Glyph = y % 2 == 0 ? '|' : ']', IsVisible = true, IsWalkable = false};
-                _map.MapArray[_map.MapArray.Width - 1, y] = new Tile() { Glyph = y % 2 == 0 ? '|' : ']', IsVisible = true, IsWalkable = false };
-            }
-
             TCODConsole.setCustomFont("celtic_garamond_10x10_gs_tc.png", (int) TCODFontFlags.LayoutTCOD);
             TCODConsole.initRoot(Width, Height, "OctoGhast", false);
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
+using OctoGhast.DataStructures.Map;
 using OctoGhast.Renderer;
 using OctoGhast.Spatial;
 
@@ -27,23 +28,6 @@ namespace OctoGhast.Map
     public interface IMap<T>
     {
         Array2D<T> GetFrustumView(Camera frustum);
-    }
-
-    public interface ITile
-    {
-        bool IsVisible { get; set; }
-        bool IsWalkable { get; set; }
-        int Glyph { get; set; }
-    }
-
-
-    /* Implementations */
-
-    public class Tile : ITile
-    {
-        public bool IsVisible { get; set; }
-        public bool IsWalkable { get; set; }
-        public int Glyph { get; set; }
     }
 
     public class Chunk : IChunk<Tile>

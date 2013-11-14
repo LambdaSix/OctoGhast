@@ -4,16 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{02E6A779-B800-47D9-9E6D-05F3362362EB}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{E178B4FA-597C-47B9-BC44-2984D2A1466D}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>OctoGhast</RootNamespace>
-    <AssemblyName>OctoGhast</AssemblyName>
+    <RootNamespace>OctoGhast.MapGeneration</RootNamespace>
+    <AssemblyName>OctoGhast.MapGeneration</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -44,41 +42,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Renderer\Camera.cs" />
-    <Compile Include="Renderer\Engine.cs" />
-    <Compile Include="Map\Map.cs" />
-    <Compile Include="Entity\Player.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="SimpleMapGenerator.cs" />
+    <Compile Include="IMapGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="celtic_garamond_10x10_gs_tc.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="libtcod-net-unmanaged.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="libtcod-VS.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="SDL.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="zlib1.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OctoGhast.DataStructures\OctoGhast.DataStructures.csproj">
       <Project>{3ABB811A-C183-463B-B32D-F63A314F8D6D}</Project>
       <Name>OctoGhast.DataStructures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\OctoGhast.MapGeneration\OctoGhast.MapGeneration.csproj">
-      <Project>{E178B4FA-597C-47B9-BC44-2984D2A1466D}</Project>
-      <Name>OctoGhast.MapGeneration</Name>
     </ProjectReference>
     <ProjectReference Include="..\OctoGhast.Spatial\OctoGhast.Spatial.csproj">
       <Project>{23DB428F-E97F-4C80-910A-FDD91C548A8C}</Project>
