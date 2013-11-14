@@ -4,7 +4,7 @@ using System.Linq;
 using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
-using OctoGhast.Map;
+using OctoGhast.DataStructures.Map;
 using OctoGhast.Spatial;
 using libtcod;
 
@@ -31,10 +31,17 @@ namespace OctoGhast.MapGeneration
             _random = new TCODRandom(Seed, TCODRandomType.MersenneTwister);
             var map = BuildMap();
 
+            Map = ProcessMap(map, dimensions);
             // TODO: Transform the heightmap into a Array2D of tile.
             // This also requires consideration of walkable/visible. This being a simple generator, true for both.
             // TODO: Generate FOV/Walkable/resource/etc meshes as appropriate (low priority)
         }
+
+        private static Array2D<Tile> ProcessMap(TCODHeightMap map, Rect dimensions) {
+            var arrayMap = new Array2D<Tile>(dimensions.Width, dimensions.Height);
+            arrayMap.Fill(vec => new Tile {Glyph = (char) (48 + (map.getValue(vec.X, vec.Y)*10)), IsVisible = true, IsWalkable = true});
+            return arrayMap;
+        } 
 
         private void AddHill(TCODHeightMap map, int hillCount, float baseRadius, float radiusVariation, float height) {
             const float pi = (float) Math.PI;
