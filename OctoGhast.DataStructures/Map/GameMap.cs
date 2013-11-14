@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
-using OctoGhast.DataStructures.Map;
-using OctoGhast.Renderer;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using OctoGhast.DataStructures.Renderer;
 using OctoGhast.Spatial;
 
-namespace OctoGhast.Map
+namespace OctoGhast.DataStructures.Map
 {
     public interface IChunk<T>
     {
@@ -27,7 +28,7 @@ namespace OctoGhast.Map
 
     public interface IMap<T>
     {
-        Array2D<T> GetFrustumView(Camera frustum);
+        Array2D<T> GetFrustumView(ICamera frustum);
     }
 
     public class Chunk : IChunk<Tile>
@@ -48,20 +49,23 @@ namespace OctoGhast.Map
         }
     }
 
-    public class Map : IMap<Tile>, IChunkedMap<Chunk>
+    public class GameMap : IMap<Tile>, IChunkedMap<Chunk>
     {
         public Array2D<Tile> MapArray { get; set; }
-        public Vec Size { get { return MapArray.Size; } }
+
+        public Vec Size {
+            get { return MapArray.Size; }
+        }
 
         public Array2D<Chunk> Chunks { get; set; }
 
-        public Map(int width, int height) {
+        public GameMap(int width, int height) {
             MapArray = new Array2D<Tile>(width, height);
             Chunks = new Array2D<Chunk>(9, 9);
             Chunks.Fill(new Chunk());
         }
 
-        public Array2D<Tile> GetFrustumView(Camera frustum) {
+        public Array2D<Tile> GetFrustumView(ICamera frustum) {
             var dst = new Array2D<Tile>(frustum.Width, frustum.Height);
 
             for (int y = 0; y < frustum.Height; y++) {
