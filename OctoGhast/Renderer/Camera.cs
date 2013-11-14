@@ -1,8 +1,9 @@
-﻿using OctoGhast.Spatial;
+﻿using OctoGhast.DataStructures.Renderer;
+using OctoGhast.Spatial;
 
 namespace OctoGhast.Renderer
 {
-    public class Camera
+    public class Camera : ICamera
     {
         public Vec Position { get; set; }
 
