@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dungeons\BSPDungeonGenerator.cs" />
     <Compile Include="SimpleMapGenerator.cs" />
     <Compile Include="IMapGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
