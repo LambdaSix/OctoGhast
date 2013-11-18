@@ -7,6 +7,7 @@ using OctoGhast.DataStructures.Entity;
 using OctoGhast.DataStructures.Map;
 using OctoGhast.Entity;
 using OctoGhast.MapGeneration;
+using OctoGhast.MapGeneration.Dungeons;
 using OctoGhast.Spatial;
 
 namespace OctoGhast.Renderer
@@ -26,10 +27,27 @@ namespace OctoGhast.Renderer
             Height = height;
             Width = width;
 
-            var mapGen = new SimpleMapGenerator(0xDEADBEEF);
-            mapGen.GenerateMap(new Rect(Width*3, Height*3));
+            Vec playerPosition = new Vec(0, 0);
 
-            _map = new GameMap(Width*3, Height*3) {MapArray = mapGen.Map};
+            var mapGen = new BSPDungeonGenerator();
+            mapGen.PlayerPlacementFunc = (rect) => {
+                playerPosition = rect.Center;
+                return true;
+            };
+
+            mapGen.MobilePlacementFunc = (rect) => {
+                _objects.Add(new GameObject(rect.Center, 'c', TCODColor.orange));
+                return true;
+            };
+
+            _map = new GameMap(Width*3, Height*3);
+            mapGen.GenerateMap(_map.MapArray.Bounds);
+
+            _map.MapArray = mapGen.Map;
+
+            Player = new Player(playerPosition, '@', TCODColor.amber);
+
+            Player.MoveTo(playerPosition, _map);
         }
 
         public void Setup() {
@@ -38,7 +56,6 @@ namespace OctoGhast.Renderer
 
             Screen = TCODConsole.root;
 
-            Player = new Player(new Vec(0, 0), '@', TCODColor.red);
             _objects.Add(Player);
 
             _camera = new Camera(Player.Position, new Rect(80, 25), _map.MapArray.Bounds);
@@ -74,7 +91,7 @@ namespace OctoGhast.Renderer
 
             for (int x = 0; x < _camera.Width; x++) {
                 for (int y = 0; y < _camera.Height; y++) {
-                    buffer.putCharEx(x, y, frustumView[x, y].Glyph, TCODColor.white, TCODColor.black);
+                    buffer.putCharEx(x, y, frustumView[x, y].Glyph, frustumView[x, y].Glyph == '#' ? TCODColor.grey : TCODColor.brass, TCODColor.black);
                 }
             }
 
