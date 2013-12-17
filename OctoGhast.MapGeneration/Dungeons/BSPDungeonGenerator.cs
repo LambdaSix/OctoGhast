@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Odbc;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,13 +14,21 @@ namespace OctoGhast.MapGeneration.Dungeons
         public Array2D<Tile> Map { get; private set; }
 
         public uint Seed { get; set; }
-        public Func<Rect, bool> PlayerPlacementFunc { get; set; }
-        public Func<Rect, bool> MobilePlacementFunc { get; set; }
+
+        /// <summary>
+        /// Provides co-ordinates for the player in the form of the room size
+        /// </summary>
+        public Action<Rect> PlayerPlacementFunc { get; set; }
+
+        /// <summary>
+        /// Provides for placing NPC's or recording their suggested position
+        /// </summary>
+        public Action<Rect> MobilePlacementFunc { get; set; }
         public Func<Rect, bool> ItemPlacementFunc { get; set; } 
 
         public void GenerateMap(Rect dimensions) {
             Map = new Array2D<Tile>(dimensions.Width, dimensions.Height);
-            Map.Fill(new Tile {Glyph = '#', IsVisible = false, IsWalkable = false});
+            Map.Fill(vec => new Tile {Glyph = '#', IsWalkable = false, IsExplored = false});
             Dimensions = dimensions;
 
             Generate();
@@ -29,22 +36,22 @@ namespace OctoGhast.MapGeneration.Dungeons
 
         public Rect Dimensions { get; set; }
 
-        public void Dig(Vec a, Vec b) {
-            if (b.X < a.X) {
-                int tmp = b.X;
-                b.X = a.X;
-                a.X = tmp;
+        public void Dig(Vec fromVec, Vec toVec) {
+            if (toVec.X < fromVec.X) {
+                int tmp = toVec.X;
+                toVec.X = fromVec.X;
+                fromVec.X = tmp;
             }
 
-            if (b.Y < a.Y) {
-                int tmp = b.Y;
-                b.Y = a.Y;
-                a.Y = tmp;
+            if (toVec.Y < fromVec.Y) {
+                int tmp = toVec.Y;
+                toVec.Y = fromVec.Y;
+                fromVec.Y = tmp;
             }
 
-            for (int x = a.X; x <= b.X; x++) {
-                for (int y = a.Y; y <= b.Y; y++) {
-                    Map[x, y] = new Tile {Glyph = '.', IsVisible = true, IsWalkable = true};
+            for (int x = fromVec.X; x <= toVec.X; x++) {
+                for (int y = fromVec.Y; y <= toVec.Y; y++) {
+                    Map[x, y] = new Tile {Glyph = '.', IsWalkable = true};
                 }
             }
         }

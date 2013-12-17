@@ -39,7 +39,7 @@ namespace OctoGhast.MapGeneration
 
         private static Array2D<Tile> ProcessMap(TCODHeightMap map, Rect dimensions) {
             var arrayMap = new Array2D<Tile>(dimensions.Width, dimensions.Height);
-            arrayMap.Fill(vec => new Tile {Glyph = (char) (48 + (map.getValue(vec.X, vec.Y)*10)), IsVisible = true, IsWalkable = true});
+            arrayMap.Fill(vec => new Tile {Glyph = (char) (48 + (map.getValue(vec.X, vec.Y)*10)), IsWalkable = true});
             return arrayMap;
         } 
 

@@ -21,13 +21,15 @@ namespace OctoGhast.DataStructures.Entity
             Color = color;
         }
 
-        public void MoveTo(Vec position, GameMap gameMap) {
+        public bool MoveTo(Vec position, GameMap gameMap) {
             var mapTile = gameMap.MapArray[position.X, position.Y];
             var mapWalkable = mapTile.IsWalkable;
 
             if (mapWalkable) {
                 Position = position;
+                return true;
             }
+            return false;
         }
 
         public void Draw(TCODConsole buffer, Vec drawPosition)

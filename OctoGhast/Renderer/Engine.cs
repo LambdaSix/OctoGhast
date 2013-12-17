@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using libtcod;
 using OctoGhast.DataStructures.Entity;
@@ -27,26 +28,19 @@ namespace OctoGhast.Renderer
             Height = height;
             Width = width;
 
-            Vec playerPosition = new Vec(0, 0);
+            var playerPosition = new Vec(0, 0);
 
-            var mapGen = new BSPDungeonGenerator();
-            mapGen.PlayerPlacementFunc = (rect) => {
-                playerPosition = rect.Center;
-                return true;
-            };
-
-            mapGen.MobilePlacementFunc = (rect) => {
-                _objects.Add(new GameObject(rect.Center, 'c', TCODColor.orange));
-                return true;
+            var mapGen = new BSPDungeonGenerator {
+                PlayerPlacementFunc = (rect) => playerPosition = rect.Center,
+                MobilePlacementFunc = (rect) => _objects.Add(new GameObject(rect.Center, 'c', TCODColor.orange)),
             };
 
             _map = new GameMap(Width*3, Height*3);
             mapGen.GenerateMap(_map.MapArray.Bounds);
-
             _map.MapArray = mapGen.Map;
+            _map.InvalidateMap();
 
             Player = new Player(playerPosition, '@', TCODColor.amber);
-
             Player.MoveTo(playerPosition, _map);
         }
 
@@ -67,18 +61,21 @@ namespace OctoGhast.Renderer
             ProcessKey(key);
         }
 
+        private bool _dirtyFov;
+
         public void ProcessKey(TCODKey key) {
             if (key.KeyCode == TCODKeyCode.Right) {
                 Player.MoveTo(new Vec(Player.Position.X + 1, Player.Position.Y), _map);
+                _dirtyFov = true;
             }
             if (key.KeyCode == TCODKeyCode.Left) {
-                Player.MoveTo(new Vec(Player.Position.X - 1, Player.Position.Y), _map);
+                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X - 1, Player.Position.Y), _map);
             }
             if (key.KeyCode == TCODKeyCode.Up) {
-                Player.MoveTo(new Vec(Player.Position.X, Player.Position.Y - 1), _map);
+                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X, Player.Position.Y - 1), _map);
             }
             if (key.KeyCode == TCODKeyCode.Down) {
-                Player.MoveTo(new Vec(Player.Position.X, Player.Position.Y + 1), _map);
+                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X, Player.Position.Y + 1), _map);
             }
         }
 
@@ -87,17 +84,47 @@ namespace OctoGhast.Renderer
         public void Render(TCODConsole buffer) {
             var fovChanged = _camera.MoveTo(Player.Position);
 
+            if (_dirtyFov) {
+                _map.CalculateFov(Player.Position, 8);
+                _dirtyFov = false;
+            }
+
+            //if (fovChanged)
+                //_map.InvalidateMap();
+
             var frustumView = _map.GetFrustumView(_camera);
 
             for (int x = 0; x < _camera.Width; x++) {
                 for (int y = 0; y < _camera.Height; y++) {
-                    buffer.putCharEx(x, y, frustumView[x, y].Glyph, frustumView[x, y].Glyph == '#' ? TCODColor.grey : TCODColor.brass, TCODColor.black);
+                    var worldCoords = _camera.ToWorldCoords(new Vec(x, y));
+
+                    buffer.putCharEx(x, y, ' ', TCODColor.black, TCODColor.black);
+
+                    if (_map.IsExplored(worldCoords.X, worldCoords.Y))
+                    {
+                        buffer.putCharEx(x, y, frustumView[x, y].Glyph, TCODColor.darkGrey, TCODColor.black);
+                    }
+
+                    if (_map.IsVisible(worldCoords.X, worldCoords.Y)) {
+                        buffer.putCharEx(x, y, frustumView[x, y].Glyph, TCODColor.flame, TCODColor.black);
+                    }
+
+
+                    //if (!_map.IsTransparent(worldCoords.X, worldCoords.Y)) {
+                    //    buffer.putCharEx(x, y, '0', TCODColor.azure, TCODColor.lightBlue);
+                    //}
                 }
             }
 
             foreach (var obj in _objects) {
-                obj.Draw(buffer, _camera.ToViewCoords(obj.Position));
+                var worldCoords = _camera.ToWorldCoords(obj.Position);
+
+                if (_map.IsVisible(worldCoords.X, worldCoords.Y) && obj != Player) {
+                    obj.Draw(buffer, _camera.ToViewCoords(obj.Position));
+                }
             }
+
+            Player.Draw(buffer, _camera.ToViewCoords(Player.Position));
 
             buffer.setForegroundColor(TCODColor.white);
             var playerVis = _camera.ToViewCoords(Player.Position);
@@ -105,7 +132,7 @@ namespace OctoGhast.Renderer
             buffer.print(0, 24, String.Format("P: {0},{1}; VP: {2},{3}", Player.Position.X, Player.Position.Y,
                 playerVis.Y, playerVis.X));
 
-            buffer.print(0, 23, String.Format("FL: {0}", TCODSystem.getLastFrameLength()));
+            buffer.print(0, 23, String.Format("FL: {0}", TCODSystem.getFps()));
 
             TCODConsole.flush();
         }

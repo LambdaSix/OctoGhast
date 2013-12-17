@@ -5,7 +5,7 @@ namespace OctoGhast.Renderer
 {
     public class Camera : ICamera
     {
-        public Vec Position { get; set; }
+        public Vec CameraPosition { get; set; }
 
         public Rect Dimensions { get; set; }
 
@@ -19,9 +19,20 @@ namespace OctoGhast.Renderer
             get { return MapSize.Height; }
         }
 
+        public Vec ToWorldCoords(Vec position) {
+            var targetX = position.X + CameraPosition.X;
+            var targetY = position.Y + CameraPosition.Y;
+
+            if (targetX < 0 || targetY < 0 || targetX >= MapSize.Width || targetY >= MapSize.Height) {
+                return CameraPosition;
+            }
+
+            return new Vec(targetX, targetY);
+        }
+
         public Vec ToViewCoords(Vec position) {
-            var targetX = position.X - Position.X;
-            var targetY = position.Y - Position.Y;
+            var targetX = position.X - CameraPosition.X;
+            var targetY = position.Y - CameraPosition.Y;
 
             if (targetX < 0 || targetY < 0 || targetX >= Dimensions.Width || targetY >= Dimensions.Height)
                 return Vec.Zero;
@@ -29,8 +40,8 @@ namespace OctoGhast.Renderer
             return new Vec(targetX, targetY);
         }
 
-        public Camera(Vec positionVec, Rect dimensions, Rect mapSize) {
-            Position = positionVec;
+        public Camera(Vec cameraPositionVec, Rect dimensions, Rect mapSize) {
+            CameraPosition = cameraPositionVec;
             Dimensions = dimensions;
             MapSize = mapSize;
         }
@@ -50,9 +61,9 @@ namespace OctoGhast.Renderer
 
             var newPosition = new Vec(targetX, targetY);
 
-            var isFovChanged = (targetX != Position.X || targetY != Position.Y);
+            var isFovChanged = (targetX != CameraPosition.X || targetY != CameraPosition.Y);
 
-            Position = newPosition;
+            CameraPosition = newPosition;
             return isFovChanged;
         }
     }
