@@ -4,7 +4,7 @@ namespace OctoGhast.DataStructures.Renderer
 {
     public interface ICamera
     {
-        Vec Position { get; set; }
+        Vec CameraPosition { get; set; }
         Rect Dimensions { get; set; }
         Rect MapSize { get; set; }
         int MapWidth { get; }

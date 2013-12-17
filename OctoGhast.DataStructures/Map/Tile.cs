@@ -2,7 +2,7 @@
 {
     public interface ITile
     {
-        bool IsVisible { get; set; }
+        bool IsExplored { get; set; }
         bool IsWalkable { get; set; }
         int Glyph { get; set; }
     }
@@ -11,8 +11,8 @@
 
     public class Tile : ITile
     {
-        public bool IsVisible { get; set; }
         public bool IsWalkable { get; set; }
+        public bool IsExplored { get; set; }
         public int Glyph { get; set; }
     }
 }
