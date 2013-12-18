@@ -69,6 +69,9 @@ namespace OctoGhast.DataStructures.Map
             _tcodMap = new TCODMap(width, height);
         }
 
+        /// <summary>
+        /// Recalculate all walkable/transparency attributes for the cells in the map.
+        /// </summary>
         public void InvalidateMap() {
             for (int y = 0; y < MapArray.Height; y++) {
                 for (int x = 0; x < MapArray.Width; x++) {
@@ -82,10 +85,22 @@ namespace OctoGhast.DataStructures.Map
             }
         }
 
+        /// <summary>
+        /// Determines if the given location transparent for the purposes of lighting.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         public bool IsTransparent(int x, int y) {
             return _tcodMap.isTransparent(x,y);
         }
 
+        /// <summary>
+        /// Determines if the given location is visible to the player.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         public bool IsVisible(int x, int y)
         {
             if (_tcodMap.isInFov(x, y)) {
@@ -101,11 +116,26 @@ namespace OctoGhast.DataStructures.Map
             return MapArray[x, y].IsExplored;
         }
 
+        public bool IsWalkable(Vec position) {
+            return MapArray[position.X, position.Y].IsWalkable;
+        }
+
+        /// <summary>
+        /// Update the FOV state based on the players current location of the radius of
+        /// their light.
+        /// </summary>
+        /// <param name="playerVec"></param>
+        /// <param name="lightRadius"></param>
         public void CalculateFov(Vec playerVec, int lightRadius)
         {
             _tcodMap.computeFov(playerVec.X, playerVec.Y, lightRadius, true, TCODFOVTypes.DiamondFov);
         }
 
+        /// <summary>
+        /// Get the subset of the loaded map currently viewable by the given camera.
+        /// </summary>
+        /// <param name="frustum"></param>
+        /// <returns></returns>
         public Array2D<Tile> GetFrustumView(ICamera frustum) {
             var dst = new Array2D<Tile>(frustum.Width, frustum.Height);
 
