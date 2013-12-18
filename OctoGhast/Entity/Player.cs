@@ -4,7 +4,7 @@ using OctoGhast.Spatial;
 
 namespace OctoGhast.Entity
 {
-    public class Player : GameObject
+    public class Player : Mobile
     {
         public Player(Vec position, char glyph, TCODColor color) : base(position, glyph, color) {}
     }

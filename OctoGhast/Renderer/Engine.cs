@@ -71,17 +71,17 @@ namespace OctoGhast.Renderer
 
         public void ProcessKey(TCODKey key) {
             if (key.KeyCode == TCODKeyCode.Right) {
-                Player.MoveTo(new Vec(Player.Position.X + 1, Player.Position.Y), _map);
+                Player.MoveTo(new Vec(Player.Position.X + 1, Player.Position.Y), _map, _objects.OfType<Mobile>());
                 _dirtyFov = true;
             }
             if (key.KeyCode == TCODKeyCode.Left) {
-                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X - 1, Player.Position.Y), _map);
+                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X - 1, Player.Position.Y), _map, _objects.OfType<Mobile>());
             }
             if (key.KeyCode == TCODKeyCode.Up) {
-                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X, Player.Position.Y - 1), _map);
+                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X, Player.Position.Y - 1), _map, _objects.OfType<Mobile>());
             }
             if (key.KeyCode == TCODKeyCode.Down) {
-                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X, Player.Position.Y + 1), _map);
+                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X, Player.Position.Y + 1), _map, _objects.OfType<Mobile>());
             }
         }
 
