@@ -8,10 +8,9 @@ using OctoGhast.Spatial;
 
 namespace OctoGhast.DataStructures.Entity
 {
-    public interface IMobile
+    public interface IMobile : IGameObject
     {
         bool MoveTo(Vec position);
-
     }
 
     public class Mobile : GameObject, IMobile

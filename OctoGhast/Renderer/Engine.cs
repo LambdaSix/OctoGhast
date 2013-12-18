@@ -68,20 +68,22 @@ namespace OctoGhast.Renderer
         }
 
         private bool _dirtyFov;
+        private IEnumerable<IMobile> GetMobilesInView() {
+            return _objects.OfType<IMobile>().Where(mob => _camera.ViewFrustum.Contains(mob.Position));
+        }
 
         public void ProcessKey(TCODKey key) {
             if (key.KeyCode == TCODKeyCode.Right) {
-                Player.MoveTo(new Vec(Player.Position.X + 1, Player.Position.Y), _map, _objects.OfType<Mobile>());
-                _dirtyFov = true;
+                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X + 1, Player.Position.Y), _map, GetMobilesInView());
             }
             if (key.KeyCode == TCODKeyCode.Left) {
-                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X - 1, Player.Position.Y), _map, _objects.OfType<Mobile>());
+                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X - 1, Player.Position.Y), _map, GetMobilesInView());
             }
             if (key.KeyCode == TCODKeyCode.Up) {
-                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X, Player.Position.Y - 1), _map, _objects.OfType<Mobile>());
+                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X, Player.Position.Y - 1), _map, GetMobilesInView());
             }
             if (key.KeyCode == TCODKeyCode.Down) {
-                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X, Player.Position.Y + 1), _map, _objects.OfType<Mobile>());
+                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X, Player.Position.Y + 1), _map, GetMobilesInView());
             }
         }
 
