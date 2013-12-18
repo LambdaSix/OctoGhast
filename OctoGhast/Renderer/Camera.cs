@@ -7,6 +7,16 @@ namespace OctoGhast.Renderer
     {
         public Vec CameraPosition { get; set; }
 
+        /// <summary>
+        /// Center point of the camera.
+        /// </summary>
+        public Vec CameraCenter {
+            get {
+                // CameraPosition is the top-left corner of the view, so move to the right and down
+                return new Vec(CameraPosition.X + Width/2, CameraPosition.Y + Height/2);
+            }
+        }
+
         public Rect Dimensions { get; set; }
 
         public Rect MapSize { get; set; }
