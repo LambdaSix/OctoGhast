@@ -58,6 +58,7 @@ namespace OctoGhast.Renderer
 
         public int Width {get { return Dimensions.Width; }}
         public int Height { get { return Dimensions.Height; }}
+        public Rect ViewFrustum { get; private set; }
 
         public bool MoveTo(Vec position) {
             var targetX = position.X - Width/2;
@@ -74,6 +75,7 @@ namespace OctoGhast.Renderer
             var isFovChanged = (targetX != CameraPosition.X || targetY != CameraPosition.Y);
 
             CameraPosition = newPosition;
+            ViewFrustum = new Rect(CameraPosition, Width, Height);
             return isFovChanged;
         }
     }
