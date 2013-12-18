@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entity\GameObject.cs" />
+    <Compile Include="Entity\Mobile.cs" />
     <Compile Include="Map\GameMap.cs" />
     <Compile Include="Map\Tile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
