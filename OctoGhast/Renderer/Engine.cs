@@ -138,11 +138,10 @@ namespace OctoGhast.Renderer
                 }
             }
 
-            foreach (var obj in _objects) {
-                var worldCoords = _camera.ToWorldCoords(obj.Position);
-
-                if (_map.IsVisible(worldCoords.X, worldCoords.Y) && obj != Player) {
-                    obj.Draw(buffer, _camera.ToViewCoords(obj.Position));
+            // For each possibly visible mobile, see if the player can see it and draw appropriately.
+            foreach (var mobile in GetMobilesInView()) {
+                if (_map.IsVisible(mobile.Position.X, mobile.Position.Y) && mobile != Player) {
+                    mobile.Draw(buffer, _camera.ToViewCoords(mobile.Position));
                 }
             }
 
