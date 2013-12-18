@@ -16,12 +16,18 @@ namespace OctoGhast.Renderer
     public class Engine
     {
         private GameMap _map;
+        private Camera _camera;
+
+        // Because we access black /so much/ per frame, memoize it to avoid going
+        // across the P/Invoke border to libTCOD
+        private static readonly TCODColor ColorBlack = TCODColor.black;
 
         private TCODConsole Screen { get; set; }
         public int Height { get; set; }
         public int Width { get; set; }
 
         private ICollection<GameObject> _objects = new List<GameObject>();
+
         public Player Player { get; set; }
 
         public Engine(int width, int height) {
@@ -98,21 +104,16 @@ namespace OctoGhast.Renderer
                 for (int y = 0; y < _camera.Height; y++) {
                     var worldCoords = _camera.ToWorldCoords(new Vec(x, y));
 
-                    buffer.putCharEx(x, y, ' ', TCODColor.black, TCODColor.black);
+                    buffer.putCharEx(x, y, ' ', ColorBlack, ColorBlack);
 
                     if (_map.IsExplored(worldCoords.X, worldCoords.Y))
                     {
-                        buffer.putCharEx(x, y, frustumView[x, y].Glyph, TCODColor.darkGrey, TCODColor.black);
+                        buffer.putCharEx(x, y, frustumView[x, y].Glyph, TCODColor.darkGrey, ColorBlack);
                     }
 
                     if (_map.IsVisible(worldCoords.X, worldCoords.Y)) {
-                        buffer.putCharEx(x, y, frustumView[x, y].Glyph, TCODColor.flame, TCODColor.black);
+                        buffer.putCharEx(x, y, frustumView[x, y].Glyph, TCODColor.flame, ColorBlack);
                     }
-
-
-                    //if (!_map.IsTransparent(worldCoords.X, worldCoords.Y)) {
-                    //    buffer.putCharEx(x, y, '0', TCODColor.azure, TCODColor.lightBlue);
-                    //}
                 }
             }
 
