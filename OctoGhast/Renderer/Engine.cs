@@ -29,6 +29,7 @@ namespace OctoGhast.Renderer
         private ICollection<GameObject> _objects = new List<GameObject>();
 
         public Player Player { get; set; }
+        private bool _dirtyFov;
 
         public Engine(int width, int height) {
             Height = height;
@@ -67,12 +68,30 @@ namespace OctoGhast.Renderer
             ProcessKey(key);
         }
 
-        private bool _dirtyFov;
         private IEnumerable<IMobile> GetMobilesInView() {
             return _objects.OfType<IMobile>().Where(mob => _camera.ViewFrustum.Contains(mob.Position));
         }
 
-        public void ProcessKey(TCODKey key) {
+        private void ProcessKey(TCODKey key) {
+            // If we're holding down Shift, then just scroll the camera around and ignore the player.
+            if (key.Shift && key.KeyCode == TCODKeyCode.Right) {
+                _camera.MoveTo(new Vec(_camera.CameraCenter.X + 1, _camera.CameraCenter.Y));
+                return;
+            }
+            if (key.Shift && key.KeyCode == TCODKeyCode.Left) {
+                _camera.MoveTo(new Vec(_camera.CameraCenter.X - 1, _camera.CameraCenter.Y));
+                return;
+            }
+            if (key.Shift && key.KeyCode == TCODKeyCode.Up) {
+                _camera.MoveTo(new Vec(_camera.CameraCenter.X, _camera.CameraCenter.Y - 1));
+                return;
+            }
+            if (key.Shift && key.KeyCode == TCODKeyCode.Down) {
+                _camera.MoveTo(new Vec(_camera.CameraCenter.X, _camera.CameraCenter.Y + 1));
+                return;
+            }
+
+            // Otherwise, move the player directly.
             if (key.KeyCode == TCODKeyCode.Right) {
                 _dirtyFov = Player.MoveTo(new Vec(Player.Position.X + 1, Player.Position.Y), _map, GetMobilesInView());
             }
