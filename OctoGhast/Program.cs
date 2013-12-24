@@ -14,11 +14,9 @@ namespace OctoGhast
             var engine = new Engine(80,25);
             engine.Setup();
 
-            while (true) {
+            while (engine.IsRunning) {
                 engine.Update();
             }
-
-            Console.ReadKey();
         }
     }
 }
