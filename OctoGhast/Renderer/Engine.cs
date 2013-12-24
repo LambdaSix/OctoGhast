@@ -28,7 +28,7 @@ namespace OctoGhast.Renderer
 
             var mapGen = new BSPDungeonGenerator {
                 PlayerPlacementFunc = (rect) => playerPosition = rect.Center,
-                MobilePlacementFunc = (rect) => _objects.Add(new Mobile(rect.Center, 'c', TCODColor.orange)),
+                MobilePlacementFunc = (rect) => _objects.Add(new Mobile(rect.Center, 'c', TCODColor.orange, "A smelly orcses")),
             };
 
             _map = new GameMap(Width*3, Height*3);

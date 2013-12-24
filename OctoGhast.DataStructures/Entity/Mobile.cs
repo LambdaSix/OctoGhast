@@ -11,12 +11,17 @@ namespace OctoGhast.DataStructures.Entity
     public interface IMobile : IGameObject
     {
         bool MoveTo(Vec position);
+        bool Attack(IMobile other);
     }
 
     public class Mobile : GameObject, IMobile
     {
-        public Mobile(Vec position, char glyph, TCODColor color) : base(position, glyph, color) {
+        public Mobile(Vec position, char glyph, TCODColor color, string name) : base(position, glyph, color, name) {
             
+        }
+
+        public virtual bool Attack(IMobile other) {
+            return false;
         }
 
         private bool CanWalk(Vec position, IGameMap gameMap, IEnumerable<IMobile> mobiles) {
@@ -24,7 +29,13 @@ namespace OctoGhast.DataStructures.Entity
                 return false;
             }
 
-            var canWalk = mobiles.All(actor => actor.Position != position);
+            var collidedWith = mobiles.FirstOrDefault(actor => actor.Position == position);
+
+            var canWalk = collidedWith == null;
+
+            if (!canWalk) {
+                Attack(collidedWith);
+            }
 
             return canWalk;
         }
