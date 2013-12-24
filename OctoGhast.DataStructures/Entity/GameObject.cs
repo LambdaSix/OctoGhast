@@ -26,6 +26,7 @@ namespace OctoGhast.DataStructures.Entity
     {
         Vec Position { get; }
         IGlyph Glyph { get; }
+        string Name { get; }
 
         void Draw(TCODConsole buffer, Vec drawPos);
     }
@@ -35,6 +36,7 @@ namespace OctoGhast.DataStructures.Entity
         public Vec Position { get; protected set; }
         public IGlyph Glyph { get; protected set; }
         public TCODColor Color { get; protected set; }
+        public string Name { get; protected set; }
 
         public GameObject(Vec position, IGlyph glyph, TCODColor color) {
             Position = position;
@@ -44,6 +46,10 @@ namespace OctoGhast.DataStructures.Entity
 
         public GameObject(Vec position, int glyph, TCODColor color) : this(position, new Glyph(glyph), color) {
             
+        }
+
+        public GameObject(Vec position, int glyph, TCODColor color, string name) : this(position, new Glyph(glyph), color) {
+            Name = name;
         }
 
         public virtual void Draw(TCODConsole buffer, Vec drawPosition)

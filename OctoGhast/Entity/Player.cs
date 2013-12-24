@@ -1,11 +1,18 @@
-﻿using libtcod;
+﻿using System;
+using libtcod;
 using OctoGhast.DataStructures.Entity;
+using OctoGhast.Renderer;
 using OctoGhast.Spatial;
 
 namespace OctoGhast.Entity
 {
     public class Player : Mobile
     {
-        public Player(Vec position, char glyph, TCODColor color) : base(position, glyph, color) {}
+        public Player(Vec position, char glyph, TCODColor color) : base(position, glyph, color, "Player") {}
+
+        public override bool Attack(IMobile other) {
+            Console.WriteLine("Bumped into {0}, but I have no weapon :(", other.Name);
+            return true;
+        }
     }
 }
