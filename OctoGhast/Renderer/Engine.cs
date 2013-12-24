@@ -15,7 +15,7 @@ namespace OctoGhast.Renderer
         // Because we access black /so much/ per frame, memoize it to avoid going
         // across the P/Invoke border to libTCOD
         private static readonly TCODColor ColorBlack = TCODColor.black;
-        private readonly GameMap _map;
+        private readonly IGameMap _map;
         private readonly ICollection<GameObject> _objects = new List<GameObject>();
         private Camera _camera;
         private bool _dirtyFov;
@@ -32,12 +32,13 @@ namespace OctoGhast.Renderer
             };
 
             _map = new GameMap(Width*3, Height*3);
-            mapGen.GenerateMap(_map.MapArray.Bounds);
-            _map.MapArray = mapGen.Map;
+            mapGen.GenerateMap(_map.Bounds);
+            _map.SetFrom(mapGen.Map);
             _map.InvalidateMap();
 
             Player = new Player(playerPosition, '@', TCODColor.amber);
             Player.MoveTo(playerPosition, _map, Enumerable.Empty<IMobile>());
+            _map.CalculateFov(playerPosition, 8);
         }
 
         
@@ -61,7 +62,8 @@ namespace OctoGhast.Renderer
 
             _objects.Add(Player);
 
-            _camera = new Camera(Player.Position, new Rect(80, 25), _map.MapArray.Bounds);
+            _camera = new Camera(Player.Position, new Rect(80, 25), _map.Bounds);
+            _camera.MoveTo(Player.Position);
 
             IsRunning = true;
         }

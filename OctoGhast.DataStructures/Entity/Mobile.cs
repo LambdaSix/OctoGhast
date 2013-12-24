@@ -19,7 +19,7 @@ namespace OctoGhast.DataStructures.Entity
             
         }
 
-        private bool CanWalk(Vec position, GameMap gameMap, IEnumerable<IMobile> mobiles) {
+        private bool CanWalk(Vec position, IGameMap gameMap, IEnumerable<IMobile> mobiles) {
             if (isWall(gameMap, position)) {
                 return false;
             }
@@ -29,7 +29,7 @@ namespace OctoGhast.DataStructures.Entity
             return canWalk;
         }
 
-        private bool isWall(GameMap map, Vec position) {
+        private bool isWall(IGameMap map, Vec position) {
             return !map.IsWalkable(position);
         }
 
@@ -44,7 +44,7 @@ namespace OctoGhast.DataStructures.Entity
         /// <param name="gameMap">The world map being navigated</param>
         /// <param name="mobiles">List of mobiles to check for collision against</param>
         /// <returns>True if could move, false if couldn't</returns>
-        public bool MoveTo(Vec position, GameMap gameMap, IEnumerable<IMobile> mobiles)
+        public bool MoveTo(Vec position, IGameMap gameMap, IEnumerable<IMobile> mobiles)
         {
             if (CanWalk(position, gameMap, mobiles))
             {
