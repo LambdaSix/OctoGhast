@@ -48,6 +48,7 @@ namespace OctoGhast.Renderer
         public int Width { get; set; }
 
         public Player Player { get; set; }
+        public bool IsRunning { get; private set; }
 
         /// <summary>
         /// Initialize the Engine and window.
@@ -61,6 +62,14 @@ namespace OctoGhast.Renderer
             _objects.Add(Player);
 
             _camera = new Camera(Player.Position, new Rect(80, 25), _map.MapArray.Bounds);
+
+            IsRunning = true;
+        }
+
+        public void Shutdown() {
+            // TODO: Cleanup any libtcod/native resources.
+
+            IsRunning = false;
         }
 
         /// <summary>
@@ -77,6 +86,12 @@ namespace OctoGhast.Renderer
         }
 
         private void ProcessKey(TCODKey key) {
+            // System bindings
+
+            if (key.KeyCode == TCODKeyCode.Escape) {
+                Shutdown();
+            }
+
             // If we're holding down Shift, then just scroll the camera around and ignore the player.
             if (key.Shift && key.KeyCode == TCODKeyCode.Right) {
                 _camera.MoveTo(new Vec(_camera.CameraCenter.X + 1, _camera.CameraCenter.Y));
