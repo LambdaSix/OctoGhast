@@ -28,7 +28,7 @@ namespace OctoGhast.MapGeneration.Dungeons
 
         public void GenerateMap(Rect dimensions) {
             Map = new Array2D<Tile>(dimensions.Width, dimensions.Height);
-            Map.Fill(vec => new Tile {Glyph = '#', IsWalkable = false, IsExplored = false});
+            Map.Fill(vec => new Tile {Glyph = '#'});
             Dimensions = dimensions;
 
             Generate();
@@ -51,7 +51,7 @@ namespace OctoGhast.MapGeneration.Dungeons
 
             for (int x = fromVec.X; x <= toVec.X; x++) {
                 for (int y = fromVec.Y; y <= toVec.Y; y++) {
-                    Map[x, y] = new Tile {Glyph = '.', IsWalkable = true};
+                    Map[x, y] = new Tile {Glyph = '.', IsWalkable = true, IsTransparent = true};
                 }
             }
         }
