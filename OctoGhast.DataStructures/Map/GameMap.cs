@@ -87,8 +87,13 @@ namespace OctoGhast.DataStructures.Map
         /// <param name="y"></param>
         /// <returns></returns>
         public bool IsVisible(int x, int y) {
-            var isVisible = MapArray[x, y].IsExplored = LightMap.IsVisible(x, y);
-            return isVisible;
+            var isVisible = LightMap.IsVisible(x, y);
+
+	        if (isVisible) {
+		        MapArray[x, y].IsExplored = true;
+	        }
+
+	        return isVisible;
         }
 
         public bool IsExplored(int x, int y)
