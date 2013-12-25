@@ -1,4 +1,6 @@
-﻿using OctoGhast.Spatial;
+﻿using System;
+using OctoGhast.DataStructures.Map;
+using OctoGhast.Spatial;
 
 namespace OctoGhast.MapGeneration
 {
@@ -22,4 +24,17 @@ namespace OctoGhast.MapGeneration
 
         // TODO: Properties for supported methods? (Contiguous, layered, indoor/outdoor, portalled, chunkable, threading, etc)
     }
+
+	public interface ITileMapGenerator : IMapGenerator<Tile>
+	{
+		/// <summary>
+		/// Provides co-ordinates for the player in the form of the room size
+		/// </summary>
+		Action<Rect> PlayerPlacementFunc { get; set; }
+
+		/// <summary>
+		/// Provides for placing NPC's or recording their suggested position
+		/// </summary>
+		Action<Rect> MobilePlacementFunc { get; set; }
+	}
 }

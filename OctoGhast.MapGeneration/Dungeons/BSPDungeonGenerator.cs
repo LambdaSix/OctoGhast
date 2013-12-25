@@ -9,7 +9,7 @@ using OctoGhast.Spatial;
 
 namespace OctoGhast.MapGeneration.Dungeons
 {
-    public class BSPDungeonGenerator : IMapGenerator<Tile>
+    public class BSPDungeonGenerator : ITileMapGenerator
     {
         public Array2D<Tile> Map { get; private set; }
 
