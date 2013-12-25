@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using OctoGhast.DataStructures.Renderer;
+using OctoGhast.MapGeneration;
 using libtcod;
 using OctoGhast.DataStructures.Entity;
 using OctoGhast.DataStructures.Map;
@@ -17,31 +19,30 @@ namespace OctoGhast.Renderer
         private static readonly TCODColor ColorBlack = TCODColor.black;
         private readonly IGameMap _map;
         private readonly ICollection<GameObject> _objects = new List<GameObject>();
-        private Camera _camera;
+        private readonly ICamera _camera;
         private bool _dirtyFov;
 
-        public Engine(int width, int height) {
+        public Engine(int width, int height, ICamera camera, Player player, ITileMapGenerator mapGenerator) {
             Height = height;
             Width = width;
 
-            var playerPosition = new Vec(0, 0);
-
-            var mapGen = new BSPDungeonGenerator {
-                PlayerPlacementFunc = (rect) => playerPosition = rect.Center,
-                MobilePlacementFunc = (rect) => _objects.Add(new Mobile(rect.Center, 'c', TCODColor.orange, "A smelly orcses")),
-            };
+			var playerPosition = new Vec(0, 0);
+	        mapGenerator.MobilePlacementFunc = (rect) => playerPosition = rect.Center;
+	        mapGenerator.PlayerPlacementFunc =
+		        (rect) => _objects.Add(new Mobile(rect.Center, 'c', TCODColor.orange, "A Smelly Orcses"));
 
             _map = new GameMap(Width*3, Height*3);
-            mapGen.GenerateMap(_map.Bounds);
-            _map.SetFrom(mapGen.Map);
+            mapGenerator.GenerateMap(_map.Bounds);
+            _map.SetFrom(mapGenerator.Map);
             _map.InvalidateMap();
 
-            Player = new Player(playerPosition, '@', TCODColor.amber);
+	        Player = player;
             Player.MoveTo(playerPosition, _map, Enumerable.Empty<IMobile>());
             _map.CalculateFov(playerPosition, 8);
-        }
 
-        
+	        _camera = camera;
+	        _camera.MoveTo(Player.Position);
+        }
 
         private TCODConsole Screen { get; set; }
 
@@ -61,8 +62,6 @@ namespace OctoGhast.Renderer
             Screen = TCODConsole.root;
 
             _objects.Add(Player);
-
-            _camera = new Camera(Player.Position, new Rect(80, 25), _map.Bounds);
             _camera.MoveTo(Player.Position);
 
             IsRunning = true;
