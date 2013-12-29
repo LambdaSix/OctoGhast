@@ -35,6 +35,9 @@
     <Reference Include="libtcod-net">
       <HintPath>..\lib\libtcod\libtcod-net.dll</HintPath>
     </Reference>
+    <Reference Include="Ninject">
+      <HintPath>..\packages\Ninject.3.0.1.10\lib\net45-full\Ninject.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -44,14 +47,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\Config.cs" />
+    <Compile Include="Configuration\IConfig.cs" />
     <Compile Include="Renderer\Camera.cs" />
     <Compile Include="Renderer\Engine.cs" />
     <Compile Include="Entity\Player.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Configuration\EngineConfiguration.cs" />
+    <Compile Include="Configuration\IEngineConfiguration.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="celtic_garamond_10x10_gs_tc.png">

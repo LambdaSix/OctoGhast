@@ -6,8 +6,13 @@ using OctoGhast.Spatial;
 
 namespace OctoGhast.Entity
 {
-    public class Player : Mobile
-    {
+	public interface IPlayer : IMobile
+	{
+		// TODO: Player specific things. (If any?)
+	}
+
+	public class Player : Mobile, IPlayer
+	{
         public Player(Vec position, char glyph, TCODColor color) : base(position, glyph, color, "Player") {}
 
         public override bool Attack(IMobile other) {

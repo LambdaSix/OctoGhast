@@ -3,80 +3,107 @@ using OctoGhast.Spatial;
 
 namespace OctoGhast.Renderer
 {
-    public class Camera : ICamera
-    {
-        public Vec CameraPosition { get; set; }
+	public class Camera : ICamera
+	{
+		public Camera(Vec cameraPositionVec, Rect dimensions, Rect mapSize) {
+			CameraPosition = cameraPositionVec;
+			Dimensions = dimensions;
+			MapSize = mapSize;
+		}
 
-        /// <summary>
-        /// Center point of the camera.
-        /// </summary>
-        public Vec CameraCenter {
-            get {
-                // CameraPosition is the top-left corner of the view, so move to the right and down
-                return new Vec(CameraPosition.X + Width/2, CameraPosition.Y + Height/2);
-            }
-        }
+		public Vec CameraPosition { get; set; }
 
-        public Rect Dimensions { get; set; }
+		/// <summary>
+		///     Center point of the camera.
+		/// </summary>
+		public Vec CameraCenter {
+			get {
+				// CameraPosition is the top-left corner of the view, so move to the right and down
+				return new Vec(CameraPosition.X + Width/2, CameraPosition.Y + Height/2);
+			}
+		}
 
-        public Rect MapSize { get; set; }
+		public Rect Dimensions { get; set; }
 
-        public int MapWidth {
-            get { return MapSize.Width; }
-        }
+		public Rect MapSize { get; set; }
 
-        public int MapHeight {
-            get { return MapSize.Height; }
-        }
+		public int MapWidth {
+			get { return MapSize.Width; }
+		}
 
-        public Vec ToWorldCoords(Vec position) {
-            var targetX = position.X + CameraPosition.X;
-            var targetY = position.Y + CameraPosition.Y;
+		public int MapHeight {
+			get { return MapSize.Height; }
+		}
 
-            if (targetX < 0 || targetY < 0 || targetX >= MapSize.Width || targetY >= MapSize.Height) {
-                return CameraPosition;
-            }
+		/// <summary>
+		/// Determine if <paramref name="target"/> is outside of <paramref name="container"/>
+		/// </summary>
+		/// <param name="target">The point vector to check</param>
+		/// <param name="container">The bounding rectangle to check against</param>
+		/// <returns>True if the target is outside the container</returns>
+		private static bool IsOutside(Vec target, Rect container) {
+			return (target.X < 0 || target.Y < 0 || target.X >= container.Width || target.Y >= container.Height);
+		}
 
-            return new Vec(targetX, targetY);
-        }
+		public Vec ToWorldCoords(Vec position) {
+			var target = position + CameraPosition;
 
-        public Vec ToViewCoords(Vec position) {
-            var targetX = position.X - CameraPosition.X;
-            var targetY = position.Y - CameraPosition.Y;
+			if (IsOutside(target,MapSize)) {
+				return CameraPosition;
+			}
 
-            if (targetX < 0 || targetY < 0 || targetX >= Dimensions.Width || targetY >= Dimensions.Height)
-                return Vec.Zero;
+			return target;
+		}
 
-            return new Vec(targetX, targetY);
-        }
+		public Vec ToViewCoords(Vec position) {
+			var target = position - CameraPosition;
 
-        public Camera(Vec cameraPositionVec, Rect dimensions, Rect mapSize) {
-            CameraPosition = cameraPositionVec;
-            Dimensions = dimensions;
-            MapSize = mapSize;
-        }
+			if (IsOutside(target, Dimensions)) {
+				return Vec.Zero;
+			}
 
-        public int Width {get { return Dimensions.Width; }}
-        public int Height { get { return Dimensions.Height; }}
-        public Rect ViewFrustum { get; private set; }
+			return target;
+		}
 
-        public bool MoveTo(Vec position) {
-            var targetX = position.X - Width/2;
-            var targetY = position.Y - Height/2;
+		public int Width {
+			get { return Dimensions.Width; }
+		}
 
-            if (targetX < 0) targetX = 0;
-            if (targetY < 0) targetY = 0;
+		public int Height {
+			get { return Dimensions.Height; }
+		}
 
-            if (targetX > MapWidth - Width - 1) targetX = MapWidth - Width - 1;
-            if (targetY > MapHeight - Height - 1) targetY = MapHeight - Height - 1;
+		/// <summary>
+		/// Returns the area this camera can see (The View Frustum)
+		/// </summary>
+		public Rect ViewFrustum {
+			get { return new Rect(CameraPosition, Width, Height); }
+		}
 
-            var newPosition = new Vec(targetX, targetY);
+		public bool MoveTo(Vec position) {
+			int targetX = position.X - Width/2;
+			int targetY = position.Y - Height/2;
 
-            var isFovChanged = (targetX != CameraPosition.X || targetY != CameraPosition.Y);
+			if (targetX < 0) {
+				targetX = 0;
+			}
+			if (targetY < 0) {
+				targetY = 0;
+			}
 
-            CameraPosition = newPosition;
-            ViewFrustum = new Rect(CameraPosition, Width, Height);
-            return isFovChanged;
-        }
-    }
+			if (targetX > MapWidth - Width - 1) {
+				targetX = MapWidth - Width - 1;
+			}
+			if (targetY > MapHeight - Height - 1) {
+				targetY = MapHeight - Height - 1;
+			}
+
+			var newPosition = new Vec(targetX, targetY);
+
+			bool isFovChanged = (targetX != CameraPosition.X || targetY != CameraPosition.Y);
+
+			CameraPosition = newPosition;
+			return isFovChanged;
+		}
+	}
 }
