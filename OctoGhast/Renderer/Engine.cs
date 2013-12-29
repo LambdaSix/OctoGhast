@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using OctoGhast.DataStructures.Renderer;
-using OctoGhast.MapGeneration;
 using libtcod;
 using OctoGhast.DataStructures.Entity;
 using OctoGhast.DataStructures.Map;
@@ -12,35 +11,59 @@ using OctoGhast.Spatial;
 
 namespace OctoGhast.Renderer
 {
-    public class Engine
-    {
+	public interface IEngine
+	{
+		int Height { get; set; }
+		int Width { get; set; }
+		IPlayer Player { get; set; }
+		bool IsRunning { get; }
+
+		/// <summary>
+		/// Initialize the Engine and window.
+		/// </summary>
+		void Setup();
+
+		void Shutdown();
+
+		/// <summary>
+		/// Render a single frame and wait for input.
+		/// </summary>
+		void Update();
+
+		void Render(TCODConsole buffer);
+	}
+
+	public class Engine : IEngine
+	{
         // Because we access black /so much/ per frame, memoize it to avoid going
         // across the P/Invoke border to libTCOD
         private static readonly TCODColor ColorBlack = TCODColor.black;
         private readonly IGameMap _map;
-        private readonly ICollection<GameObject> _objects = new List<GameObject>();
+        private readonly ICollection<IGameObject> _objects = new List<IGameObject>();
         private readonly ICamera _camera;
         private bool _dirtyFov;
 
-        public Engine(int width, int height, ICamera camera, Player player, ITileMapGenerator mapGenerator) {
-            Height = height;
-            Width = width;
+        public Engine(IEngineConfiguration serviceConfiguration) {
+            Height = serviceConfiguration.Height;
+            Width = serviceConfiguration.Width;
 
-			var playerPosition = new Vec(0, 0);
-	        mapGenerator.MobilePlacementFunc = (rect) => playerPosition = rect.Center;
-	        mapGenerator.PlayerPlacementFunc =
+	        var playerPosition = Vec.Zero;
+
+			// Do the setup for placement because of closure variables.
+	        serviceConfiguration.MapGenerator.MobilePlacementFunc = (rect) => playerPosition = rect.Center;
+	        serviceConfiguration.MapGenerator.PlayerPlacementFunc =
 		        (rect) => _objects.Add(new Mobile(rect.Center, 'c', TCODColor.orange, "A Smelly Orcses"));
 
             _map = new GameMap(Width*3, Height*3);
-            mapGenerator.GenerateMap(_map.Bounds);
-            _map.SetFrom(mapGenerator.Map);
+            serviceConfiguration.MapGenerator.GenerateMap(_map.Bounds);
+            _map.SetFrom(serviceConfiguration.MapGenerator.Map);
             _map.InvalidateMap();
 
-	        Player = player;
+	        Player = serviceConfiguration.Player;
             Player.MoveTo(playerPosition, _map, Enumerable.Empty<IMobile>());
             _map.CalculateFov(playerPosition, 8);
 
-	        _camera = camera;
+	        _camera = serviceConfiguration.Camera;
 	        _camera.MoveTo(Player.Position);
         }
 
@@ -49,7 +72,7 @@ namespace OctoGhast.Renderer
         public int Height { get; set; }
         public int Width { get; set; }
 
-        public Player Player { get; set; }
+        public IPlayer Player { get; set; }
         public bool IsRunning { get; private set; }
 
         /// <summary>
@@ -95,34 +118,34 @@ namespace OctoGhast.Renderer
 
             // If we're holding down Shift, then just scroll the camera around and ignore the player.
             if (key.Shift && key.KeyCode == TCODKeyCode.Right) {
-                _camera.MoveTo(new Vec(_camera.CameraCenter.X + 1, _camera.CameraCenter.Y));
+	            _camera.MoveTo(_camera.CameraCenter.OffsetX(+1));
                 return;
             }
             if (key.Shift && key.KeyCode == TCODKeyCode.Left) {
-                _camera.MoveTo(new Vec(_camera.CameraCenter.X - 1, _camera.CameraCenter.Y));
+	            _camera.MoveTo(_camera.CameraCenter.OffsetX(-1));
                 return;
             }
             if (key.Shift && key.KeyCode == TCODKeyCode.Up) {
-                _camera.MoveTo(new Vec(_camera.CameraCenter.X, _camera.CameraCenter.Y - 1));
+	            _camera.MoveTo(_camera.CameraCenter.OffsetY(-1));
                 return;
             }
             if (key.Shift && key.KeyCode == TCODKeyCode.Down) {
-                _camera.MoveTo(new Vec(_camera.CameraCenter.X, _camera.CameraCenter.Y + 1));
+	            _camera.MoveTo(_camera.CameraCenter.OffsetY(+1));
                 return;
             }
 
             // Otherwise, move the player directly.
             if (key.KeyCode == TCODKeyCode.Right) {
-                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X + 1, Player.Position.Y), _map, GetMobilesInView());
+                _dirtyFov = Player.MoveTo(Player.Position.OffsetX(+1), _map, GetMobilesInView());
             }
             if (key.KeyCode == TCODKeyCode.Left) {
-                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X - 1, Player.Position.Y), _map, GetMobilesInView());
+                _dirtyFov = Player.MoveTo(Player.Position.OffsetX(-1), _map, GetMobilesInView());
             }
             if (key.KeyCode == TCODKeyCode.Up) {
-                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X, Player.Position.Y - 1), _map, GetMobilesInView());
+                _dirtyFov = Player.MoveTo(Player.Position.OffsetY(-1), _map, GetMobilesInView());
             }
             if (key.KeyCode == TCODKeyCode.Down) {
-                _dirtyFov = Player.MoveTo(new Vec(Player.Position.X, Player.Position.Y + 1), _map, GetMobilesInView());
+                _dirtyFov = Player.MoveTo(Player.Position.OffsetY(+1), _map, GetMobilesInView());
             }
 
             // If we managed to move the player, then update the camera to the current location.
@@ -137,7 +160,7 @@ namespace OctoGhast.Renderer
                 _dirtyFov = false;
             }
 
-            Array2D<Tile> frustumView = _map.GetFrustumView(_camera);
+            Array2D<Tile> frustumView = _map.GetFrustumView(_camera.ViewFrustum);
 
             for (int x = 0; x < _camera.Width; x++) {
                 for (int y = 0; y < _camera.Height; y++) {
@@ -167,11 +190,11 @@ namespace OctoGhast.Renderer
             buffer.setForegroundColor(TCODColor.white);
             Vec playerVis = _camera.ToViewCoords(Player.Position);
 
-            buffer.print(0, 24, String.Format("P: {0},{1}; VP: {2},{3}", Player.Position.X, Player.Position.Y,
+            buffer.print(0, Height-1, String.Format("P: {0},{1}; VP: {2},{3}", Player.Position.X, Player.Position.Y,
                 playerVis.Y, playerVis.X));
-            buffer.print(0,23, String.Format("C: {0},{1}", _camera.CameraCenter.X, _camera.CameraCenter.Y));
+            buffer.print(0, Height-2, String.Format("C: {0},{1}", _camera.CameraCenter.X, _camera.CameraCenter.Y));
 
-            buffer.print(0, 22, String.Format("FL: {0}", TCODSystem.getFps()));
+            buffer.print(0, Height-3, String.Format("FL: {0}", TCODSystem.getFps()));
 
             TCODConsole.flush();
         }

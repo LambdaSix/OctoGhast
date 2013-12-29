@@ -12,6 +12,15 @@ namespace OctoGhast.DataStructures.Entity
     {
         bool MoveTo(Vec position);
         bool Attack(IMobile other);
+
+	    /// <summary>
+	    /// Attempt to move the current mobile.
+	    /// </summary>
+	    /// <param name="position">Location to move to</param>
+	    /// <param name="gameMap">The world map being navigated</param>
+	    /// <param name="mobiles">List of mobiles to check for collision against</param>
+	    /// <returns>True if could move, false if couldn't</returns>
+	    bool MoveTo(Vec position, IGameMap gameMap, IEnumerable<IMobile> mobiles);
     }
 
     public class Mobile : GameObject, IMobile

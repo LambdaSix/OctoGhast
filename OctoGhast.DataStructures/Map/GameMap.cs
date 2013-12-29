@@ -45,7 +45,7 @@ namespace OctoGhast.DataStructures.Map
         /// </summary>
         /// <param name="frustum"></param>
         /// <returns></returns>
-        Array2D<Tile> GetFrustumView(ICamera frustum);
+        Array2D<Tile> GetFrustumView(Rect frustum);
 
         void SetFrom(Array2D<Tile> map);
     }
@@ -120,13 +120,13 @@ namespace OctoGhast.DataStructures.Map
         /// </summary>
         /// <param name="frustum"></param>
         /// <returns></returns>
-        public Array2D<Tile> GetFrustumView(ICamera frustum) {
+        public Array2D<Tile> GetFrustumView(Rect frustum) {
             var dst = new Array2D<Tile>(frustum.Width, frustum.Height);
 
             for (int y = 0; y < frustum.Height; y++) {
                 for (int x = 0; x < frustum.Width; x++) {
-                    var mapX = (frustum.CameraPosition.X + x);
-                    var mapY = (frustum.CameraPosition.Y + y);
+                    var mapX = (frustum.TopLeft.X + x);
+                    var mapY = (frustum.TopLeft.Y + y);
 
                     dst[x, y] = MapArray[mapX, mapY];
                 }
