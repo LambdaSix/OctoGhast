@@ -1,36 +1,41 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using libtcod;
+using OctoGhast.DataStructures.Entity;
 using OctoGhast.DataStructures.Map;
+using OctoGhast.Entity.Behaviours;
 using OctoGhast.Spatial;
 
-namespace OctoGhast.DataStructures.Entity
+namespace OctoGhast.Entity
 {
     public interface IMobile : IGameObject
     {
         bool MoveTo(Vec position);
         bool Attack(IMobile other);
 
-	    /// <summary>
-	    /// Attempt to move the current mobile.
-	    /// </summary>
-	    /// <param name="position">Location to move to</param>
-	    /// <param name="gameMap">The world map being navigated</param>
-	    /// <param name="mobiles">List of mobiles to check for collision against</param>
-	    /// <returns>True if could move, false if couldn't</returns>
-	    bool MoveTo(Vec position, IGameMap gameMap, IEnumerable<IMobile> mobiles);
+        /// <summary>
+        /// Attempt to move the current mobile.
+        /// </summary>
+        /// <param name="position">Location to move to</param>
+        /// <param name="gameMap">The world map being navigated</param>
+        /// <param name="mobiles">List of mobiles to check for collision against</param>
+        /// <returns>True if could move, false if couldn't</returns>
+        bool MoveTo(Vec position, IGameMap gameMap, IEnumerable<IMobile> mobiles);
     }
 
     public class Mobile : GameObject, IMobile
     {
+        protected ICollection<IEntityBehaviour> Behaviours { get; set; }
+
         public Mobile(Vec position, char glyph, TCODColor color, string name) : base(position, glyph, color, name) {
             
         }
 
         public virtual bool Attack(IMobile other) {
-            return false;
+            // TODO: Should we allow multiple attack behaviours per turn?
+            foreach (var behaviour in Behaviours.OfType<IAttackingEntityBehaviour>()) {
+                behaviour.Attack(other);
+            }
         }
 
         private bool CanWalk(Vec position, IGameMap gameMap, IEnumerable<IMobile> mobiles) {

@@ -49,6 +49,8 @@
   <ItemGroup>
     <Compile Include="Configuration\Config.cs" />
     <Compile Include="Configuration\IConfig.cs" />
+    <Compile Include="Entity\Behaviours\IUpdatingEntity.cs" />
+    <Compile Include="Entity\Mobile.cs" />
     <Compile Include="Renderer\Camera.cs" />
     <Compile Include="Renderer\Engine.cs" />
     <Compile Include="Entity\Player.cs" />

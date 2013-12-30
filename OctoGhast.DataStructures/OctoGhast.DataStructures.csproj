@@ -43,7 +43,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entity\GameObject.cs" />
-    <Compile Include="Entity\Mobile.cs" />
     <Compile Include="Lighting\ILightSource.cs" />
     <Compile Include="Lighting\LightingMap.cs" />
     <Compile Include="Lighting\LightSourceType.cs" />
