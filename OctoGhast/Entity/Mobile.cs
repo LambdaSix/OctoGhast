@@ -11,7 +11,7 @@ namespace OctoGhast.Entity
     public interface IMobile : IGameObject
     {
         bool MoveTo(Vec position);
-        bool Attack(IMobile other);
+        void Attack(IMobile other);
 
         /// <summary>
         /// Attempt to move the current mobile.
@@ -27,15 +27,24 @@ namespace OctoGhast.Entity
     {
         protected ICollection<IEntityBehaviour> Behaviours { get; set; }
 
+        public virtual IMobile Combatant { get; set; }
+
         public Mobile(Vec position, char glyph, TCODColor color, string name) : base(position, glyph, color, name) {
             
         }
 
-        public virtual bool Attack(IMobile other) {
-            // TODO: Should we allow multiple attack behaviours per turn?
-            foreach (var behaviour in Behaviours.OfType<IAttackingEntityBehaviour>()) {
-                behaviour.Attack(other);
+        public virtual void Attack(IMobile other) {
+            if (CanAttack(other)) {
+                Combatant = other;
             }
+        }
+
+        protected virtual bool CanAttack(IMobile other) {
+            return true;
+        }        
+
+        public virtual bool IsInRange(IMobile other, int distance) {
+            return Vec.IsDistanceWithin(other.Position, Position, distance);
         }
 
         private bool CanWalk(Vec position, IGameMap gameMap, IEnumerable<IMobile> mobiles) {
