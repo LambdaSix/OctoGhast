@@ -20,7 +20,7 @@ namespace OctoGhast
 		private static void Main(string[] args) {
 			var mapSize = new Rect(80*3, 25*3);
 
-			var camera = new Camera(Vec.Zero, new Rect(50, 50), mapSize);
+			var camera = new Camera(Vec.Zero, new Rect(80, 25), mapSize);
 			var player = new Player(Vec.Zero, '@', TCODColor.amber);
 			var mapGenerator = new BSPDungeonGenerator();
 
