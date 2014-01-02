@@ -50,9 +50,10 @@ namespace OctoGhast.Renderer
 			var playerPosition = Vec.Zero;
 
 			// Do the setup for placement because of closure variables.
-			serviceConfiguration.MapGenerator.MobilePlacementFunc = (rect) => playerPosition = rect.Center;
-			serviceConfiguration.MapGenerator.PlayerPlacementFunc =
-				(rect) => _objects.Add(new Mobile(rect.Center, 'c', TCODColor.orange, "A Smelly Orcses"));
+			serviceConfiguration.MapGenerator.PlayerPlacementFunc = (rect) => playerPosition = rect.Center;
+			serviceConfiguration.MapGenerator.MobilePlacementFunc = (rect) => {
+				_objects.Add(new Mobile(rect.Center, 'c', TCODColor.orange, "A Smelly Orcses"));
+			};
 
 			_map = new GameMap(Width*3, Height*3);
 			serviceConfiguration.MapGenerator.GenerateMap(_map.Bounds);
