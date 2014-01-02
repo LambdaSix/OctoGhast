@@ -63,11 +63,13 @@ namespace OctoGhast.MapGeneration.Dungeons
         private void MakeRoom(bool firstRoom, Vec a, Vec b) {
             Dig(a, b);
 
+            var position = new Rect(a, b.X - a.X, b.Y - a.Y);
+
             if (firstRoom) {
-                PlayerPlacementFunc(new Rect(a, b.X - a.X, b.Y - a.Y));
+                PlayerPlacementFunc(position);
             }
             else {
-                MobilePlacementFunc(new Rect(a, b.X - a.X, b.Y - a.Y));
+                MobilePlacementFunc(position);
             }
         }
 
