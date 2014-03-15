@@ -3,7 +3,6 @@ using System.Linq;
 using libtcod;
 using OctoGhast.DataStructures.Entity;
 using OctoGhast.DataStructures.Map;
-using OctoGhast.Entity.Behaviours;
 using OctoGhast.Spatial;
 
 namespace OctoGhast.Entity
@@ -25,8 +24,6 @@ namespace OctoGhast.Entity
 
     public class Mobile : GameObject, IMobile
     {
-        protected ICollection<IEntityBehaviour> Behaviours { get; set; }
-
         public virtual IMobile Combatant { get; set; }
 
         public Mobile(Vec position, char glyph, TCODColor color, string name) : base(position, glyph, color, name) {
