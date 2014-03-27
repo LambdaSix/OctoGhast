@@ -9,12 +9,12 @@ namespace OctoGhast.Spatial
         private readonly int _height;
 
         public Size(int width, int height) {
-            Width = width;
+            _width = width;
             _height = height;
         }
 
         public Size(Size size) {
-            Width = size.Width;
+            _width = size.Width;
             _height = size._height;
         }
 
@@ -31,9 +31,9 @@ namespace OctoGhast.Spatial
                 return false;
 
             if (obj is Size)
-                return Equals((Size)obj);
-            
-            return false;          
+                return Equals((Size) obj);
+
+            return false;
         }
 
         public bool Equals(Size other) {
@@ -56,3 +56,4 @@ namespace OctoGhast.Spatial
             return !(left == right);
         }
     }
+}
