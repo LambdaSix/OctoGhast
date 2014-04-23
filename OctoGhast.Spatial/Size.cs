@@ -26,6 +26,10 @@ namespace OctoGhast.Spatial
             get { return _height; }
         }
 
+        public bool IsEmpty {
+            get { return (Width == 0 && Height == 0); }
+        }
+
         public override bool Equals(object obj) {
             if (obj == null)
                 return false;
