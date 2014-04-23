@@ -177,6 +177,11 @@ namespace OctoGhast.Spatial
             mSize = size;
         }
 
+        public Rect(Vec pos, Size size) {
+            mPos = pos;
+            mSize = new Vec(size.Width, size.Height);
+        }
+
         public Rect(Vec size)
             : this(Vec.Zero, size)
         {
