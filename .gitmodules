@@ -1,0 +1,3 @@
+[submodule "lib/InfiniMap"]
+	path = lib/InfiniMap
+	url = git@github.com:LambdaSix/InfiniMap.git
