@@ -44,7 +44,7 @@
   <ItemGroup>
     <Compile Include="Entity\GameObject.cs" />
     <Compile Include="Lighting\ILightSource.cs" />
-    <Compile Include="Lighting\LightingMap.cs" />
+    <Compile Include="Lighting\VisibilityMap.cs" />
     <Compile Include="Lighting\LightSourceType.cs" />
     <Compile Include="Map\GameMap.cs" />
     <Compile Include="Map\Tile.cs" />
@@ -52,6 +52,10 @@
     <Compile Include="Renderer\ICamera.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\lib\InfiniMap\InfiniMap\InfiniMap.csproj">
+      <Project>{955AF4C9-12E7-4447-8E7C-C3ACD38F2DA9}</Project>
+      <Name>InfiniMap</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OctoGhast.Spatial\OctoGhast.Spatial.csproj">
       <Project>{23DB428F-E97F-4C80-910A-FDD91C548A8C}</Project>
       <Name>OctoGhast.Spatial</Name>

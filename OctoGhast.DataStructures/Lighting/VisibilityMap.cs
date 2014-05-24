@@ -1,22 +1,29 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using libtcod;
 using OctoGhast.DataStructures.Map;
 using OctoGhast.Spatial;
 
 namespace OctoGhast.DataStructures.Lighting
 {
-    public class LightingMap
+    /// <summary>
+    /// Provides calculations for FOV across a visible set.
+    /// </summary>
+    public class VisibilityMap<T> where T: ITile
     {
         private TCODMap _map;
 
-        public LightingMap(int width, int height) {
-            _map = new TCODMap(width, height);
+        public VisibilityMap(int screenWidth, int screenHeight) {
+            _map = new TCODMap(screenWidth, screenWidth);
         }
 
-        public void RefreshMapFrom(Array2D<Tile> tiles) {
-            for (int y = 0; y < tiles.Height; y++) {
-                for (int x = 0; x < tiles.Width; x++) {
-                    var tile = tiles[x, y];
+        public void RefreshMapFrom(IEnumerable<T> tiles, int stride) {
+            var pvs = tiles.ToList();
+            int xMax = pvs.Count()/stride;
+            for (int x = 0; x < xMax; x++) {
+                for (int y = 0; y < stride; y++) {
+                    var tile = pvs.ElementAt((y*stride) + x);
                     _map.setProperties(x, y, tile.IsTransparent, tile.IsWalkable);
                 }
             }

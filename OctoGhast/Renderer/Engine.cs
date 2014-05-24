@@ -49,16 +49,8 @@ namespace OctoGhast.Renderer
 
 			var playerPosition = Vec.Zero;
 
-			// Do the setup for placement because of closure variables.
-			serviceConfiguration.MapGenerator.PlayerPlacementFunc = (rect) => playerPosition = rect.Center;
-			serviceConfiguration.MapGenerator.MobilePlacementFunc = (rect) => {
-				_objects.Add(new Mobile(rect.Center, 'c', TCODColor.orange, "A Smelly Orcses"));
-			};
-
 			_map = new GameMap(Width*3, Height*3);
-			serviceConfiguration.MapGenerator.GenerateMap(_map.Bounds);
-			_map.SetFrom(serviceConfiguration.MapGenerator.Map);
-			_map.InvalidateMap();
+		    _map.InvalidateMap(new Rect(playerPosition, Width*3, Height*3));
 
 			Player = serviceConfiguration.Player;
 			Player.MoveTo(playerPosition, _map, Enumerable.Empty<IMobile>());
@@ -161,20 +153,22 @@ namespace OctoGhast.Renderer
 				_dirtyFov = false;
 			}
 
-			Array2D<Tile> frustumView = _map.GetFrustumView(_camera.ViewFrustum);
+			var pvs = _map.GetFrustumView(_camera.ViewFrustum);
+		    var frustumView = pvs.ToList();
 
 			for (int x = 0; x < _camera.Width; x++) {
 				for (int y = 0; y < _camera.Height; y++) {
+				    var tile = frustumView.ElementAt((y*_camera.Width) + x);
 					Vec worldCoords = _camera.ToWorldCoords(new Vec(x, y));
 
 					buffer.putCharEx(x, y, ' ', ColorBlack, ColorBlack);
 
 					if (_map.IsExplored(worldCoords.X, worldCoords.Y)) {
-						buffer.putCharEx(x, y, frustumView[x, y].Glyph, TCODColor.darkGrey, ColorBlack);
+						buffer.putCharEx(x, y, tile.Glyph, TCODColor.darkGrey, ColorBlack);
 					}
 
 					if (_map.IsVisible(worldCoords.X, worldCoords.Y)) {
-						buffer.putCharEx(x, y, frustumView[x, y].Glyph, TCODColor.flame, ColorBlack);
+						buffer.putCharEx(x, y, tile.Glyph, TCODColor.flame, ColorBlack);
 					}
 				}
 			}
