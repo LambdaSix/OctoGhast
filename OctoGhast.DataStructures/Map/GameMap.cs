@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
+using InfiniMap;
 using libtcod;
 using OctoGhast.DataStructures.Lighting;
 using OctoGhast.DataStructures.Renderer;
@@ -12,14 +15,13 @@ namespace OctoGhast.DataStructures.Map
 {
     public interface IGameMap
     {
-        LightingMap LightMap { get; }
-        Vec Size { get; }
-        Rect Bounds { get; }
+        VisibilityMap<Tile> VisibilityMap { get; }
 
         /// <summary>
-        /// Recalculate all walkable/transparency attributes for the cells in the map.
+        /// Recalculate visibility/walkability flags for the map.
         /// </summary>
-        void InvalidateMap();
+        /// <param name="dirtySet">Tiles to be recalculated</param>
+        void InvalidateMap(Rect dirtySet);
 
         /// <summary>
         /// Determines if the given location is visible to the player.
@@ -45,39 +47,33 @@ namespace OctoGhast.DataStructures.Map
         /// </summary>
         /// <param name="frustum"></param>
         /// <returns></returns>
-        Array2D<Tile> GetFrustumView(Rect frustum);
-
-        void SetFrom(Array2D<Tile> map);
+        IEnumerable<Tile> GetFrustumView(Rect frustum);
     }
 
     public class GameMap : IGameMap
     {
-        private Array2D<Tile> MapArray { get; set; }
-        public LightingMap LightMap { get; private set; }
+        private Map2D<Tile> _map { get; set; }
+        public VisibilityMap<Tile> VisibilityMap { get; private set; }
+        private int _screenHeight;
+        private int _screenWidth;
 
-        public Vec Size {
-            get { return MapArray.Size; }
-        }
+        public GameMap(int screenHeight, int screenWidth) {
+            _map = new Map2D<Tile>(16, 16);
+            VisibilityMap = new VisibilityMap<Tile>(screenHeight, screenWidth);
+            _screenHeight = screenHeight;
+            _screenWidth = screenWidth;
 
-        public Rect Bounds {
-            get { return MapArray.Bounds; }
-        }
-
-        public GameMap(int width, int height) {
-            MapArray = new Array2D<Tile>(width, height);
-
-            LightMap = new LightingMap(width, height);
+            _map.RegisterReader(tuple => Enumerable.Repeat(new Tile {Glyph = '.', IsWalkable = true}, 16*16));
         }
 
         /// <summary>
-        /// Recalculate all walkable/transparency attributes for the cells in the map.
+        /// Recalculate visibility/walkability flags for the map.
         /// </summary>
-        public void InvalidateMap() {
-            LightMap.RefreshMapFrom(MapArray);
-        }
-
-        public void SetFrom(Array2D<Tile> map) {
-            MapArray = map;
+        /// <param name="dirtySet">Tiles to be recalculated</param>
+        public void InvalidateMap(Rect dirtySet) {
+            var tl = dirtySet.TopLeft;
+            var br = dirtySet.BottomRight;
+            VisibilityMap.RefreshMapFrom(_map.Within(tl.X, tl.Y, br.X, br.Y), _screenWidth);
         }
 
         /// <summary>
@@ -87,10 +83,10 @@ namespace OctoGhast.DataStructures.Map
         /// <param name="y"></param>
         /// <returns></returns>
         public bool IsVisible(int x, int y) {
-            var isVisible = LightMap.IsVisible(x, y);
+            var isVisible = VisibilityMap.IsVisible(x, y);
 
 	        if (isVisible) {
-		        MapArray[x, y].IsExplored = true;
+		        _map[x, y].IsExplored = true;
 	        }
 
 	        return isVisible;
@@ -98,11 +94,11 @@ namespace OctoGhast.DataStructures.Map
 
         public bool IsExplored(int x, int y)
         {
-            return MapArray[x, y].IsExplored;
+            return _map[x, y].IsExplored;
         }
 
         public bool IsWalkable(Vec position) {
-            return MapArray[position.X, position.Y].IsWalkable;
+            return _map[position.X, position.Y].IsWalkable;
         }
 
         /// <summary>
@@ -112,7 +108,7 @@ namespace OctoGhast.DataStructures.Map
         /// <param name="playerVec"></param>
         /// <param name="lightRadius"></param>
         public void CalculateFov(Vec playerVec, int lightRadius) {
-            LightMap.ComputeFov(playerVec, new LightSource {Intensity = lightRadius});
+            VisibilityMap.ComputeFov(playerVec, new LightSource {Intensity = lightRadius});
         }
 
         /// <summary>
@@ -120,19 +116,10 @@ namespace OctoGhast.DataStructures.Map
         /// </summary>
         /// <param name="frustum"></param>
         /// <returns></returns>
-        public Array2D<Tile> GetFrustumView(Rect frustum) {
-            var dst = new Array2D<Tile>(frustum.Width, frustum.Height);
-
-            for (int y = 0; y < frustum.Height; y++) {
-                for (int x = 0; x < frustum.Width; x++) {
-                    var mapX = (frustum.TopLeft.X + x);
-                    var mapY = (frustum.TopLeft.Y + y);
-
-                    dst[x, y] = MapArray[mapX, mapY];
-                }
-            }
-
-            return dst;
+        public IEnumerable<Tile> GetFrustumView(Rect frustum) {
+            var tl = frustum.TopLeft;
+            var br = frustum.BottomRight;
+            return _map.Within(tl.X, tl.Y, br.X, br.Y);
         }
     }
 }
