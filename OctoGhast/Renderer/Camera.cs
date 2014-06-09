@@ -5,12 +5,20 @@ namespace OctoGhast.Renderer
 {
 	public class Camera : ICamera
 	{
-	    public Vec position { get; set; }
-	    public Size size { get; set; }
-	    public Rect ViewFrustum { get; set; }
+	    public Vec Position { get; set; }
+	    public Size Size { get; set; }
 
-	    public bool MoveTo(Vec worldPosition) {
-	        throw new System.NotImplementedException();
+	    public Camera(Vec position, Size size) {
+	        Position = position;
+	        Size = size;
+	    }
+
+	    public Rect ViewFrustum {
+	        get { return Rect.FromCenter(Position, Size); }
+	    }
+
+	    public void MoveTo(Vec worldPosition) {
+	        Position = worldPosition;
 	    }
 	}
 }

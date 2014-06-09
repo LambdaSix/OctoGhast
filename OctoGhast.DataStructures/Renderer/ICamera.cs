@@ -7,23 +7,22 @@ namespace OctoGhast.DataStructures.Renderer
         /// <summary>
         /// Center world-space position of the camera.
         /// </summary>
-        Vec position { get; set; }
+        Vec Position { get; set; }
 
         /// <summary>
         /// Area visible by the camera.
         /// </summary>
-        Size size { get; set; }
+        Size Size { get; set; }
 
         /// <summary>
         /// Frustum area, world-space co-ordinates.
         /// </summary>
-        Rect ViewFrustum { get; set; }
+        Rect ViewFrustum { get; }
 
         /// <summary>
         /// Move the camera to the given world-space co-ordinates.
         /// </summary>
-        /// <param name="worldPosition"></param>
-        /// <returns></returns>
-        bool MoveTo(Vec worldPosition);
+        /// <param name="worldPosition">World position</param>
+        void MoveTo(Vec worldPosition);
     }
 }

@@ -306,6 +306,19 @@ namespace OctoGhast.Spatial
             // otherwise, the rect doesn't have a positive size, so there's nothing to trace
         }
 
+        public static Rect FromCenter(Vec center, Size size) {
+            var x = center.X;
+            var y = center.Y;
+
+            var target = new Rect(
+                x: x - (size.Width/2),
+                y: y - (size.Height/2),
+                height: size.Height,
+                width: size.Width);
+
+            return new Rect(target.TopLeft, target.Width, target.Height);
+        }
+
         #region IEquatable<Rect> Members
 
         public bool Equals(Rect other)
