@@ -1,4 +1,6 @@
-﻿namespace OctoGhast.DataStructures.Lighting
+﻿using OctoGhast.Spatial;
+
+namespace OctoGhast.DataStructures.Lighting
 {
     public class LightMap<T>
     {
@@ -21,6 +23,11 @@
                 var n = (x + (_width*y));
                 _map[n] = value;
             }
+        }
+
+        public T this[Vec position] {
+            get { return this[position.X, position.Y]; }
+            set { this[position.X, position.Y] = value; }
         }
     }
 }
