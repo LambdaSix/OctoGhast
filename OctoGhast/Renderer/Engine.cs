@@ -96,86 +96,10 @@ namespace OctoGhast.Renderer
 			ProcessKey(key);
 		}
 
-		private IEnumerable<IMobile> GetMobilesInView() {
-			return _objects.OfType<IMobile>().Where(mob => _camera.ViewFrustum.Contains(mob.Position));
-		}
-
 		private void ProcessKey(TCODKey key) {
-			// System bindings
-
-			if (key.KeyCode == TCODKeyCode.Escape) {
-				Shutdown();
-			}
-
-			// If we're holding down Shift, then just scroll the camera around and ignore the player.
-			if (key.Shift && key.KeyCode == TCODKeyCode.Right) {
-				_camera.MoveTo(_camera.CameraCenter.OffsetX(+1));
-				return;
-			}
-			if (key.Shift && key.KeyCode == TCODKeyCode.Left) {
-				_camera.MoveTo(_camera.CameraCenter.OffsetX(-1));
-				return;
-			}
-			if (key.Shift && key.KeyCode == TCODKeyCode.Up) {
-				_camera.MoveTo(_camera.CameraCenter.OffsetY(-1));
-				return;
-			}
-			if (key.Shift && key.KeyCode == TCODKeyCode.Down) {
-				_camera.MoveTo(_camera.CameraCenter.OffsetY(+1));
-				return;
-			}
-
-			// Otherwise, move the player directly.
-			if (key.KeyCode == TCODKeyCode.Right) {
-				_dirtyFov = Player.MoveTo(Player.Position.OffsetX(+1), _map, GetMobilesInView());
-			}
-			if (key.KeyCode == TCODKeyCode.Left) {
-				_dirtyFov = Player.MoveTo(Player.Position.OffsetX(-1), _map, GetMobilesInView());
-			}
-			if (key.KeyCode == TCODKeyCode.Up) {
-				_dirtyFov = Player.MoveTo(Player.Position.OffsetY(-1), _map, GetMobilesInView());
-			}
-			if (key.KeyCode == TCODKeyCode.Down) {
-				_dirtyFov = Player.MoveTo(Player.Position.OffsetY(+1), _map, GetMobilesInView());
-			}
-
-			// If we managed to move the player, then update the camera to the current location.
-			if (_dirtyFov) {
-				_camera.MoveTo(Player.Position);
-			}
 		}
 
 		public void Render(TCODConsole buffer) {
-			var pvs = _map.GetFrustumView(_camera.ViewFrustum);
-		    var frustumView = pvs.ToList();
-
-			for (int x = 0; x < _camera.Width; x++) {
-				for (int y = 0; y < _camera.Height; y++) {
-				    var tile = frustumView.ElementAt((y*_camera.Width) + x);
-					Vec worldCoords = _camera.ToWorldCoords(new Vec(x, y));
-
-					buffer.putCharEx(x, y, ' ', ColorBlack, ColorBlack);
-
-					if (_map.IsExplored(worldCoords.X, worldCoords.Y)) {
-						buffer.putCharEx(x, y, tile.Glyph, TCODColor.darkGrey, ColorBlack);
-					}
-
-				    buffer.putCharEx(x, y, tile.Glyph, TCODColor.flame, ColorBlack);
-				}
-			}
-
-			Player.Draw(buffer, _camera.ToViewCoords(Player.Position));
-
-			buffer.setForegroundColor(TCODColor.white);
-			Vec playerVis = _camera.ToViewCoords(Player.Position);
-
-			buffer.print(0, Height-1, String.Format("P: {0},{1}; VP: {2},{3}", Player.Position.X, Player.Position.Y,
-				playerVis.Y, playerVis.X));
-			buffer.print(0, Height-2, String.Format("C: {0},{1}", _camera.CameraCenter.X, _camera.CameraCenter.Y));
-
-			buffer.print(0, Height-3, String.Format("FL: {0}", TCODSystem.getFps()));
-
-			TCODConsole.flush();
 		}
 	}
 }
