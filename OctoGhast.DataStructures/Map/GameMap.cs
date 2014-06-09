@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
@@ -35,6 +36,8 @@ namespace OctoGhast.DataStructures.Map
         /// <param name="position">World position</param>
         /// <returns>True if the tile blocks sight</returns>
         bool IsOpaque(Vec position);
+
+        LightMap<bool> CalculateFov(Vec viewCenter, int lightRadius, Func<int, int, Vec> translateFunc);
     }
 
     public class GameMap : IGameMap
@@ -61,6 +64,23 @@ namespace OctoGhast.DataStructures.Map
 
         public bool IsOpaque(Vec position) {
             return !_map[position.X, position.Y].IsTransparent;
+        }
+
+        public Tile this[int x, int y] {
+            get { return _map[x, y]; }
+            set { _map[x, y] = value; }
+        }
+
+        public LightMap<bool> CalculateFov(Vec viewCenter, int lightRadius, Func<int, int, Vec> translateFunc) {
+            var lightMap = new LightMap<bool>(_screenHeight, _screenWidth);
+            
+            ShadowCaster.ComputeFieldOfViewWithShadowCasting(viewCenter.X,viewCenter.Y, lightRadius,
+                (x,y) => IsOpaque(new Vec(x,y)),
+                (x, y) => {
+                    var screenPos = translateFunc(x, y);
+                    lightMap[screenPos] = true;
+                });
+            return lightMap;
         }
     }
 }
