@@ -50,11 +50,9 @@ namespace OctoGhast.Renderer
 			var playerPosition = Vec.Zero;
 
 			_map = new GameMap(Width*3, Height*3);
-		    _map.InvalidateMap(new Rect(playerPosition, Width*3, Height*3));
 
 			Player = serviceConfiguration.Player;
 			Player.MoveTo(playerPosition, _map, Enumerable.Empty<IMobile>());
-			_map.CalculateFov(playerPosition, 8);
 
 			_camera = serviceConfiguration.Camera;
 			_camera.MoveTo(Player.Position);
@@ -148,11 +146,6 @@ namespace OctoGhast.Renderer
 		}
 
 		public void Render(TCODConsole buffer) {
-			if (_dirtyFov) {
-				_map.CalculateFov(Player.Position, 8);
-				_dirtyFov = false;
-			}
-
 			var pvs = _map.GetFrustumView(_camera.ViewFrustum);
 		    var frustumView = pvs.ToList();
 
@@ -167,16 +160,7 @@ namespace OctoGhast.Renderer
 						buffer.putCharEx(x, y, tile.Glyph, TCODColor.darkGrey, ColorBlack);
 					}
 
-					if (_map.IsVisible(worldCoords.X, worldCoords.Y)) {
-						buffer.putCharEx(x, y, tile.Glyph, TCODColor.flame, ColorBlack);
-					}
-				}
-			}
-
-			// For each possibly visible mobile, see if the player can see it and draw appropriately.
-			foreach (var mobile in GetMobilesInView()) {
-				if (_map.IsVisible(mobile.Position.X, mobile.Position.Y) && mobile != Player) {
-					mobile.Draw(buffer, _camera.ToViewCoords(mobile.Position));
+				    buffer.putCharEx(x, y, tile.Glyph, TCODColor.flame, ColorBlack);
 				}
 			}
 

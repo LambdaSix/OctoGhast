@@ -44,7 +44,6 @@
   <ItemGroup>
     <Compile Include="Entity\GameObject.cs" />
     <Compile Include="Lighting\ILightSource.cs" />
-    <Compile Include="Lighting\VisibilityMap.cs" />
     <Compile Include="Lighting\LightSourceType.cs" />
     <Compile Include="Map\GameMap.cs" />
     <Compile Include="Map\Tile.cs" />
