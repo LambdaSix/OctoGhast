@@ -15,15 +15,26 @@ namespace OctoGhast.DataStructures.Map
 {
     public interface IGameMap
     {
-        bool IsExplored(int x, int y);
+        /// <summary>
+        /// Determine if the player has previously seen this tile.
+        /// </summary>
+        /// <param name="position">World position</param>
+        /// <returns>True if the tile has previously been seen.</returns>
+        bool IsExplored(Vec position);
+
+        /// <summary>
+        /// Determine if the tile at <paramref name="position"/> can be moved over
+        /// </summary>
+        /// <param name="position">World position</param>
+        /// <returns>True if the tile can be moved over</returns>
         bool IsWalkable(Vec position);
 
         /// <summary>
-        /// Get the subset of the loaded map currently viewable by the given camera.
+        /// Determine if the tile at <paramref name="position"/> cannot be seen through
         /// </summary>
-        /// <param name="frustum"></param>
-        /// <returns></returns>
-        IEnumerable<Tile> GetFrustumView(Rect frustum);
+        /// <param name="position">World position</param>
+        /// <returns>True if the tile blocks sight</returns>
+        bool IsOpaque(Vec position);
     }
 
     public class GameMap : IGameMap
@@ -40,24 +51,16 @@ namespace OctoGhast.DataStructures.Map
             _map.RegisterReader(tuple => Enumerable.Repeat(new Tile {Glyph = '.', IsWalkable = true}, 16*16));
         }
 
-        public bool IsExplored(int x, int y)
-        {
-            return _map[x, y].IsExplored;
+        public bool IsExplored(Vec position) {
+            return _map[position.X, position.Y].IsExplored;
         }
 
         public bool IsWalkable(Vec position) {
             return _map[position.X, position.Y].IsWalkable;
         }
 
-        /// <summary>
-        /// Get the subset of the loaded map currently viewable by the given camera.
-        /// </summary>
-        /// <param name="frustum"></param>
-        /// <returns></returns>
-        public IEnumerable<Tile> GetFrustumView(Rect frustum) {
-            var tl = frustum.TopLeft;
-            var br = frustum.BottomRight;
-            return _map.Within(tl.X, tl.Y, br.X, br.Y);
+        public bool IsOpaque(Vec position) {
+            return !_map[position.X, position.Y].IsTransparent;
         }
     }
 }
