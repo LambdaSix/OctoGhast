@@ -38,6 +38,9 @@ namespace OctoGhast.DataStructures.Map
         bool IsOpaque(Vec position);
 
         LightMap<bool> CalculateFov(Vec viewCenter, int lightRadius, Func<int, int, Vec> translateFunc);
+
+        Tile this[Vec pos] { get; set; }
+        Tile this[int x, int y] { get; set; }
     }
 
     public class GameMap : IGameMap
@@ -69,6 +72,11 @@ namespace OctoGhast.DataStructures.Map
         public Tile this[int x, int y] {
             get { return _map[x, y]; }
             set { _map[x, y] = value; }
+        }
+
+        public Tile this[Vec pos] {
+            get { return _map[pos.X, pos.Y]; }
+            set { _map[pos.X, pos.Y] = value; }
         }
 
         public LightMap<bool> CalculateFov(Vec viewCenter, int lightRadius, Func<int, int, Vec> translateFunc) {
