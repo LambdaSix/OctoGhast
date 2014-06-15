@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using libtcod;
 using OctoGhast.DataStructures.Entity;
@@ -20,10 +21,18 @@ namespace OctoGhast.Entity
         /// <param name="mobiles">List of mobiles to check for collision against</param>
         /// <returns>True if could move, false if couldn't</returns>
         bool MoveTo(Vec position, IGameMap gameMap, IEnumerable<IMobile> mobiles);
+
+        /// <summary>
+        /// Attach a callback for use when this entity has moved.
+        /// </summary>
+        /// <param name="func">Method to call when the entity moves. Passed the current position</param>
+        void OnMove(Action<Vec> func);
     }
 
     public class Mobile : GameObject, IMobile
     {
+        private Action<Vec> _onMoveCallback;
+
         public virtual IMobile Combatant { get; set; }
 
         public Mobile(Vec position, char glyph, TCODColor color, string name) : base(position, glyph, color, name) {
@@ -34,6 +43,10 @@ namespace OctoGhast.Entity
             if (CanAttack(other)) {
                 Combatant = other;
             }
+        }
+
+        public void OnMove(Action<Vec> func) {
+            _onMoveCallback = func;
         }
 
         protected virtual bool CanAttack(IMobile other) {
@@ -80,6 +93,10 @@ namespace OctoGhast.Entity
             if (CanWalk(position, gameMap, mobiles))
             {
                 Position = position;
+
+                if (_onMoveCallback != null)
+                    _onMoveCallback(position);
+
                 return true;
             }
             return false;
