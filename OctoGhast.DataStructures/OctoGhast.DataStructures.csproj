@@ -4,16 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{02E6A779-B800-47D9-9E6D-05F3362362EB}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{3ABB811A-C183-463B-B32D-F63A314F8D6D}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>OctoGhast</RootNamespace>
-    <AssemblyName>OctoGhast</AssemblyName>
+    <RootNamespace>OctoGhast.DataStructures</RootNamespace>
+    <AssemblyName>OctoGhast.DataStructures</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -35,9 +33,6 @@
     <Reference Include="libtcod-net">
       <HintPath>..\lib\libtcod\libtcod-net.dll</HintPath>
     </Reference>
-    <Reference Include="Ninject">
-      <HintPath>..\packages\Ninject.3.0.1.10\lib\net45-full\Ninject.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -47,58 +42,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\Config.cs" />
-    <Compile Include="Configuration\IConfig.cs" />
-    <Compile Include="Entity\Mobile.cs" />
-    <Compile Include="Renderer\Camera.cs" />
-    <Compile Include="Renderer\Engine.cs" />
-    <Compile Include="Entity\Player.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Entity\GameObject.cs" />
+    <Compile Include="Lighting\ILightSource.cs" />
+    <Compile Include="Lighting\LightMap.cs" />
+    <Compile Include="Lighting\LightSourceType.cs" />
+    <Compile Include="Map\GameMap.cs" />
+    <Compile Include="Map\Tile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Configuration\EngineConfiguration.cs" />
-    <Compile Include="Configuration\IEngineConfiguration.cs" />
+    <Compile Include="Renderer\ICamera.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="..\lib\libtcod\celtic_garamond_10x10_gs_tc.png">
-      <Link>celtic_garamond_10x10_gs_tc.png</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\lib\libtcod\libtcod-net-unmanaged.dll">
-      <Link>libtcod-net-unmanaged.dll</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\lib\libtcod\libtcod-VS.dll">
-      <Link>libtcod-VS.dll</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\lib\libtcod\SDL.dll">
-      <Link>SDL.dll</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\lib\libtcod\zlib1.dll">
-      <Link>zlib1.dll</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\OctoGhast.DataStructures\OctoGhast.DataStructures.csproj">
-      <Project>{3ABB811A-C183-463B-B32D-F63A314F8D6D}</Project>
-      <Name>OctoGhast.DataStructures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\OctoGhast.MapGeneration\OctoGhast.MapGeneration.csproj">
-      <Project>{E178B4FA-597C-47B9-BC44-2984D2A1466D}</Project>
-      <Name>OctoGhast.MapGeneration</Name>
+    <ProjectReference Include="..\lib\InfiniMap\InfiniMap\InfiniMap.csproj">
+      <Project>{955AF4C9-12E7-4447-8E7C-C3ACD38F2DA9}</Project>
+      <Name>InfiniMap</Name>
     </ProjectReference>
     <ProjectReference Include="..\OctoGhast.Spatial\OctoGhast.Spatial.csproj">
       <Project>{23DB428F-E97F-4C80-910A-FDD91C548A8C}</Project>
       <Name>OctoGhast.Spatial</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
