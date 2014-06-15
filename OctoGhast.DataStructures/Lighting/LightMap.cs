@@ -17,11 +17,13 @@ namespace OctoGhast.DataStructures.Lighting
         public T this[int x, int y] {
             get {
                 var n = (x + (_width*y));
-                return _map[n];
+                return n < _map.Length ? _map[n] : default(T);
             }
             set {
                 var n = (x + (_width*y));
-                _map[n] = value;
+                if (n < _map.Length) {
+                    _map[x + (_width*y)] = value;
+                }
             }
         }
 
