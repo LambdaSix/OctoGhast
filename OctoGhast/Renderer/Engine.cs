@@ -56,13 +56,14 @@ namespace OctoGhast.Renderer
 
 			var playerPosition = Vec.Zero;
 
-			_map = new GameMap(Width*3, Height*3);
+			_map = new GameMap(Height, Width);
 
 			Player = serviceConfiguration.Player;
 			Player.MoveTo(playerPosition, _map, Enumerable.Empty<IMobile>());
 
 			_camera = serviceConfiguration.Camera;
-			_camera.MoveTo(Player.Position);
+		    _camera.MoveTo(Vec.Zero);
+		    _camera.BindTo(Player);
 		}
 
 		private TCODConsole Screen { get; set; }
