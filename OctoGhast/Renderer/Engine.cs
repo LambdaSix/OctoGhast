@@ -11,6 +11,13 @@ using OctoGhast.Spatial;
 
 namespace OctoGhast.Renderer
 {
+    public static class CameraExtensions
+    {
+        public static void BindTo(this ICamera camera, IMobile mobile) {
+            mobile.OnMove(camera.MoveTo);
+        }
+    }
+
 	public interface IEngine
 	{
 		int Height { get; set; }
