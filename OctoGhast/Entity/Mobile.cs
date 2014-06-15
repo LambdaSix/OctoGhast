@@ -36,7 +36,7 @@ namespace OctoGhast.Entity
         public virtual IMobile Combatant { get; set; }
 
         public Mobile(Vec position, char glyph, TCODColor color, string name) : base(position, glyph, color, name) {
-            
+
         }
 
         public virtual void Attack(IMobile other) {
@@ -51,7 +51,7 @@ namespace OctoGhast.Entity
 
         protected virtual bool CanAttack(IMobile other) {
             return true;
-        }        
+        }
 
         public virtual bool IsInRange(IMobile other, int distance) {
             return Vec.IsDistanceWithin(other.Position, Position, distance);
@@ -88,10 +88,8 @@ namespace OctoGhast.Entity
         /// <param name="gameMap">The world map being navigated</param>
         /// <param name="mobiles">List of mobiles to check for collision against</param>
         /// <returns>True if could move, false if couldn't</returns>
-        public bool MoveTo(Vec position, IGameMap gameMap, IEnumerable<IMobile> mobiles)
-        {
-            if (CanWalk(position, gameMap, mobiles))
-            {
+        public bool MoveTo(Vec position, IGameMap gameMap, IEnumerable<IMobile> mobiles) {
+            if (CanWalk(position, gameMap, mobiles)) {
                 Position = position;
 
                 if (_onMoveCallback != null)

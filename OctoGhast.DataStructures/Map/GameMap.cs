@@ -81,9 +81,9 @@ namespace OctoGhast.DataStructures.Map
 
         public LightMap<bool> CalculateFov(Vec viewCenter, int lightRadius, Func<int, int, Vec> translateFunc) {
             var lightMap = new LightMap<bool>(_screenHeight, _screenWidth);
-            
-            ShadowCaster.ComputeFieldOfViewWithShadowCasting(viewCenter.X,viewCenter.Y, lightRadius,
-                (x,y) => IsOpaque(new Vec(x,y)),
+
+            ShadowCaster.ComputeFieldOfViewWithShadowCasting(viewCenter.X, viewCenter.Y, lightRadius,
+                (x, y) => IsOpaque(new Vec(x, y)),
                 (x, y) => {
                     var screenPos = translateFunc(x, y);
                     lightMap[screenPos] = true;

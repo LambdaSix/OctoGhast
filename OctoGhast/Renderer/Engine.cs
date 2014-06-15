@@ -18,93 +18,92 @@ namespace OctoGhast.Renderer
         }
     }
 
-	public interface IEngine
-	{
-		int Height { get; set; }
-		int Width { get; set; }
-		IPlayer Player { get; set; }
-		bool IsRunning { get; }
+    public interface IEngine
+    {
+        int Height { get; set; }
+        int Width { get; set; }
+        IPlayer Player { get; set; }
+        bool IsRunning { get; }
 
-		/// <summary>
-		/// Initialize the Engine and window.
-		/// </summary>
-		void Setup();
+        /// <summary>
+        /// Initialize the Engine and window.
+        /// </summary>
+        void Setup();
 
-		void Shutdown();
+        void Shutdown();
 
-		/// <summary>
-		/// Render a single frame and wait for input.
-		/// </summary>
-		void Update();
+        /// <summary>
+        /// Render a single frame and wait for input.
+        /// </summary>
+        void Update();
 
-		void Render(TCODConsole buffer);
-	}
+        void Render(TCODConsole buffer);
+    }
 
-	public class Engine : IEngine
-	{
-		// Because we access black /so much/ per frame, memoize it to avoid going
-		// across the P/Invoke border to libTCOD
-		private static readonly TCODColor ColorBlack = TCODColor.black;
-		private readonly IGameMap _map;
-		private readonly ICollection<IGameObject> _objects = new List<IGameObject>();
-		private readonly ICamera _camera;
-		private bool _dirtyFov;
+    public class Engine : IEngine
+    {
+        // Because we access black /so much/ per frame, memoize it to avoid going
+        // across the P/Invoke border to libTCOD
+        private static readonly TCODColor ColorBlack = TCODColor.black;
+        private readonly IGameMap _map;
+        private readonly ICollection<IGameObject> _objects = new List<IGameObject>();
+        private readonly ICamera _camera;
 
-		public Engine(IEngineConfiguration serviceConfiguration) {
-			Height = serviceConfiguration.Height;
-			Width = serviceConfiguration.Width;
+        public Engine(IEngineConfiguration serviceConfiguration) {
+            Height = serviceConfiguration.Height;
+            Width = serviceConfiguration.Width;
 
-			var playerPosition = Vec.Zero;
+            var playerPosition = Vec.Zero;
 
-			_map = new GameMap(Height, Width);
+            _map = new GameMap(Height, Width);
 
-			Player = serviceConfiguration.Player;
-			Player.MoveTo(playerPosition, _map, Enumerable.Empty<IMobile>());
+            Player = serviceConfiguration.Player;
+            Player.MoveTo(playerPosition, _map, Enumerable.Empty<IMobile>());
 
-			_camera = serviceConfiguration.Camera;
-		    _camera.MoveTo(Vec.Zero);
-		    _camera.BindTo(Player);
-		}
+            _camera = serviceConfiguration.Camera;
+            _camera.MoveTo(Vec.Zero);
+            _camera.BindTo(Player);
+        }
 
-		private TCODConsole Screen { get; set; }
+        private TCODConsole Screen { get; set; }
 
-		public int Height { get; set; }
-		public int Width { get; set; }
+        public int Height { get; set; }
+        public int Width { get; set; }
 
-		public IPlayer Player { get; set; }
-		public bool IsRunning { get; private set; }
+        public IPlayer Player { get; set; }
+        public bool IsRunning { get; private set; }
 
-		/// <summary>
-		/// Initialize the Engine and window.
-		/// </summary>
-		public void Setup() {
-			TCODConsole.setCustomFont("celtic_garamond_10x10_gs_tc.png", (int) TCODFontFlags.LayoutTCOD);
-			TCODConsole.initRoot(Width, Height, "OctoGhast", false);
+        /// <summary>
+        /// Initialize the Engine and window.
+        /// </summary>
+        public void Setup() {
+            TCODConsole.setCustomFont("celtic_garamond_10x10_gs_tc.png", (int) TCODFontFlags.LayoutTCOD);
+            TCODConsole.initRoot(Width, Height, "OctoGhast", false);
 
-			Screen = TCODConsole.root;
+            Screen = TCODConsole.root;
 
-			_objects.Add(Player);
-			_camera.MoveTo(Player.Position);
+            _objects.Add(Player);
+            _camera.MoveTo(Player.Position);
 
-			IsRunning = true;
-		}
+            IsRunning = true;
+        }
 
-		public void Shutdown() {
-			// TODO: Cleanup any libtcod/native resources.
+        public void Shutdown() {
+            // TODO: Cleanup any libtcod/native resources.
 
-			IsRunning = false;
-		}
+            IsRunning = false;
+        }
 
-		/// <summary>
-		/// Render a single frame and wait for input.
-		/// </summary>
-		public void Update() {
-			Render(Screen);
+        /// <summary>
+        /// Render a single frame and wait for input.
+        /// </summary>
+        public void Update() {
+            Render(Screen);
             TCODKey key = TCODConsole.waitForKeypress(false);
-			ProcessKey(key);
-		}
+            ProcessKey(key);
+        }
 
-		private void ProcessKey(TCODKey key) {
+        private void ProcessKey(TCODKey key) {
             var entityList = Enumerable.Empty<IMobile>();
 
             if (key.KeyCode == TCODKeyCode.Left) {
@@ -154,9 +153,9 @@ namespace OctoGhast.Renderer
             var Xs = (constraint.Width/2) + (position.X - cartCenter.X);
             var Ys = (constraint.Height/2) + (position.Y - cartCenter.Y);
             return new Vec(Xs, Ys);
-		}
+        }
 
-		public void Render(TCODConsole buffer) {
+        public void Render(TCODConsole buffer) {
             var fov = _map.CalculateFov(_camera.ViewFrustum.Center, 4,
                 (x, y) => toView(new Vec(x, y), _camera.ViewFrustum));
 
@@ -184,6 +183,6 @@ namespace OctoGhast.Renderer
 
             TCODConsole.blit(buffer, 0, 0, Width, Height, TCODConsole.root, 0, 0);
             TCODConsole.flush();
-		}
-	}
+        }
+    }
 }
