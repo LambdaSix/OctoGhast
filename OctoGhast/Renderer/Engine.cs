@@ -157,6 +157,33 @@ namespace OctoGhast.Renderer
 		}
 
 		public void Render(TCODConsole buffer) {
+            var fov = _map.CalculateFov(_camera.ViewFrustum.Center, 4,
+                (x, y) => toView(new Vec(x, y), _camera.ViewFrustum));
+
+            for (int y = 0; y < _camera.ViewFrustum.Height; y++) {
+                for (int x = 0; x < _camera.ViewFrustum.Width; x++) {
+                    var worldPos = toWorld(x, y, _camera.ViewFrustum);
+
+                    if (fov[x, y]) {
+                        buffer.putCharEx(x, y, _map[worldPos].Glyph, TCODColor.grey, ColorBlack);
+                    }
+                    else {
+                        buffer.putCharEx(x, y, ' ', TCODColor.amber, ColorBlack);
+                    }
+                }
+            }
+
+            var playerFrustum = Rect.FromCenter(Player.Position, _camera.Size);
+
+            var playerX = playerFrustum.TopRight.X - Player.Position.X;
+            var playerY = playerFrustum.BottomLeft.Y - Player.Position.Y;
+            var distanceFromCamera = playerFrustum.TopLeft - _camera.ViewFrustum.TopLeft;
+
+            buffer.putCharEx(playerX + distanceFromCamera.X, playerY + distanceFromCamera.Y, '@', TCODColor.brass,
+                ColorBlack);
+
+            TCODConsole.blit(buffer, 0, 0, Width, Height, TCODConsole.root, 0, 0);
+            TCODConsole.flush();
 		}
 	}
 }
