@@ -100,11 +100,60 @@ namespace OctoGhast.Renderer
 		/// </summary>
 		public void Update() {
 			Render(Screen);
-			TCODKey key = TCODConsole.waitForKeypress(false);
+            TCODKey key = TCODConsole.waitForKeypress(false);
 			ProcessKey(key);
 		}
 
 		private void ProcessKey(TCODKey key) {
+            var entityList = Enumerable.Empty<IMobile>();
+
+            if (key.KeyCode == TCODKeyCode.Left) {
+                if (key.Shift) {
+                    _camera.MoveTo(_camera.Position.Offset(-1, 0));
+                    return;
+                }
+                Player.MoveTo(Player.Position.Offset(-1, 0), _map, entityList);
+            }
+
+            if (key.KeyCode == TCODKeyCode.Right) {
+                if (key.Shift) {
+                    _camera.MoveTo(_camera.Position.Offset(+1, 0));
+                    return;
+                }
+                Player.MoveTo(Player.Position.Offset(+1, 0), _map, entityList);
+            }
+
+            if (key.KeyCode == TCODKeyCode.Down) {
+                if (key.Shift) {
+                    _camera.MoveTo(_camera.Position.Offset(0, +1));
+                    return;
+                }
+                Player.MoveTo(Player.Position.Offset(0, +1), _map, entityList);
+            }
+
+            if (key.KeyCode == TCODKeyCode.Up) {
+                if (key.Shift) {
+                    _camera.MoveTo(_camera.Position.Offset(0, -1));
+                    return;
+                }
+                Player.MoveTo(Player.Position.Offset(0, -1), _map, entityList);
+            }
+
+            if (key.KeyCode == TCODKeyCode.Escape) {
+                Shutdown();
+            }
+        }
+
+        private Vec toWorld(int x, int y, Rect constraint) {
+            return new Vec(constraint.TopLeft.X + x, constraint.TopLeft.Y + y);
+        }
+
+        private Vec toView(Vec position, Rect constraint) {
+            var cartCenter = constraint.Center;
+
+            var Xs = (constraint.Width/2) + (position.X - cartCenter.X);
+            var Ys = (constraint.Height/2) + (position.Y - cartCenter.Y);
+            return new Vec(Xs, Ys);
 		}
 
 		public void Render(TCODConsole buffer) {
