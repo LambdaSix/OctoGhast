@@ -36,7 +36,7 @@ namespace OctoGhast.Entity
         public virtual IMobile Combatant { get; set; }
 
         public Mobile(Vec position, char glyph, TCODColor color, string name) : base(position, glyph, color, name) {
-            
+
         }
 
         public virtual void Attack(IMobile other) {
@@ -51,7 +51,7 @@ namespace OctoGhast.Entity
 
         protected virtual bool CanAttack(IMobile other) {
             return true;
-        }        
+        }
 
         public virtual bool IsInRange(IMobile other, int distance) {
             return Vec.IsDistanceWithin(other.Position, Position, distance);
