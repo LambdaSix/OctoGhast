@@ -42,30 +42,37 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controls\Button.cs" />
     <Compile Include="Controls\Control.cs" />
     <Compile Include="Controls\Tooltip.cs" />
     <Compile Include="Controls\Window.cs" />
     <Compile Include="Core\Canvas.cs" />
     <Compile Include="Core\Color.cs" />
     <Compile Include="Core\Component.cs" />
-    <Compile Include="Core\ICanvas.cs" />
+    <Compile Include="Core\Config.cs" />
+    <Compile Include="Core\IApplication.cs" />
+    <Compile Include="Core\Interface\ICanvas.cs" />
+    <Compile Include="Core\Interface\IColor.cs" />
     <Compile Include="Core\Manager.cs" />
+    <Compile Include="Core\Messages\Interface\IKeyboardData.cs" />
+    <Compile Include="Core\Messages\Interface\IMouseData.cs" />
     <Compile Include="Core\Messages\KeyboardEventArgs.cs" />
+    <Compile Include="Core\Messages\MouseButton.cs" />
     <Compile Include="Core\Messages\MouseEventArgs.cs" />
-    <Compile Include="Core\Theme\PigmentMapping.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Templates\ControlTemplate.cs" />
     <Compile Include="Controls\Widget.cs" />
     <Compile Include="Templates\WidgetTemplate.cs" />
+    <Compile Include="Theme\PigmentMapping.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\OctoGhast.DataStructures\OctoGhast.DataStructures.csproj">
+      <Project>{3ABB811A-C183-463B-B32D-F63A314F8D6D}</Project>
+      <Name>OctoGhast.DataStructures</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OctoGhast.Spatial\OctoGhast.Spatial.csproj">
       <Project>{23DB428F-E97F-4C80-910A-FDD91C548A8C}</Project>
       <Name>OctoGhast.Spatial</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\OctoGhast\OctoGhast.csproj">
-      <Project>{02E6A779-B800-47D9-9E6D-05F3362362EB}</Project>
-      <Name>OctoGhast</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

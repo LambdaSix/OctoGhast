@@ -1,18 +1,11 @@
 ﻿using System;
 using libtcod;
 using OctoGhast.Spatial;
+using OctoGhast.UserInterface.Core.Messages.Interface;
 
 namespace OctoGhast.UserInterface.Core.Messages
 {
-    public enum MouseButton
-    {
-        None = 0,
-        Left = 1,
-        Middle = 2,
-        Right = 3
-    }
-
-    public class MouseData
+    public class MouseData : IMouseData
     {
         public Vec Position { get; private set; }
         public Vec ScreenPosition { get; private set; }

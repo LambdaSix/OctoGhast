@@ -1,8 +1,8 @@
 ﻿using System;
-using OctoGhast.Configuration;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Core;
-using OctoGhast.UserInterface.Core.Theme;
+using OctoGhast.UserInterface.Core.Interface;
+using OctoGhast.UserInterface.Theme;
 
 namespace OctoGhast.UserInterface.Controls
 {
@@ -25,11 +25,11 @@ namespace OctoGhast.UserInterface.Controls
         private Window ParentWindow { get; set; }
 
         public Tooltip(string text, Vec screenPosition, Window parentWindow) {
-            Size = new Size(Canvas.MeasureString(text) + 2, 3);
-            this.ParentWindow = parentWindow;
+            Size = new Size(CanvasUtil.MeasureStr(text) + 2, 3);
+            ParentWindow = parentWindow;
 
             Position = AutoPosition(screenPosition);
-            Canvas = new Canvas(new Config(), Size);
+            Canvas = new Canvas(Size);
             Canvas.SetDefaultPigment(parentWindow.Pigments[PigmentType.Tooltip]);
             Canvas.PrintFrame("");
             Canvas.PrintString(1, 1, text);

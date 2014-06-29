@@ -1,9 +1,9 @@
 ﻿using System;
 using libtcod;
 using OctoGhast.Spatial;
-using OctoGhast.UserInterface.Core.Theme;
+using OctoGhast.UserInterface.Theme;
 
-namespace OctoGhast.UserInterface.Core
+namespace OctoGhast.UserInterface.Core.Interface
 {
     /// <summary>
     /// Horizontal Alignment
@@ -48,7 +48,7 @@ namespace OctoGhast.UserInterface.Core
         void Blit(TCODConsole console, int x, int y);
 
         /// <summary>
-        /// Blit this <seealso cref="Canvas"/> to the given <seealso cref="TCODConsole"/> at the
+        /// Blit this <seealso cref="OctoGhast.UserInterface.Core.Canvas"/> to the given <seealso cref="TCODConsole"/> at the
         /// given co-ordinates.
         /// </summary>
         /// <param name="console">The target <seealso cref="TCODConsole"/></param>
@@ -59,7 +59,7 @@ namespace OctoGhast.UserInterface.Core
         void Blit(TCODConsole console, int x, int y, float fgAlpha, float bgAlpha);
 
         /// <summary>
-        /// Blit this <seealso cref="Canvas"/> to the given <seealso cref="TCODConsole"/> at the 
+        /// Blit this <seealso cref="OctoGhast.UserInterface.Core.Canvas"/> to the given <seealso cref="TCODConsole"/> at the 
         /// given co-ordinates.
         /// </summary>
         /// <param name="console">The target <seealso cref="TCODConsole"/></param>
@@ -67,7 +67,7 @@ namespace OctoGhast.UserInterface.Core
         void Blit(TCODConsole console, Vec position);
 
         /// <summary>
-        /// Blit this <seealso cref="Canvas"/> to the given <seealso cref="TCODConsole"/> at the 
+        /// Blit this <seealso cref="OctoGhast.UserInterface.Core.Canvas"/> to the given <seealso cref="TCODConsole"/> at the 
         /// given co-ordinates.
         /// </summary>
         /// <param name="console">The target <seealso cref="TCODConsole"/></param>
@@ -107,7 +107,7 @@ namespace OctoGhast.UserInterface.Core
         void Blit(Vec position, float fgAlpha, float bgAlpha);
 
         /// <summary>
-        /// Blit this <seealso cref="Canvas"/> to the destination <seealso cref="Canvas"/>
+        /// Blit this <seealso cref="OctoGhast.UserInterface.Core.Canvas"/> to the destination <seealso cref="OctoGhast.UserInterface.Core.Canvas"/>
         /// </summary>
         /// <param name="dest">Destination canvas to blit to</param>
         /// <param name="x">X co-ordinate to blit to in the destination canvas</param>
@@ -115,7 +115,7 @@ namespace OctoGhast.UserInterface.Core
         void Blit(ICanvas dest, int x, int y);
 
         /// <summary>
-        /// Blit this <seealso cref="Canvas"/>'s contents to another <seealso cref="Canvas"/>
+        /// Blit this <seealso cref="OctoGhast.UserInterface.Core.Canvas"/>'s contents to another <seealso cref="OctoGhast.UserInterface.Core.Canvas"/>
         /// </summary>
         /// <param name="dest">Destination canvas to blit to</param>
         /// <param name="destVec">Co-ordinates to blit to in the destination canvas</param>
@@ -133,14 +133,14 @@ namespace OctoGhast.UserInterface.Core
         // Pigments
 
         /// <summary>
-        /// Sets the default <seealso cref="Pigment"/> for this <seealso cref="ICanvas"/>.
+        /// Sets the default <seealso cref="OctoGhast.Framework.Theme.Pigment"/> for this <seealso cref="ICanvas"/>.
         /// If no other pigment is specified for drawing operations, this pigment is used.
         /// </summary>
         /// <param name="pigment">Pigment to make default</param>
         void SetDefaultPigment(Pigment pigment);
 
         /// <summary>
-        /// Sets the <seealso cref="Pigment"/> at a specified point on the screen.
+        /// Sets the <seealso cref="OctoGhast.Framework.Theme.Pigment"/> at a specified point on the screen.
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -148,7 +148,7 @@ namespace OctoGhast.UserInterface.Core
         void SetPigmentAt(int x, int y, Pigment pigment);
 
         /// <summary>
-        /// Sets the <seealso cref="Pigment"/> at a specific point on the screen.
+        /// Sets the <seealso cref="OctoGhast.Framework.Theme.Pigment"/> at a specific point on the screen.
         /// </summary>
         /// <param name="position"></param>
         /// <param name="pigment"></param>
@@ -228,7 +228,7 @@ namespace OctoGhast.UserInterface.Core
         /// <param name="x">X co-ordinate</param>
         /// <param name="y">Y co-ordinate</param>
         /// <param name="character">Character to print</param>
-        /// <param name="pigment"><seealso cref="Pigment"/> to use for coloring</param>
+        /// <param name="pigment"><seealso cref="OctoGhast.Framework.Theme.Pigment"/> to use for coloring</param>
         void PrintChar(int x, int y, char character, Pigment pigment = null);
 
         /// <summary>
@@ -237,7 +237,7 @@ namespace OctoGhast.UserInterface.Core
         /// </summary>
         /// <param name="pos">Position to print the character</param>
         /// <param name="character">Character to print</param>
-        /// <param name="pigment"><seealso cref="Pigment"/> to use for coloring</param>
+        /// <param name="pigment"><seealso cref="OctoGhast.Framework.Theme.Pigment"/> to use for coloring</param>
         void PrintChar(Vec pos, char character, Pigment pigment = null);
 
         // PrintString(...)
@@ -249,7 +249,7 @@ namespace OctoGhast.UserInterface.Core
         /// <param name="x">X co-ordinate</param>
         /// <param name="y">Y co-ordinate</param>
         /// <param name="str">String to print</param>
-        /// <param name="pigment"><seealso cref="Pigment"/> to use for coloring</param>
+        /// <param name="pigment"><seealso cref="OctoGhast.Framework.Theme.Pigment"/> to use for coloring</param>
         void PrintString(int x, int y, string str, Pigment pigment = null);
 
         /// <summary>
@@ -258,7 +258,7 @@ namespace OctoGhast.UserInterface.Core
         /// </summary>
         /// <param name="pos">Position to print string at</param>
         /// <param name="str">String to print</param>
-        /// <param name="pigment"><seealso cref="Pigment"/> to use for coloring</param>
+        /// <param name="pigment"><seealso cref="OctoGhast.Framework.Theme.Pigment"/> to use for coloring</param>
         void PrintString(Vec pos, string str, Pigment pigment = null);
 
         // PrintStringAligned(...)
@@ -275,7 +275,7 @@ namespace OctoGhast.UserInterface.Core
         /// <param name="str">The string to print</param>
         /// <param name="alignment">Horizontal alignment to use</param>
         /// <param name="fieldLength">The length of field to fit the string into</param>
-        /// <param name="pigment"><seealso cref="Pigment"/> to use for coloring</param>
+        /// <param name="pigment"><seealso cref="OctoGhast.Framework.Theme.Pigment"/> to use for coloring</param>
         void PrintStringAligned(int x, int y, string str, HAlign alignment, int fieldLength, Pigment pigment = null);
 
         /// <summary>
@@ -293,7 +293,7 @@ namespace OctoGhast.UserInterface.Core
         /// <param name="hAlign">Horizontal alignment</param>
         /// <param name="vAlign">Vertical alignment</param>
         /// <param name="fieldSize">Dimensions of the field to contain the string within</param>
-        /// <param name="pigment"><seealso cref="Pigment"/> to use for coloring</param>
+        /// <param name="pigment"><seealso cref="OctoGhast.Framework.Theme.Pigment"/> to use for coloring</param>
         void PrintStringAligned(int x, int y, string str, HAlign hAlign, VAlign vAlign, Size fieldSize,
             Pigment pigment = null);
 
@@ -308,7 +308,7 @@ namespace OctoGhast.UserInterface.Core
         /// <param name="str">The string to print</param>
         /// <param name="alignment">Horizontal alignment to use</param>
         /// <param name="fieldLength">The length of field to fit the string into</param>
-        /// <param name="pigment"><seealso cref="Pigment"/> to use for coloring</param>
+        /// <param name="pigment"><seealso cref="OctoGhast.Framework.Theme.Pigment"/> to use for coloring</param>
         void PrintStringAligned(Vec pos, string str, HAlign alignment, int fieldLength, Pigment pigment = null);
 
         /// <summary>
@@ -325,7 +325,7 @@ namespace OctoGhast.UserInterface.Core
         /// <param name="hAlign">Horizontal alignment</param>
         /// <param name="vAlign">Vertical alignment</param>
         /// <param name="fieldSize">Dimensions of the field to contain the string within</param>
-        /// <param name="pigment"><seealso cref="Pigment"/> to use for coloring</param>
+        /// <param name="pigment"><seealso cref="OctoGhast.Framework.Theme.Pigment"/> to use for coloring</param>
         void PrintStringAligned(Vec pos, string str, HAlign hAlign, VAlign vAlign, Size fieldSize,
             Pigment pigment = null);
 
@@ -338,7 +338,7 @@ namespace OctoGhast.UserInterface.Core
         /// <param name="startX">X co-ordinate of the anchor</param>
         /// <param name="startY">Y co-ordinate of the anchor</param>
         /// <param name="length">How long of a line to draw</param>
-        /// /// <param name="pigment"><seealso cref="Pigment"/> to use for coloring</param>
+        /// /// <param name="pigment"><seealso cref="OctoGhast.Framework.Theme.Pigment"/> to use for coloring</param>
         void DrawHLine(int startX, int startY, int length, Pigment pigment = null);
 
         /// <summary>
@@ -347,7 +347,7 @@ namespace OctoGhast.UserInterface.Core
         /// </summary>
         /// <param name="start">Co-ordinates to start drawing at</param>
         /// <param name="length">Length of the line to draw</param>
-        /// <param name="pigment"><seealso cref="Pigment"/> to use for coloring</param>
+        /// <param name="pigment"><seealso cref="OctoGhast.Framework.Theme.Pigment"/> to use for coloring</param>
         void DrawHLine(Vec start, int length, Pigment pigment = null);
 
         /// <summary>
@@ -357,7 +357,7 @@ namespace OctoGhast.UserInterface.Core
         /// <param name="startX">X co-ordinate of the anchor</param>
         /// <param name="startY">Y co-ordinate of the anchor</param>
         /// <param name="length">Length of the line to draw</param>
-        /// <param name="pigment"><seealso cref="Pigment"/> to use for coloring</param>
+        /// <param name="pigment"><seealso cref="OctoGhast.Framework.Theme.Pigment"/> to use for coloring</param>
         void DrawVLine(int startX, int startY, int length, Pigment pigment = null);
 
         /// <summary>
@@ -366,7 +366,7 @@ namespace OctoGhast.UserInterface.Core
         /// </summary>
         /// <param name="start">Co-ordinate of the anchor</param>
         /// <param name="length">Length of the line to draw</param>
-        /// <param name="pigment"><seealso cref="Pigment"/> to use for coloring</param>
+        /// <param name="pigment"><seealso cref="OctoGhast.Framework.Theme.Pigment"/> to use for coloring</param>
         void DrawVLine(Vec start, int length, Pigment pigment = null);
     }
 }

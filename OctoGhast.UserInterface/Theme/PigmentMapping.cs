@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using libtcod;
+using OctoGhast.UserInterface.Core;
+using OctoGhast.UserInterface.Core.Interface;
 
-namespace OctoGhast.UserInterface.Core.Theme
+namespace OctoGhast.UserInterface.Theme
 {
-    using PigmentMap = IDictionary<PigmentType, Pigment>;
-
     public enum PigmentType
     {
         /// <summary>
@@ -98,15 +98,15 @@ namespace OctoGhast.UserInterface.Core.Theme
         /// </summary>
         /// <param name="pigments"></param>
         /// <param name="alternativePigments">An alternative set of pigments to use over the normal/default set.</param>
-        public PigmentMapping(PigmentMap pigments, PigmentMap alternativePigments = null) {
+        public PigmentMapping(IDictionary<PigmentType, Pigment> pigments, IDictionary<PigmentType, Pigment> alternativePigments = null) {
             _map = pigments != null
                 ? new Lazy<IDictionary<PigmentType, Pigment>>(() => pigments)
                 : new Lazy<IDictionary<PigmentType, Pigment>>(CreateDefaultMap);
-            _alternativeMap = new Lazy<PigmentMap>(() => alternativePigments ?? new Dictionary<PigmentType, Pigment>());
+            _alternativeMap = new Lazy<IDictionary<PigmentType, Pigment>>(() => alternativePigments ?? new Dictionary<PigmentType, Pigment>());
         }
 
         public PigmentMapping(PigmentMapping pigments, PigmentMapping alternativePigments)
-            : this(pigments.Map, alternativePigments.Map) {
+            : this(pigments != null ? pigments.Map : null, alternativePigments.Map) {
         }
 
         public Pigment this[PigmentType type] {

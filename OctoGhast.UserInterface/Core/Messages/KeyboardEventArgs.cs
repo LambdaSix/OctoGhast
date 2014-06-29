@@ -1,5 +1,6 @@
 ﻿using System;
 using libtcod;
+using OctoGhast.UserInterface.Core.Messages.Interface;
 
 namespace OctoGhast.UserInterface.Core.Messages
 {
@@ -14,7 +15,7 @@ namespace OctoGhast.UserInterface.Core.Messages
         Shift = 16,
     }
 
-    public class KeyboardData
+    public class KeyboardData : IKeyboardData
     {
         public char Character { get; private set; }
         public TCODKeyCode KeyCode { get; private set; }

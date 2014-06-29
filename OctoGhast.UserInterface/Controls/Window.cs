@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reflection;
-using libtcod;
-using OctoGhast.Configuration;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Core;
 using OctoGhast.UserInterface.Core.Messages;
-using OctoGhast.UserInterface.Core.Theme;
 using OctoGhast.UserInterface.Templates;
+using OctoGhast.UserInterface.Theme;
 
 namespace OctoGhast.UserInterface.Controls
 {
@@ -20,18 +17,18 @@ namespace OctoGhast.UserInterface.Controls
     /// </summary>
     public class WindowTemplate : WidgetTemplate
     {
-        private readonly IConfig _configuration;
+        private readonly Size _size ;
 
         /// <summary>
         /// Default constructor initializes properties to their defaults.
         /// </summary>
-        public WindowTemplate(IConfig configuration)
+        public WindowTemplate(Size size)
         {
             HasFrame = false;
 
             TooltipFGAlpha = 1.0f;
             TooltipBGAlpha = 0.6f;
-            _configuration = configuration;
+            _size = size;
         }
 
         /// <summary>
@@ -54,7 +51,7 @@ namespace OctoGhast.UserInterface.Controls
         /// </summary>
         /// <returns></returns>
         public override Size CalculateSize() {
-            return new Size(_configuration.Width, _configuration.Height);
+            return _size;
         }
     }
 
@@ -81,7 +78,9 @@ namespace OctoGhast.UserInterface.Controls
         internal Control CurrentDragging { get; set; }
 
         // TODO: Replace with the application framework reference
-        private IConfig Configuration { get; set; }
+        private Size WindowSize { get; set; }
+
+        public IApplication ParentApplication { get; set; }
 
         public float TooltipBGAlpha { get; set; }
         public float TooltipFGAlpha { get; set; }
@@ -93,11 +92,12 @@ namespace OctoGhast.UserInterface.Controls
             get { return new ReadOnlyCollection<Control>(Controls); }
         }
 
-        public Window(IConfig configuration, WindowTemplate template) : base(template) {
-            Configuration = configuration;
+        public Window(WindowTemplate template) : base(template) {
+            WindowSize = template.CalculateSize();
 
             Controls = new List<Control>();
             ControlsPending = new List<Control>();
+            ControlsRemoving = new List<Control>();
             Managers = new List<Manager>();
             ManagersPending = new List<Manager>();
             ManagersRemoving = new List<Manager>();
@@ -221,7 +221,7 @@ namespace OctoGhast.UserInterface.Controls
 
         protected Control GetTopControlAt(Vec screenPos) {
             return Controls.Where(control => control.IsActive)
-                .First(control => control.ScreenRectangle.Contains(screenPos));
+                .FirstOrDefault(control => control.ScreenRectangle.Contains(screenPos));
         }
 
         protected internal void ShowTooltip(string text, Vec screenPos) {
@@ -246,7 +246,7 @@ namespace OctoGhast.UserInterface.Controls
             return Pigments[PigmentType.FrameNormal];
         }
 
-        protected internal override void OnDraw() {
+        public override void OnDraw() {
             base.OnDraw();
 
             foreach (var control in Controls) {
@@ -257,7 +257,7 @@ namespace OctoGhast.UserInterface.Controls
                 CurrentTooltip.DrawToScreen();
         }
 
-        internal protected override void OnTick() {
+        public override void OnTick() {
             base.OnTick();
 
             UpdateManagers();
@@ -267,28 +267,28 @@ namespace OctoGhast.UserInterface.Controls
             Notify(Controls, _ => _.OnTick());
         }
 
-        protected internal override void OnQuitting() {
+        public override void OnQuitting() {
             base.OnQuitting();
 
             Notify(Managers, _ => _.OnQuitting());
             Notify(Controls, _ => _.OnQuitting());
         }
 
-        protected internal override void OnKeyPressed(KeyboardData keyData) {
+        public override void OnKeyPressed(KeyboardData keyData) {
             base.OnKeyPressed(keyData);
 
             Notify(Managers, _ => _.OnKeyPressed(keyData));
             Notify(Controls, _ => _.OnKeyPressed(keyData));
         }
 
-        protected internal override void OnKeyReleased(KeyboardData keyData) {
+        public override void OnKeyReleased(KeyboardData keyData) {
             base.OnKeyReleased(keyData);
 
             Notify(Managers, _ => _.OnKeyReleased(keyData));
             Notify(Controls, _ => _.OnKeyReleased(keyData));
         }
 
-        protected internal override void OnMouseButtonDown(MouseData mouseData) {
+        public override void OnMouseButtonDown(MouseData mouseData) {
             base.OnMouseButtonDown(mouseData);
 
             Notify(Managers, _ => _.OnMouseButtonDown(mouseData));
@@ -309,7 +309,7 @@ namespace OctoGhast.UserInterface.Controls
             }
         }
 
-        protected internal override void OnMouseButtonUp(MouseData mouseData) {
+        public override void OnMouseButtonUp(MouseData mouseData) {
             base.OnMouseButtonUp(mouseData);
 
             Notify(Managers, _ => _.OnMouseButtonUp(mouseData));
@@ -321,7 +321,7 @@ namespace OctoGhast.UserInterface.Controls
             LastLeftButtonDown = null;
         }
 
-        protected internal override void OnMouseMoved(MouseData mouseData) {
+        public override void OnMouseMoved(MouseData mouseData) {
             base.OnMouseMoved(mouseData);
 
             Notify(Managers, _ => _.OnMouseMoved(mouseData));
@@ -341,7 +341,7 @@ namespace OctoGhast.UserInterface.Controls
                 CurrentUnderMouse.OnMouseMoved(mouseData);
         }
 
-        protected internal override void OnMouseHoverBegin(MouseData mouseData) {
+        public override void OnMouseHoverBegin(MouseData mouseData) {
             base.OnMouseHoverBegin(mouseData);
 
             Notify(Managers, _ => _.OnMouseHoverBegin(mouseData));
@@ -350,7 +350,7 @@ namespace OctoGhast.UserInterface.Controls
                 CurrentUnderMouse.OnMouseHoverBegin(mouseData);
         }
 
-        protected internal override void OnMouseHoverEnd(MouseData mouseData) {
+        public override void OnMouseHoverEnd(MouseData mouseData) {
             if (CurrentTooltip != null) {
                 CurrentTooltip.Dispose();
                 CurrentTooltip = null;
@@ -364,7 +364,7 @@ namespace OctoGhast.UserInterface.Controls
                 CurrentUnderMouse.OnMouseHoverEnd(mouseData);
         }
 
-        protected internal override void OnMouseDragBegin(Vec startPosition) {
+        public override void OnMouseDragBegin(Vec startPosition) {
             base.OnMouseDragBegin(startPosition);
 
             Notify(Managers, _ => _.OnMouseDragBegin(startPosition));
@@ -375,7 +375,7 @@ namespace OctoGhast.UserInterface.Controls
             }
         }
 
-        protected internal override void OnMouseDragEnd(Vec endPosition) {
+        public override void OnMouseDragEnd(Vec endPosition) {
             base.OnMouseDragEnd(endPosition);
 
             Notify(Managers, _ => _.OnMouseDragEnd(endPosition));
@@ -405,8 +405,8 @@ namespace OctoGhast.UserInterface.Controls
             int dx = 0;
             int dy = 0;
 
-            int screenRight = Configuration.Width - 1;
-            int screenBottom = Configuration.Height - 1;
+            int screenRight = WindowSize.Width - 1;
+            int screenBottom = WindowSize.Height - 1;
 
             if (container.Left < 0)
                 dx = -container.Left;
