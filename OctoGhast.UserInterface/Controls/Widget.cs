@@ -1,31 +1,15 @@
 ﻿using System;
-using System.Reflection;
 using OctoGhast.Configuration;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Core;
 using OctoGhast.UserInterface.Core.Theme;
+using OctoGhast.UserInterface.Templates;
 
-namespace OctoGhast.UserInterface
+namespace OctoGhast.UserInterface.Controls
 {
-    public abstract class WidgetTemplate
+    public abstract class Widget : Component, IDisposable
     {
-        public bool OwnerDraw { get; set; }
-
-        public PigmentMapping Pigments { get; set; }
-
-        public abstract Size CalculateSize();
-
-        // TODO: PigmentMapping should be injected in. Revisit when object graph is known.
-
-        public WidgetTemplate() {
-            OwnerDraw = false;
-            Pigments = new PigmentMapping();
-        }
-    }
-
-    public abstract class Widget
-    {
-        protected Vec Position { get; set; } 
+        public Vec Position { get; internal set; }
         protected ICanvas Canvas { get; set; }
 
         public Size Size { get; set; }
@@ -37,6 +21,13 @@ namespace OctoGhast.UserInterface
         /// This is present for subclasses wishing to implement specialised drawing code.
         /// </summary>
         public bool OwnerDraw { get; set; }
+
+        /// <summary>
+        /// Get the pigment map for this widget.  Alternatives can be set or removed
+        /// to change the pigments for this widget and its children during runtime.
+        /// </summary>
+        public PigmentMapping Pigments { get; internal set; }
+
         public PigmentMapping PigmentOverrides { get; set; }
 
         /// <summary>
@@ -86,6 +77,7 @@ namespace OctoGhast.UserInterface
         /// <returns></returns>
         protected abstract Pigment DetermineFramePigment();
 
+        
         internal protected virtual void OnDraw() {
             Redraw();
 

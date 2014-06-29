@@ -47,7 +47,8 @@
     <Compile Include="Core\ICanvas.cs" />
     <Compile Include="Core\Theme\PigmentMapping.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Widget.cs" />
+    <Compile Include="Controls\Widget.cs" />
+    <Compile Include="Templates\WidgetTemplate.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OctoGhast.Spatial\OctoGhast.Spatial.csproj">
