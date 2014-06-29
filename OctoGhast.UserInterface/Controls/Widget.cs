@@ -1,9 +1,9 @@
 ﻿using System;
-using OctoGhast.Configuration;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Core;
-using OctoGhast.UserInterface.Core.Theme;
+using OctoGhast.UserInterface.Core.Interface;
 using OctoGhast.UserInterface.Templates;
+using OctoGhast.UserInterface.Theme;
 
 namespace OctoGhast.UserInterface.Controls
 {
@@ -26,7 +26,7 @@ namespace OctoGhast.UserInterface.Controls
         /// Get the pigment map for this widget.  Alternatives can be set or removed
         /// to change the pigments for this widget and its children during runtime.
         /// </summary>
-        public PigmentMapping Pigments { get; internal set; }
+        public PigmentMapping Pigments { get; set; }
 
         public PigmentMapping PigmentOverrides { get; set; }
 
@@ -48,7 +48,7 @@ namespace OctoGhast.UserInterface.Controls
         public Widget(WidgetTemplate template) {
             Position = Vec.Zero;
             Size = template.CalculateSize();
-            Canvas = new Canvas(new Config(), Size);
+            Canvas = new Canvas(Size);
 
             OwnerDraw = template.OwnerDraw;
             PigmentOverrides = template.Pigments;
@@ -78,7 +78,7 @@ namespace OctoGhast.UserInterface.Controls
         protected abstract Pigment DetermineFramePigment();
 
         
-        internal protected virtual void OnDraw() {
+        public virtual void OnDraw() {
             Redraw();
 
             if (Draw != null)

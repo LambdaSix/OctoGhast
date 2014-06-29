@@ -1,8 +1,9 @@
 ﻿using System;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Core.Messages;
-using OctoGhast.UserInterface.Core.Theme;
 using OctoGhast.UserInterface.Templates;
+using OctoGhast.UserInterface.Theme;
+using MouseButton = OctoGhast.UserInterface.Core.Messages.MouseButton;
 
 namespace OctoGhast.UserInterface.Controls
 {
@@ -252,7 +253,7 @@ namespace OctoGhast.UserInterface.Controls
         ///     custom handling code after calling this base method.
         /// </summary>
         /// <param name="mouseData"></param>
-        protected internal override void OnMouseButtonDown(MouseData mouseData) {
+        public override void OnMouseButtonDown(MouseData mouseData) {
             base.OnMouseButtonDown(mouseData);
 
             if (mouseData.MouseButton == MouseButton.Left) {
@@ -266,7 +267,7 @@ namespace OctoGhast.UserInterface.Controls
         ///     custom handling code after calling this base method.
         /// </summary>
         /// <param name="mouseData"></param>
-        protected internal override void OnMouseButtonUp(MouseData mouseData) {
+        public override void OnMouseButtonUp(MouseData mouseData) {
             base.OnMouseButtonUp(mouseData);
 
             if (mouseData.MouseButton == MouseButton.Left) {
@@ -281,7 +282,7 @@ namespace OctoGhast.UserInterface.Controls
         ///     this base method.
         /// </summary>
         /// <param name="mouseData"></param>
-        protected internal override void OnMouseHoverBegin(MouseData mouseData) {
+        public override void OnMouseHoverBegin(MouseData mouseData) {
             base.OnMouseHoverBegin(mouseData);
             ParentWindow.ShowTooltip(DetermineTooltipText(), mouseData.Position);
         }

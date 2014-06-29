@@ -234,6 +234,15 @@ namespace OctoGhast.Spatial
             return Offset(new Vec(x, y), new Vec(width, height));
         }
 
+        public Rect Inflate(int dx, int dy) {
+            return new Rect(mPos.Offset(-dx, -dy), mSize.Offset(dx*2, dy*2));
+        }
+
+        /// <summary>
+        /// Inflate the rectangle by adding <paramref name="distance"/> to X/Y components.
+        /// </summary>
+        /// <param name="distance">Distance to inflate by</param>
+        /// <returns></returns>
         public Rect Inflate(int distance)
         {
             return new Rect(mPos.Offset(-distance, -distance), mSize.Offset(distance * 2, distance * 2));

@@ -48,7 +48,6 @@ namespace OctoGhast.Renderer
         private readonly IGameMap _map;
         private readonly ICollection<IGameObject> _objects = new List<IGameObject>();
         private readonly ICamera _camera;
-		private bool _dirtyFov;
 
         public Engine(IEngineConfiguration serviceConfiguration) {
             Height = serviceConfiguration.Height;

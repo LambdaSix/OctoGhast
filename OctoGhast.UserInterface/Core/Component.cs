@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using libtcod;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Core.Messages;
@@ -100,7 +98,7 @@ namespace OctoGhast.UserInterface.Core
                 ScheduleAddList.Remove(schedule);
         }
 
-        protected internal virtual void OnSettingUp() {
+        public virtual void OnSettingUp() {
             if (_isSetup)
                 return;
 
@@ -110,7 +108,7 @@ namespace OctoGhast.UserInterface.Core
             _isSetup = true;
         }
 
-        protected internal virtual void OnTick() {
+        public virtual void OnTick() {
             uint milli = TCODSystem.getElapsedMilli();
 
             LastTickElapsed = milli - TotalElapsed;
@@ -138,44 +136,44 @@ namespace OctoGhast.UserInterface.Core
             }
         }
 
-        protected internal virtual void OnQuitting() {
+        public virtual void OnQuitting() {
             if (Quitting != null) Quitting(this, EventArgs.Empty);
         }
 
-        protected internal virtual void OnKeyPressed(KeyboardData keyData) {
+        public virtual void OnKeyPressed(KeyboardData keyData) {
             if (KeyPressed != null) KeyPressed(this, new KeyboardEventArgs(keyData));
         }
 
-        protected internal virtual void OnKeyReleased(KeyboardData keyData) {
+        public virtual void OnKeyReleased(KeyboardData keyData) {
             if (KeyPressed != null) KeyReleased(this, new KeyboardEventArgs(keyData));
         }
 
-        protected internal virtual void OnMouseMoved(MouseData mouseData) {
+        public virtual void OnMouseMoved(MouseData mouseData) {
             CurrentMousePosition = mouseData.Position;
             if (MouseMoved != null) MouseMoved(this, new MouseEventArgs(mouseData));
         }
 
-        protected internal virtual void OnMouseButtonDown(MouseData mouseData) {
+        public virtual void OnMouseButtonDown(MouseData mouseData) {
             if (MouseButtonDown != null) MouseButtonDown(this, new MouseEventArgs(mouseData));
         }
 
-        protected internal virtual void OnMouseButtonUp(MouseData mouseData) {
+        public virtual void OnMouseButtonUp(MouseData mouseData) {
             if (MouseButtonUp != null) MouseButtonUp(this, new MouseEventArgs(mouseData));
         }
 
-        protected internal virtual void OnMouseHoverBegin(MouseData mouseData) {
+        public virtual void OnMouseHoverBegin(MouseData mouseData) {
             if (MouseHoverBegin != null) MouseHoverBegin(this, new MouseEventArgs(mouseData));
         }
 
-        protected internal virtual void OnMouseHoverEnd(MouseData mouseData) {
+        public virtual void OnMouseHoverEnd(MouseData mouseData) {
             if (MouseHoverEnd != null) MouseHoverEnd(this, new MouseEventArgs(mouseData));
         }
 
-        protected internal virtual void OnMouseDragBegin(Vec startPosition) {
+        public virtual void OnMouseDragBegin(Vec startPosition) {
             if (MouseDragBegin != null) MouseDragBegin(this, new MouseDragEventArgs(startPosition));
         }
 
-        protected internal virtual void OnMouseDragEnd(Vec endPosition) {
+        public virtual void OnMouseDragEnd(Vec endPosition) {
             if (MouseDragEnd != null) MouseDragEnd(this, new MouseDragEventArgs(endPosition));
         }
 

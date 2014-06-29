@@ -1,5 +1,5 @@
 using OctoGhast.Spatial;
-using OctoGhast.UserInterface.Core.Theme;
+using OctoGhast.UserInterface.Theme;
 
 namespace OctoGhast.UserInterface.Templates
 {

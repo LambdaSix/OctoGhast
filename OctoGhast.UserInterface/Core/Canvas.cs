@@ -1,27 +1,23 @@
 ﻿using System;
 using System.Text;
+using System.Xml.Schema;
 using libtcod;
-using OctoGhast.Configuration;
 using OctoGhast.Spatial;
-using OctoGhast.UserInterface.Core.Theme;
+using OctoGhast.UserInterface.Core.Interface;
+using OctoGhast.UserInterface.Theme;
 
 namespace OctoGhast.UserInterface.Core
 {
     public class Canvas : ICanvas
     {
-        private IConfig _config;
-
         public Pigment DefaultPigment { get; set; }
+        private Config _config;
 
         public TCODConsole Buffer { get; private set; }
         public Size Size { get; private set; }
 
-        public Canvas(IConfig config, Size size) {
-            if (size.Width > _config.Width || size.Height > _config.Height) {
-                throw new ArgumentOutOfRangeException("size",
-                    "The specified size must be equal to or smaller than the screen size");
-            }
-
+        public Canvas(Size size) {
+            _config = new Config();
             DefaultPigment = new Pigment(0xFFFFFF, 0x000000);
             Buffer = new TCODConsole(size.Width, size.Height);
             Size = size;
@@ -136,7 +132,7 @@ namespace OctoGhast.UserInterface.Core
             var srcSize = new Size(width: Size.Width - Math.Abs(deltaX),
                 height: Size.Height - Math.Abs(deltaY));
 
-            using (ICanvas canvas = new Canvas(_config, srcSize)) {
+            using (ICanvas canvas = new Canvas(srcSize)) {
                 int srcY, destX, destY;
                 int srcX = srcY = destX = destY = 0;
 
@@ -477,6 +473,27 @@ namespace OctoGhast.UserInterface.Core
                 if (Pigment != null)
                     PigmentSetter(DefaultPigment);
             }
+        }
+    }
+
+    public static class CanvasUtil
+    {
+        public static int MeasureStr(string text) {
+            int length = text.Length;
+
+            foreach (var c in text) {
+                switch (c) {
+                    case Color.CodeForeground:
+                    case Color.CodeBackground:
+                        length = length - 4;
+                        break;
+                    case Color.CodeStop:
+                        length = length - 1;
+                        break;
+                }
+            }
+
+            return length;
         }
     }
 }
