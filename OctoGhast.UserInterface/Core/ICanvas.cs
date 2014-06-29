@@ -127,7 +127,8 @@ namespace OctoGhast.UserInterface.Core
         /// Print a framed border around this canvas with an optional title
         /// </summary>
         /// <param name="title">Optional centered title</param>
-        void PrintFrame(string title);
+        /// <param name="pigment">Pigment to use when drawing</param>
+        void PrintFrame(string title, Pigment pigment = null);
 
         // Pigments
 
