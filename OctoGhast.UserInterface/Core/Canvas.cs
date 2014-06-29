@@ -16,10 +16,8 @@ namespace OctoGhast.UserInterface.Core
         public TCODConsole Buffer { get; private set; }
         public Size Size { get; private set; }
 
-        public Canvas(IConfig config, Size size)
-        {
-            if (size.Width > _config.Width || size.Height > _config.Height)
-            {
+        public Canvas(IConfig config, Size size) {
+            if (size.Width > _config.Width || size.Height > _config.Height) {
                 throw new ArgumentOutOfRangeException("size",
                     "The specified size must be equal to or smaller than the screen size");
             }
@@ -48,8 +46,7 @@ namespace OctoGhast.UserInterface.Core
             SetPigmentAt(position.X, position.Y, pigment);
         }
 
-        public void Blit(TCODConsole console, int x, int y)
-        {
+        public void Blit(TCODConsole console, int x, int y) {
             int maxWidth = _config.Width - x;
             int maxHeight = _config.Height - y;
 
@@ -66,8 +63,7 @@ namespace OctoGhast.UserInterface.Core
                 console, x, y);
         }
 
-        public void Blit(TCODConsole console, int x, int y, float fgAlpha, float bgAlpha)
-        {
+        public void Blit(TCODConsole console, int x, int y, float fgAlpha, float bgAlpha) {
             int maxWidth = _config.Width - x;
             int maxHeight = _config.Height - y;
 
@@ -84,71 +80,63 @@ namespace OctoGhast.UserInterface.Core
                 TCODConsole.root, x, y, fgAlpha, bgAlpha);
         }
 
-        public void Blit(TCODConsole console, Vec position)
-        {
+        public void Blit(TCODConsole console, Vec position) {
             Blit(console, position.X, position.Y);
         }
 
-        public void Blit(TCODConsole console, Vec position, float fgAlpha, float bgAlpha)
-        {
+        public void Blit(TCODConsole console, Vec position, float fgAlpha, float bgAlpha) {
             Blit(console, position.X, position.Y, fgAlpha, bgAlpha);
         }
 
-        public void Blit(int x, int y)
-        {
+        public void Blit(int x, int y) {
             Blit(TCODConsole.root, x, y);
         }
 
-        public void Blit(int x, int y, float fgAlpha, float bgAlpha)
-        {
+        public void Blit(int x, int y, float fgAlpha, float bgAlpha) {
             Blit(TCODConsole.root, x, y, fgAlpha, bgAlpha);
         }
 
-        public void Blit(Vec position)
-        {
+        public void Blit(Vec position) {
             Blit(TCODConsole.root, position.X, position.Y);
         }
 
-        public void Blit(Vec position, float fgAlpha, float bgAlpha)
-        {
+        public void Blit(Vec position, float fgAlpha, float bgAlpha) {
             Blit(TCODConsole.root, position.X, position.Y, fgAlpha, bgAlpha);
         }
 
-        public void Blit(ICanvas dest, int x, int y)
-        {
+        public void Blit(ICanvas dest, int x, int y) {
             Blit(dest.Buffer, x, y);
         }
 
-        public void Blit(ICanvas dest, Vec destVec)
-        {
+        public void Blit(ICanvas dest, Vec destVec) {
             Blit(dest.Buffer, destVec.X, destVec.Y);
         }
 
-        public void PrintFrame(string title)
-        {
-            if (string.IsNullOrWhiteSpace(title))
-            {
+        public void PrintFrame(string title, Pigment pigment = null) {
+            if (pigment != null)
+                setPigment(pigment);
+
+            if (string.IsNullOrWhiteSpace(title)) {
                 Buffer.printFrame(0, 0, Size.Width, Size.Height, false);
             }
-            else
-            {
+            else {
                 Buffer.printFrame(0, 0, Size.Width, Size.Height, false,
                     TCODBackgroundFlag.Set, title);
             }
+
+            if (pigment != null)
+                setPigment(DefaultPigment);
         }
 
-        public void Clear()
-        {
+        public void Clear() {
             Buffer.clear();
         }
 
-        public void Scroll(int deltaX, int deltaY)
-        {
+        public void Scroll(int deltaX, int deltaY) {
             var srcSize = new Size(width: Size.Width - Math.Abs(deltaX),
                 height: Size.Height - Math.Abs(deltaY));
 
-            using (ICanvas canvas = new Canvas(_config, srcSize))
-            {
+            using (ICanvas canvas = new Canvas(_config, srcSize)) {
                 int srcY, destX, destY;
                 int srcX = srcY = destX = destY = 0;
 
@@ -173,27 +161,22 @@ namespace OctoGhast.UserInterface.Core
             }
         }
 
-        public void Scroll(Vec delta)
-        {
+        public void Scroll(Vec delta) {
             Scroll(delta.X, delta.Y);
         }
 
-        public Size MeasureChar()
-        {
+        public Size MeasureChar() {
             int w, h;
             TCODSystem.getCharSize(out w, out h);
 
             return new Size(w, h);
         }
 
-        public int MeasureString(string str)
-        {
+        public int MeasureString(string str) {
             int length = str.Length;
 
-            foreach (var c in str)
-            {
-                switch (c)
-                {
+            foreach (var c in str) {
+                switch (c) {
                     case Color.CodeForeground:
                     case Color.CodeBackground:
                         length = length - 4;
@@ -207,19 +190,16 @@ namespace OctoGhast.UserInterface.Core
             return length;
         }
 
-        public string TrimText(string text, int length)
-        {
+        public string TrimText(string text, int length) {
             var sb = new StringBuilder();
 
             int i, w;
             i = w = 0;
 
-            while (w < length)
-            {
+            while (w < length) {
                 char c = text[i];
 
-                switch (c)
-                {
+                switch (c) {
                     case Color.CodeForeground:
                     case Color.CodeBackground:
                         sb.Append(c);
@@ -241,13 +221,11 @@ namespace OctoGhast.UserInterface.Core
             return sb.ToString();
         }
 
-        private int HOffset(string str, HAlign alignment, int fieldLength)
-        {
+        private int HOffset(string str, HAlign alignment, int fieldLength) {
             int startX = 0;
-            switch (alignment)
-            {
+            switch (alignment) {
                 case HAlign.Center:
-                    startX = (fieldLength - MeasureString(str)) / 2;
+                    startX = (fieldLength - MeasureString(str))/2;
                     break;
                 case HAlign.Right:
                     startX = (fieldLength - MeasureString(str));
@@ -256,13 +234,11 @@ namespace OctoGhast.UserInterface.Core
             return startX;
         }
 
-        private int VOffset(string str, VAlign alignment, int fieldHeight)
-        {
+        private int VOffset(string str, VAlign alignment, int fieldHeight) {
             int startY = 0;
-            switch (alignment)
-            {
+            switch (alignment) {
                 case VAlign.Center:
-                    startY = (fieldHeight - 1) / 2;
+                    startY = (fieldHeight - 1)/2;
                     break;
                 case VAlign.Bottom:
                     startY = (fieldHeight - 1);
@@ -273,8 +249,7 @@ namespace OctoGhast.UserInterface.Core
         }
 
 
-        public Vec MeasureAlignOffset(Vec pos, string str, HAlign alignment, int fieldLength)
-        {
+        public Vec MeasureAlignOffset(Vec pos, string str, HAlign alignment, int fieldLength) {
             if (String.IsNullOrWhiteSpace(str))
                 return Vec.Zero;
 
@@ -283,8 +258,7 @@ namespace OctoGhast.UserInterface.Core
             return pos.OffsetX(xOffset);
         }
 
-        public Vec MeasureAlignOffset(Vec pos, string str, HAlign hAlign, VAlign vAlign, Size fieldSize)
-        {
+        public Vec MeasureAlignOffset(Vec pos, string str, HAlign hAlign, VAlign vAlign, Size fieldSize) {
             if (String.IsNullOrWhiteSpace(str))
                 return Vec.Zero;
 
@@ -294,8 +268,7 @@ namespace OctoGhast.UserInterface.Core
             return pos.Offset(xOffset, yOffset);
         }
 
-        public void PrintChar(int x, int y, char character, Pigment pigment = null)
-        {
+        public void PrintChar(int x, int y, char character, Pigment pigment = null) {
             checkInBounds(x, y);
 
             var color = pigment ?? DefaultPigment ?? new Pigment(0xFFFFFF, 0x000000);
@@ -313,19 +286,16 @@ namespace OctoGhast.UserInterface.Core
             Buffer.setForegroundColor(pigment.Foreground.ToTcodColor());
         }
 
-        private void print(int x, int y, string str)
-        {
+        private void print(int x, int y, string str) {
             int cX = x;
             var bg = Buffer.getBackgroundColor();
             var fg = Buffer.getForegroundColor();
             int i = 0;
 
-            while (i < str.Length)
-            {
+            while (i < str.Length) {
                 char c = str[i];
 
-                if (c == Color.CodeForeground)
-                {
+                if (c == Color.CodeForeground) {
                     int r = str[i + 1];
                     int g = str[i + 2];
                     int b = str[i + 3];
@@ -333,22 +303,19 @@ namespace OctoGhast.UserInterface.Core
                     Buffer.setForegroundColor(new TCODColor(r, g, b));
                     i += 4; // Skip over the codes
                 }
-                else if (c == Color.CodeBackground)
-                {
+                else if (c == Color.CodeBackground) {
                     int r = str[i + 1];
                     int g = str[i + 2];
                     int b = str[i + 3];
                     Buffer.setBackgroundColor(new TCODColor(r, g, b));
                     i += 4;
                 }
-                else if (c == Color.CodeStop)
-                {
+                else if (c == Color.CodeStop) {
                     Buffer.setForegroundColor(fg);
                     Buffer.setBackgroundColor(bg);
                     i++;
                 }
-                else
-                {
+                else {
                     Buffer.putChar(cX, y, c);
                     i++;
                     cX++;
@@ -359,21 +326,17 @@ namespace OctoGhast.UserInterface.Core
             }
         }
 
-        private bool tryCheckInBounds(int x, int y)
-        {
-            try
-            {
+        private bool tryCheckInBounds(int x, int y) {
+            try {
                 checkInBounds(x, y);
             }
-            catch (ArgumentOutOfRangeException)
-            {
+            catch (ArgumentOutOfRangeException) {
                 return false;
             }
             return true;
         }
 
-        private void checkInBounds(int x, int y)
-        {
+        private void checkInBounds(int x, int y) {
             if (x < 0 || x >= Size.Width)
                 throw new ArgumentOutOfRangeException("x", "The specified X co-ordinte is out of range");
 
@@ -381,25 +344,20 @@ namespace OctoGhast.UserInterface.Core
                 throw new ArgumentOutOfRangeException("y", "The specified Y co-ordinate is out of range");
         }
 
-        private void setColors(Pigment pigment)
-        {
+        private void setColors(Pigment pigment) {
             Buffer.setBackgroundColor(pigment.Background);
             Buffer.setForegroundColor(pigment.Foreground);
         }
 
-        public void PrintString(int x, int y, string str, Pigment pigment = null)
-        {
+        public void PrintString(int x, int y, string str, Pigment pigment = null) {
             if (str == null)
                 throw new ArgumentNullException("str");
 
             checkInBounds(x, y);
-            if (pigment != null)
-                setColors(pigment);
 
-            print(x, y, str);
-
-            if (pigment != null)
-                setColors(DefaultPigment);
+            using (var session = CreatePigmentSession(pigment, DefaultPigment)) {
+                print(x, y, str);
+            }
         }
 
         public void PrintString(Vec pos, string str, Pigment pigment = null) {
@@ -407,8 +365,7 @@ namespace OctoGhast.UserInterface.Core
         }
 
         public void PrintStringAligned(int x, int y, string str, HAlign alignment, int fieldLength,
-                                       Pigment pigment = null)
-        {
+            Pigment pigment = null) {
             if (str == null)
                 throw new ArgumentNullException("str");
 
@@ -419,18 +376,13 @@ namespace OctoGhast.UserInterface.Core
 
             var position = MeasureAlignOffset(new Vec(x, y), str, alignment, fieldLength);
 
-            if (pigment != null)
-                setColors(pigment);
-
-            print(position.X, position.Y, str);
-
-            if (pigment != null)
-                setColors(DefaultPigment);
+            using (var session = CreatePigmentSession(pigment, DefaultPigment)) {
+                print(position.X, position.Y, str);
+            }
         }
 
         public void PrintStringAligned(int x, int y, string str, HAlign hAlign, VAlign vAlign, Size fieldSize,
-                                       Pigment pigment = null)
-        {
+            Pigment pigment = null) {
             if (str == null)
                 throw new ArgumentNullException("str");
 
@@ -446,13 +398,9 @@ namespace OctoGhast.UserInterface.Core
 
             var pos = MeasureAlignOffset(new Vec(x, y), str, hAlign, vAlign, fieldSize);
 
-            if (pigment != null)
-                setColors(pigment);
-
-            print(pos.X, pos.Y, str);
-
-            if (pigment != null)
-                setColors(pigment);
+            using (var session = CreatePigmentSession(pigment, DefaultPigment)) {
+                print(pos.X, pos.Y, str);
+            }
         }
 
         public void PrintStringAligned(Vec pos, string str, HAlign alignment, int fieldLength, Pigment pigment = null) {
@@ -464,34 +412,24 @@ namespace OctoGhast.UserInterface.Core
             PrintStringAligned(pos.X, pos.Y, str, hAlign, vAlign, fieldSize, pigment);
         }
 
-        public void DrawHLine(int startX, int startY, int length, Pigment pigment = null)
-        {
+        public void DrawHLine(int startX, int startY, int length, Pigment pigment = null) {
             checkInBounds(startX, startY);
 
-            if (pigment != null)
-                setColors(pigment);
-
-            Buffer.hline(startX, startY, length);
-
-            if (pigment != null)
-                setColors(DefaultPigment);
+            using (var session = CreatePigmentSession(pigment, DefaultPigment)) {
+                Buffer.hline(startX, startY, length);
+            }
         }
 
         public void DrawHLine(Vec start, int length, Pigment pigment = null) {
             DrawHLine(start.X, start.Y, length, pigment);
         }
 
-        public void DrawVLine(int startX, int startY, int length, Pigment pigment = null)
-        {
+        public void DrawVLine(int startX, int startY, int length, Pigment pigment = null) {
             checkInBounds(startX, startY);
 
-            if (pigment != null)
-                setColors(pigment);
-
-            Buffer.vline(startX, startX, length);
-
-            if (pigment != null)
-                setColors(DefaultPigment);
+            using (CreatePigmentSession(pigment, DefaultPigment)) {
+                Buffer.vline(startX, startX, length);
+            }
         }
 
         public void DrawVLine(Vec start, int length, Pigment pigment = null) {
@@ -500,23 +438,45 @@ namespace OctoGhast.UserInterface.Core
 
         private bool _alreadyDisposed;
 
-        public void Dispose()
-        {
+        public void Dispose() {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
-        {
+        protected virtual void Dispose(bool disposing) {
             if (_alreadyDisposed)
                 return;
 
-            if (disposing)
-            {
+            if (disposing) {
                 Buffer.Dispose();
             }
 
             _alreadyDisposed = true;
+        }
+
+        private PigmentSession CreatePigmentSession(Pigment pigment, Pigment defaultPigment) {
+            return new PigmentSession(pigment, defaultPigment, setPigment);
+        }
+
+        private class PigmentSession : IDisposable
+        {
+            public Pigment Pigment { get; private set; }
+            public Pigment DefaultPigment { get; private set; }
+            public Action<Pigment> PigmentSetter { get; private set; }
+
+            public PigmentSession(Pigment pigment, Pigment defaultPigment, Action<Pigment> pigmentSetter) {
+                Pigment = pigment;
+                DefaultPigment = defaultPigment;
+                PigmentSetter = pigmentSetter;
+
+                if (Pigment != null)
+                    PigmentSetter(Pigment);
+            }
+
+            public void Dispose() {
+                if (Pigment != null)
+                    PigmentSetter(DefaultPigment);
+            }
         }
     }
 }
