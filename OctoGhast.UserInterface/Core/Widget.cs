@@ -1,11 +1,10 @@
 ﻿using System;
 using OctoGhast.Spatial;
-using OctoGhast.UserInterface.Core;
 using OctoGhast.UserInterface.Core.Interface;
 using OctoGhast.UserInterface.Templates;
 using OctoGhast.UserInterface.Theme;
 
-namespace OctoGhast.UserInterface.Controls
+namespace OctoGhast.UserInterface.Core
 {
     public abstract class Widget : Component, IDisposable
     {

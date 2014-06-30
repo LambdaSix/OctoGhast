@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using OctoGhast.Spatial;
-using OctoGhast.UserInterface.Core;
+using OctoGhast.UserInterface.Controls;
 using OctoGhast.UserInterface.Core.Messages;
 using OctoGhast.UserInterface.Templates;
 using OctoGhast.UserInterface.Theme;
 
-namespace OctoGhast.UserInterface.Controls
+namespace OctoGhast.UserInterface.Core
 {
     /// <summary>
     /// When subclassing a type of Window, consider
@@ -61,21 +61,21 @@ namespace OctoGhast.UserInterface.Controls
     /// </summary>
     public class Window : Widget
     {
-        public IList<Control> Controls { get; set; }
-        private ICollection<Control> ControlsPending { get; set; }
-        private ICollection<Control> ControlsRemoving { get; set; } 
+        public IList<ControlBase> Controls { get; set; }
+        private ICollection<ControlBase> ControlsPending { get; set; }
+        private ICollection<ControlBase> ControlsRemoving { get; set; } 
         
         public IList<Manager> Managers { get; set; }
         private ICollection<Manager> ManagersPending { get; set; } 
         private ICollection<Manager> ManagersRemoving { get; set; }
 
-        public Control CurrentKeyboardFocus { get; private set; }
-        public Control CurrentUnderMouse { get; private set; }
-        public Control LastLeftButtonDown { get; private set; }
-        public Control CurrrentDragging { get; private set; }
+        public ControlBase CurrentKeyboardFocus { get; private set; }
+        public ControlBase CurrentUnderMouse { get; private set; }
+        public ControlBase LastLeftButtonDown { get; private set; }
+        public ControlBase CurrrentDragging { get; private set; }
 
         internal Tooltip CurrentTooltip { get; set; }
-        internal Control CurrentDragging { get; set; }
+        internal ControlBase CurrentDragging { get; set; }
 
         // TODO: Replace with the application framework reference
         private Size WindowSize { get; set; }
@@ -87,17 +87,17 @@ namespace OctoGhast.UserInterface.Controls
 
         private bool HasFrame { get; set; }
 
-        protected IReadOnlyCollection<Control> ControlList
+        protected IReadOnlyCollection<ControlBase> ControlList
         {
-            get { return new ReadOnlyCollection<Control>(Controls); }
+            get { return new ReadOnlyCollection<ControlBase>(Controls); }
         }
 
         public Window(WindowTemplate template) : base(template) {
             WindowSize = template.CalculateSize();
 
-            Controls = new List<Control>();
-            ControlsPending = new List<Control>();
-            ControlsRemoving = new List<Control>();
+            Controls = new List<ControlBase>();
+            ControlsPending = new List<ControlBase>();
+            ControlsRemoving = new List<ControlBase>();
             Managers = new List<Manager>();
             ManagersPending = new List<Manager>();
             ManagersRemoving = new List<Manager>();
@@ -131,11 +131,11 @@ namespace OctoGhast.UserInterface.Controls
                 ManagersPending.Remove(manager);
         }
 
-        public bool ContainsControl(Control control) {
+        public bool ContainsControl(ControlBase control) {
             return Controls.Contains(control);
         }
 
-        public bool AddControl(Control control) {
+        public bool AddControl(ControlBase control) {
             if (ContainsControl(control) || ControlsPending.Contains(control))
                 throw new ArgumentException("CurrentWindow already contains an instance of this control");
 
@@ -157,13 +157,13 @@ namespace OctoGhast.UserInterface.Controls
             return atRequestedPosition;
         }
 
-        public void AddControls(IEnumerable<Control> controls) {
+        public void AddControls(IEnumerable<ControlBase> controls) {
             foreach (var control in controls) {
                 AddControl(control);
             }
         }
 
-        public void RemoveControl(Control control) {
+        public void RemoveControl(ControlBase control) {
             if (control == null)
                 throw new ArgumentNullException("control");
 
@@ -174,7 +174,7 @@ namespace OctoGhast.UserInterface.Controls
                 ControlsPending.Remove(control);
         }
 
-        public void MoveToTop(Control control) {
+        public void MoveToTop(ControlBase control) {
             if (control == null)
                 throw new ArgumentNullException("control");
 
@@ -186,7 +186,7 @@ namespace OctoGhast.UserInterface.Controls
             }
         }
 
-        public void MoveToBottom(Control control) {
+        public void MoveToBottom(ControlBase control) {
             if (control == null)
                 throw new ArgumentNullException("control");
 
@@ -196,7 +196,7 @@ namespace OctoGhast.UserInterface.Controls
             }
         }
 
-        public void ReleaseKeyboard(Control control) {
+        public void ReleaseKeyboard(ControlBase control) {
             if (control == null)
                 throw new ArgumentNullException("control");
 
@@ -206,7 +206,7 @@ namespace OctoGhast.UserInterface.Controls
             }
         }
 
-        public void TakeKeyboard(Control control) {
+        public void TakeKeyboard(ControlBase control) {
             if (control == null)
                 throw new ArgumentNullException("control");
 
@@ -219,7 +219,7 @@ namespace OctoGhast.UserInterface.Controls
             }
         }
 
-        protected Control GetTopControlAt(Vec screenPos) {
+        protected ControlBase GetTopControlAt(Vec screenPos) {
             return Controls.Where(control => control.IsActive)
                 .FirstOrDefault(control => control.ScreenRectangle.Contains(screenPos));
         }
@@ -386,7 +386,7 @@ namespace OctoGhast.UserInterface.Controls
             }
         }
 
-        private bool CanAssignFocus(Control underMouse, MouseData mouseData) {
+        private bool CanAssignFocus(ControlBase underMouse, MouseData mouseData) {
             return underMouse != null
                    && underMouse.CanHaveKeyboardFocus
                    && !underMouse.HasKeyboardFocus
@@ -451,7 +451,7 @@ namespace OctoGhast.UserInterface.Controls
             ControlsRemoving.Clear();
         }
 
-        private bool CheckAddedControlPosition(Control control) {
+        private bool CheckAddedControlPosition(ControlBase control) {
             Vec newVec = AutoPosition(control.Position, control.Size);
 
             if (newVec == control.Position)
@@ -461,7 +461,7 @@ namespace OctoGhast.UserInterface.Controls
             return false;
         }
 
-        private void CheckAddedControlMessages(Control control) {
+        private void CheckAddedControlMessages(ControlBase control) {
             if (control.ScreenRectangle.Contains(CurrentMousePosition)) {
                 control.OnMouseEnter();
                 CurrentUnderMouse = control;
