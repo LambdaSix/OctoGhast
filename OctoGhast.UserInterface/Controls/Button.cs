@@ -47,7 +47,7 @@ namespace OctoGhast.UserInterface.Controls
         }
     }
 
-    public class Button : Control
+    public class Button : ControlBase
     {
         public event EventHandler ButtonClick;
 

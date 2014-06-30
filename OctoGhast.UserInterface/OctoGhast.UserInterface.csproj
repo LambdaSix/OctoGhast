@@ -43,7 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controls\Button.cs" />
-    <Compile Include="Controls\Control.cs" />
+    <Compile Include="Controls\ControlBase.cs" />
     <Compile Include="Controls\Tooltip.cs" />
     <Compile Include="Controls\Window.cs" />
     <Compile Include="Core\Canvas.cs" />
