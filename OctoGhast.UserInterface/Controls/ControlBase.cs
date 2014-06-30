@@ -1,5 +1,6 @@
 ﻿using System;
 using OctoGhast.Spatial;
+using OctoGhast.UserInterface.Core;
 using OctoGhast.UserInterface.Core.Messages;
 using OctoGhast.UserInterface.Templates;
 using OctoGhast.UserInterface.Theme;
@@ -11,13 +12,13 @@ namespace OctoGhast.UserInterface.Controls
     ///     Controls are added to a window, through which they receive action and system
     ///     messages.
     /// </summary>
-    public abstract class Control : Widget
+    public abstract class ControlBase : Widget
     {
         /// <summary>
-        ///     Construct a Control instance from the given template.
+        ///     Construct a ControlBase instance from the given template.
         /// </summary>
         /// <param name="template"></param>
-        protected Control(ControlTemplate template) : base(template) {
+        protected ControlBase(ControlTemplate template) : base(template) {
             Position = template.UpperLeftPos;
 
             HasKeyboardFocus = false;
