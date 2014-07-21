@@ -14,14 +14,10 @@ namespace OctoGhast.UserInterface.Controls
     {
         public HAlign LabelAlign { get; set; }
         public VAlign VerticalAlign { get; set; }
-        public bool HasFrameBorder { get; set; }
         public bool ReplaceOnFirstKey { get; set; }
         public bool CommitOnLostFocus { get; set; }
-        public bool MouseOverHighlight { get; set; }
-        public bool CanHaveKeyboardFocus { get; set; }
         public string Label { get; set; }
         public uint BlinkDelay { get; set; }
-        public Size AutoSizeOverride { get; set; }
 
         public EntryTemplate() {
             Label = "";

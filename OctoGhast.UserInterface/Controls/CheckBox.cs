@@ -12,15 +12,11 @@ namespace OctoGhast.UserInterface.Controls
 {
     public class CheckBoxTemplate : ControlTemplate
     {
-        public Size AutoSizeOverride { get; set; }
         public string Label { get; set; }
         public int MinimumWidth { get; set; }
         public HAlign LabelAlignment { get; set; }
         public VAlign VerticalAlignment { get; set; }
         public bool CheckOnLeft { get; set; }
-        public bool MouseOverHighlight { get; set; }
-        public bool CanHaveKeyboardFocus { get; set; }
-        public bool HasFrameBorder { get; set; }
 
         public CheckBoxTemplate() {
             Label = String.Empty;

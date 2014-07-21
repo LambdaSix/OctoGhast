@@ -13,8 +13,6 @@ namespace OctoGhast.UserInterface.Controls
         public string Label { get; set; }
         public int MinimumWidth { get; set; }
         public HAlign LabelAlignment { get; set; } 
-        public bool MouseOverHighlight { get; set; }
-        public bool CanHaveKeyboardFocus { get; set; }
         public bool HasFrameBorder { get; set; }
         public Size AutoSizeOverride { get; set; }
         public VAlign VAlignment { get; set; }
