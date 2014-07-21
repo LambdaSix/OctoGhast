@@ -44,6 +44,24 @@ namespace OctoGhast.UserInterface.Templates
         public bool IsActiveInitially { get; set; }
 
         /// <summary>
+        /// True if this control should react when the mouse is over it.
+        /// </summary>
+        public bool MouseOverHighlight { get; set; }
+
+        /// <summary>
+        /// True if this control can take keyboard focus
+        /// </summary>
+        public bool CanHaveKeyboardFocus { get; set; }
+
+        /// <summary>
+        /// Use this to manually size the control. If this is empty (default) 
+        /// then the control will attempt to autosize
+        /// </summary>
+        public Size AutoSizeOverride { get; set; }
+
+        public bool HasFrameBorder { get; set; }
+
+        /// <summary>
         /// Default constructor initializes properties to their defaults.
         /// </summary>
         protected ControlTemplate()
