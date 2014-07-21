@@ -46,6 +46,7 @@
     <Compile Include="Controls\CheckBox.cs" />
     <Compile Include="Controls\ControlBase.cs" />
     <Compile Include="Controls\Entry.cs" />
+    <Compile Include="Controls\ListBox.cs" />
     <Compile Include="Controls\TextEntry.cs" />
     <Compile Include="Controls\Tooltip.cs" />
     <Compile Include="Core\Window.cs" />
