@@ -50,6 +50,10 @@
     <Compile Include="Configuration\Config.cs" />
     <Compile Include="Configuration\IConfig.cs" />
     <Compile Include="Entity\Mobile.cs" />
+    <Compile Include="Framework\Game.cs" />
+    <Compile Include="Framework\IGame.cs" />
+    <Compile Include="Framework\InputManager.cs" />
+    <Compile Include="OctoGhastGame.cs" />
     <Compile Include="Renderer\Camera.cs" />
     <Compile Include="Renderer\Engine.cs" />
     <Compile Include="Entity\Player.cs" />
@@ -96,6 +100,10 @@
     <ProjectReference Include="..\OctoGhast.Spatial\OctoGhast.Spatial.csproj">
       <Project>{23DB428F-E97F-4C80-910A-FDD91C548A8C}</Project>
       <Name>OctoGhast.Spatial</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\OctoGhast.UserInterface\OctoGhast.UserInterface.csproj">
+      <Project>{CB3E5076-87FD-4C85-8F23-F76780C53E9C}</Project>
+      <Name>OctoGhast.UserInterface</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />
