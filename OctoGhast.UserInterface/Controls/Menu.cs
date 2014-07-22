@@ -58,6 +58,10 @@ namespace OctoGhast.UserInterface.Controls
         }
     }
 
+    /// <summary>
+    /// A menu is similar to a <seealso cref="ListBox"/> except it does not have a title and item selection
+    /// immediately closes the control. A menu is automatically closed (Remove from parent) when the mouse leves the region.
+    /// </summary>
     public class Menu : ControlBase
     {
         private int _mouseOverIndex;
