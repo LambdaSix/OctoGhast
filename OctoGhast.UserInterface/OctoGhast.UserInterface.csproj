@@ -58,7 +58,6 @@
     <Compile Include="Core\Config.cs" />
     <Compile Include="Core\IApplication.cs" />
     <Compile Include="Core\Interface\ICanvas.cs" />
-    <Compile Include="Core\Interface\IColor.cs" />
     <Compile Include="Core\Manager.cs" />
     <Compile Include="Core\Messages\Interface\IKeyboardData.cs" />
     <Compile Include="Core\Messages\Interface\IMouseData.cs" />

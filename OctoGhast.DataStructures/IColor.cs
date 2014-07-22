@@ -1,4 +1,4 @@
-﻿namespace OctoGhast.UserInterface.Core.Interface
+﻿namespace OctoGhast.DataStructures
 {
     public interface IColor
     {
