@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Text;
 using libtcod;
-using OctoGhast.UserInterface.Core.Interface;
+using OctoGhast.DataStructures;
 
 namespace OctoGhast.UserInterface.Core
 {
