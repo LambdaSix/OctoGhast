@@ -48,6 +48,7 @@
     <Compile Include="Controls\Entry.cs" />
     <Compile Include="Controls\ListBox.cs" />
     <Compile Include="Controls\Menu.cs" />
+    <Compile Include="Controls\Panel.cs" />
     <Compile Include="Controls\TextEntry.cs" />
     <Compile Include="Controls\Tooltip.cs" />
     <Compile Include="Core\Window.cs" />
