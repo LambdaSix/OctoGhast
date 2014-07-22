@@ -66,7 +66,7 @@ namespace OctoGhast.UserInterface.Controls
             if (Size.Height < 3 || Size.Width < 3)
                 HasFrame = false;
 
-            HilightWhenMouseOver = template.MouseOverHighlight;
+            MouseOverHighlight = template.MouseOverHighlight;
             CanHaveKeyboardFocus = template.CanHaveKeyboardFocus;
 
             Label = template.Label ?? "";

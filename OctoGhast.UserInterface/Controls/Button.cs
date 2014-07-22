@@ -58,7 +58,7 @@ namespace OctoGhast.UserInterface.Controls
         public Button(ButtonTemplate template) : base(template) {
             Label = template.Label;
             LabelAlignment = template.LabelAlignment;
-            HilightWhenMouseOver = template.MouseOverHighlight;
+            MouseOverHighlight = template.MouseOverHighlight;
             CanHaveKeyboardFocus = template.CanHaveKeyboardFocus;
 
             LabelRect = new Rect(Vec.Zero, Size);
