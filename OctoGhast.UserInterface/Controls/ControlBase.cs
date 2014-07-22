@@ -26,7 +26,7 @@ namespace OctoGhast.UserInterface.Controls
             IsActive = true;
             HasFrame = true;
             TooltipText = template.Tooltip;
-            HilightWhenMouseOver = false;
+            MouseOverHighlight = false;
             IsActive = template.IsActiveInitially;
         }
 
@@ -53,7 +53,7 @@ namespace OctoGhast.UserInterface.Controls
         /// <summary>
         ///     True if this control will draw itself hilighted when the mouse is over it.
         /// </summary>
-        public bool HilightWhenMouseOver { get; set; }
+        public bool MouseOverHighlight { get; set; }
 
         /// <summary>
         ///     True if the mouse pointer is currently over this control, and the control
@@ -159,7 +159,7 @@ namespace OctoGhast.UserInterface.Controls
             }
 
             if (IsActive) {
-                if (IsMouseOver && HilightWhenMouseOver) {
+                if (IsMouseOver && MouseOverHighlight) {
                     return Pigments[PigmentType.ViewHighlight];
                 }
                 return Pigments[PigmentType.ViewNormal];
@@ -179,7 +179,7 @@ namespace OctoGhast.UserInterface.Controls
             }
 
             if (IsActive) {
-                if (IsMouseOver && HilightWhenMouseOver) {
+                if (IsMouseOver && MouseOverHighlight) {
                     return Pigments[PigmentType.FrameHighlight];
                 }
                 return Pigments[PigmentType.FrameNormal];

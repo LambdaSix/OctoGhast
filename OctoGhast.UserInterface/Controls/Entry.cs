@@ -73,7 +73,7 @@ namespace OctoGhast.UserInterface.Controls
             CommitOnLostFocus = template.CommitOnLostFocus;
             ReplaceOnFirstKey = template.ReplaceOnFirstKey;
             CanHaveKeyboardFocus = template.CanHaveKeyboardFocus;
-            HilightWhenMouseOver = template.MouseOverHighlight;
+            MouseOverHighlight = template.MouseOverHighlight;
 
             VerticalAlign = template.VerticalAlign;
             LabelAlign = template.LabelAlign;
