@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using libtcod;
 using OctoGhast.DataStructures.Lighting;
 using OctoGhast.DataStructures.Map;
@@ -41,15 +42,30 @@ namespace OctoGhast.Renderer.View
         public LightMap<TileLightInfo> CalculateLightMap() {
             return Map.CalculateFov(Camera.ViewFrustum.Center, 4, (x, y) => toView(new Vec(x, y), Camera.ViewFrustum));
         }
+
+        public string TooltipFor(Vec position) {
+            var sb = new StringBuilder();
+            var tile = Map[position];
+            sb.AppendLine("Tile: " + tile.Glyph);
+            sb.AppendLine("Transparent: " + tile.IsExplored);
+            sb.AppendLine("Walkable: " + tile.IsWalkable);
+            sb.Append("Explored: " + tile.IsExplored);
+            return sb.ToString();
+        }
     }
 
     public class MapViewTemplate : PanelTemplate
     {
-        public MapViewTemplate() {
-        }
-
         public override Size CalculateSize() {
-            return Size;
+            var width = Size.Width;
+            var height = Size.Height;
+
+            if (HasFrameBorder) {
+                height += 2;
+                width += 2;
+            }
+
+            return new Size(width, height);
         }
     }
 
@@ -57,14 +73,20 @@ namespace OctoGhast.Renderer.View
     {
         private IMapViewModel Model { get; set; }
 
-        public IPlayer Player { get; set; }
-        public ICamera Camera { get; set; }
-        public IGameMap Map { get; set; }
+        public IPlayer Player {
+            get { return Model.Player; }
+        }
+
+        public ICamera Camera {
+            get { return Model.Camera; }
+        }
+
+        public IGameMap Map {
+            get { return Model.Map; }
+        }
 
         public MapView(MapViewTemplate template, IMapViewModel model) : base(template) {
-            Player = model.Player;
-            Camera = model.Camera;
-            Map = model.Map;
+            Model = model;
         }
 
         private Vec toWorld(int x, int y, Rect constraint) {
@@ -79,20 +101,26 @@ namespace OctoGhast.Renderer.View
             return Model.TooltipFor(toWorld(ScreenToLocal(CurrentMousePosition), Camera.ViewFrustum));
         }
 
+        private Random _random = new Random();
+
         protected override void Redraw() {
             base.Redraw();
 
             var lightMap = Model.CalculateLightMap();
 
-            for (int y = 0; y < Camera.ViewFrustum.Height; y++) {
-                for (int x = 0; x < Camera.ViewFrustum.Width; x++) {
+            var start = (HasFrame) ? 2 : 0;
+
+            for (int y = start; y < Camera.ViewFrustum.Height; y++) {
+                for (int x = start; x < Camera.ViewFrustum.Width; x++) {
                     var worldPos = toWorld(x, y, Camera.ViewFrustum);
+                    lightMap[x, y].LightColor = new Color((byte)_random.Next(0,255), (byte) _random.Next(0, 255), (byte) _random.Next(0, 255));
 
                     if (lightMap[x, y].IsLit) {
                         var tile = Map[worldPos];
+                        var color = lightMap[x, y].LightColor;
 
                         Canvas.PrintChar(x, y, (char) tile.Glyph,
-                            new Pigment(new Color(TCODColor.amber), new Color(TCODColor.black)));
+                            new Pigment(color, new Color(TCODColor.black)));
                     }
                     else {
                         Canvas.PrintChar(x, y, ' ', new Pigment(new Color(TCODColor.black), new Color(TCODColor.black)));
@@ -108,6 +136,8 @@ namespace OctoGhast.Renderer.View
 
             Canvas.PrintChar(playerX + distanceFromCamera.X, playerY + distanceFromCamera.Y, '@',
                 new Pigment(new Color(TCODColor.brass), new Color(TCODColor.black)));
+
+            Canvas.PrintString(0, 0, "FPS: " + TCODSystem.getFps());
         }
     }
 }
