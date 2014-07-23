@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using System.Xml.Schema;
 using libtcod;
@@ -494,6 +495,10 @@ namespace OctoGhast.UserInterface.Core
             }
 
             return length;
+        }
+
+        public static int MeasureLongestLine(string text) {
+            return text.Split('\n').Max(s => s.Length);
         }
     }
 }
