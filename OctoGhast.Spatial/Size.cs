@@ -30,6 +30,8 @@ namespace OctoGhast.Spatial
             get { return (Width == 0 && Height == 0); }
         }
 
+        public int Area { get { return Width*Height; } }
+
         public override bool Equals(object obj) {
             if (obj == null)
                 return false;
@@ -38,6 +40,34 @@ namespace OctoGhast.Spatial
                 return Equals((Size) obj);
 
             return false;
+        }
+
+        /// <summary>
+        /// Change the Width of this Size by the value
+        /// </summary>
+        /// <param name="width">Amount to change Width by</param>
+        /// <returns></returns>
+        public Size OffsetWidth(int width) {
+            return new Size(Width + width, Height);
+        }
+
+        /// <summary>
+        /// Change the Height of this Size by the value
+        /// </summary>
+        /// <param name="height">Amount to change Height by</param>
+        /// <returns></returns>
+        public Size OffsetHeight(int height) {
+            return new Size(Width, Height + height);
+        }
+
+        /// <summary>
+        /// Change the Height and Width of this Size by the values
+        /// </summary>
+        /// <param name="width">Amount to change Width by</param>
+        /// <param name="height">Amount to change Height by</param>
+        /// <returns></returns>
+        public Size Offset(int width, int height) {
+            return new Size(Width + width, Height + height);
         }
 
         public bool Equals(Size other) {

@@ -333,10 +333,10 @@ namespace OctoGhast.UserInterface.Core
         }
 
         private void checkInBounds(int x, int y) {
-            if (x < 0 || x >= Size.Width)
+            if (x < 0 || x > Size.Width)
                 throw new ArgumentOutOfRangeException("x", "The specified X co-ordinte is out of range");
 
-            if (y < 0 || y >= Size.Height)
+            if (y < 0 || y > Size.Height)
                 throw new ArgumentOutOfRangeException("y", "The specified Y co-ordinate is out of range");
         }
 
