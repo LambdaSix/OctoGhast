@@ -1,4 +1,6 @@
-﻿using OctoGhast.Spatial;
+﻿using System;
+using System.Linq;
+using OctoGhast.Spatial;
 
 namespace OctoGhast.DataStructures.Lighting
 {
@@ -13,9 +15,19 @@ namespace OctoGhast.DataStructures.Lighting
         private readonly T[] _map;
         private readonly int _width;
         private readonly int _height;
+        private Func<T> _allocator; 
 
         public LightMap(int height, int width) {
             _map = new T[width*height];
+
+            if (typeof (T).IsClass) {
+                _allocator = Activator.CreateInstance<T>;
+
+                foreach (var element in _map.Select((s,i) => new {i})) {
+                    _map[element.i] = _allocator();
+                }
+            }
+
             _height = height;
             _width = width;
         }
