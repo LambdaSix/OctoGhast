@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq.Expressions;
+﻿using libtcod;
+using OctoGhast.DataStructures.Map;
+using OctoGhast.Entity;
 using OctoGhast.Framework;
+using OctoGhast.Renderer;
+using OctoGhast.Renderer.View;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Controls;
+using OctoGhast.UserInterface.Core;
 
 namespace OctoGhast
 {
@@ -39,9 +43,29 @@ namespace OctoGhast
                 UpperLeftPos = new Vec(5, 5),
             };
 
+            var windowSize = ParentApplication.CurrentWindow.Size.Offset(-25, -15);
+            var mapViewTemplate = new MapViewTemplate
+            {
+                Size = windowSize,
+                Title = "MapView",
+                HasFrameBorder = true,
+                UpperLeftPos = new Vec(20,10)
+            };
+
+            var controlSize = mapViewTemplate.CalculateSize();
+
+            var mapView = new MapView(mapViewTemplate,
+                new MapViewModel()
+                {
+                    Camera = new Camera(Vec.Zero, windowSize),
+                    Map = new GameMap(windowSize.Height, windowSize.Width),
+                    Player = new Player(Vec.Zero, '@', TCODColor.amber)
+                });
+
             var quitButton = new Button(quitButtonTemplate);
             quitButton.ButtonClick += (o, e) => ParentApplication.IsQuitting = true;
             AddControl(quitButton);
+            AddControl(mapView);
         }
 
         protected override void Redraw() {
