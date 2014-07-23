@@ -54,7 +54,7 @@ namespace OctoGhast.DataStructures.Map
             _screenHeight = screenHeight;
             _screenWidth = screenWidth;
 
-            _map.RegisterReader(tuple => Enumerable.Repeat(new Tile {Glyph = '.', IsWalkable = true}, 16*16));
+            _map.RegisterReader(tuple => Enumerable.Repeat(new Tile {Glyph = '.', IsWalkable = true, IsTransparent = true}, 16*16));
         }
 
         public bool IsExplored(Vec position) {
