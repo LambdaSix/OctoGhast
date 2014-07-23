@@ -114,7 +114,7 @@ namespace OctoGhast.UserInterface.Controls
                     _itemsRect.TopLeft.Y + index,
                     item.Label,
                     LabelAlignment,
-                    _itemsRect.Size.Y,
+                    _itemsRect.Size.Width,
                     Pigments[PigmentType.ViewHighlight]);
             }
             else {
@@ -122,7 +122,7 @@ namespace OctoGhast.UserInterface.Controls
                     _itemsRect.TopLeft.Y + index,
                     item.Label,
                     LabelAlignment,
-                    _itemsRect.Size.Y,
+                    _itemsRect.Size.Width,
                     Pigments[PigmentType.ViewNormal]);
             }
         }
@@ -182,7 +182,7 @@ namespace OctoGhast.UserInterface.Controls
             if (HasFrame)
                 _itemsRect = _itemsRect.Inflate(-1, -1);
 
-            int delta = _itemsRect.Size.X - Items.Count();
+            int delta = _itemsRect.Size.Width - Items.Count();
             _numberItemsDisplayed = Items.Count();
 
             if (delta < 0)
