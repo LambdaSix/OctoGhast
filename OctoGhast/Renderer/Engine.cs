@@ -36,8 +36,6 @@ namespace OctoGhast.Renderer
         /// Render a single frame and wait for input.
         /// </summary>
         void Update();
-
-        void Render(TCODConsole buffer);
     }
 
     public class Engine : IEngine
