@@ -2,6 +2,12 @@
 
 namespace OctoGhast.DataStructures.Lighting
 {
+    public class TileLightInfo
+    {
+        public bool IsLit { get; set; }
+        public IColor LightColor { get; set; }
+    }
+
     public class LightMap<T>
     {
         private readonly T[] _map;

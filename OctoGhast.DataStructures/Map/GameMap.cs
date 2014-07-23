@@ -37,7 +37,7 @@ namespace OctoGhast.DataStructures.Map
         /// <returns>True if the tile blocks sight</returns>
         bool IsOpaque(Vec position);
 
-        LightMap<bool> CalculateFov(Vec viewCenter, int lightRadius, Func<int, int, Vec> translateFunc);
+        LightMap<TileLightInfo> CalculateFov(Vec viewCenter, int lightRadius, Func<int, int, Vec> translateFunc);
 
         Tile this[Vec pos] { get; set; }
         Tile this[int x, int y] { get; set; }
@@ -79,14 +79,16 @@ namespace OctoGhast.DataStructures.Map
             set { _map[pos.X, pos.Y] = value; }
         }
 
-        public LightMap<bool> CalculateFov(Vec viewCenter, int lightRadius, Func<int, int, Vec> translateFunc) {
-            var lightMap = new LightMap<bool>(_screenHeight, _screenWidth);
+        public LightMap<TileLightInfo> CalculateFov(Vec viewCenter, int lightRadius, Func<int, int, Vec> translateFunc) {
+            var lightMap = new LightMap<TileLightInfo>(_screenHeight, _screenWidth);
+
+            // TODO: Loop a list of lights, calculate the FOV for each light then mix it's colour into the tile.
 
             ShadowCaster.ComputeFieldOfViewWithShadowCasting(viewCenter.X, viewCenter.Y, lightRadius,
                 (x, y) => IsOpaque(new Vec(x, y)),
                 (x, y) => {
                     var screenPos = translateFunc(x, y);
-                    lightMap[screenPos] = true;
+                    lightMap[screenPos].IsLit = true;
                 });
             return lightMap;
         }
