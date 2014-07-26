@@ -29,7 +29,7 @@ namespace OctoGhast.DataStructures.Map
 
         LightMap<TileLightInfo> CalculateFov(Vec viewCenter, int lightRadius, Func<int, int, Vec> translateFunc);
 
-        Tile this[Vec pos] { get; set; }
-        Tile this[int x, int y] { get; set; }
+        ITile this[Vec pos] { get; set; }
+        ITile this[int x, int y] { get; set; }
     }
 }

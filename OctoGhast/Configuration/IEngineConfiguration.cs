@@ -1,6 +1,5 @@
 ﻿using OctoGhast.DataStructures.Renderer;
 using OctoGhast.Entity;
-using OctoGhast.MapGeneration;
 
 namespace OctoGhast.Renderer
 {
@@ -11,6 +10,5 @@ namespace OctoGhast.Renderer
 
 		ICamera Camera { get; set; }
 		IPlayer Player { get; set; }
-		ITileMapGenerator MapGenerator { get; set; }
 	}
 }
