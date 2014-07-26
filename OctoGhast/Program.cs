@@ -1,18 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Ninject;
-using OctoGhast.Configuration;
-using OctoGhast.DataStructures.Renderer;
-using OctoGhast.Entity;
-using OctoGhast.Framework;
-using OctoGhast.MapGeneration;
-using OctoGhast.MapGeneration.Dungeons;
+﻿using OctoGhast.Framework;
 using OctoGhast.Spatial;
-using libtcod;
-using OctoGhast.Renderer;
 
 namespace OctoGhast
 {

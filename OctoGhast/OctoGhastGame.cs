@@ -1,7 +1,7 @@
 ﻿using libtcod;
-using OctoGhast.DataStructures.Map;
 using OctoGhast.Entity;
 using OctoGhast.Framework;
+using OctoGhast.Map;
 using OctoGhast.Renderer;
 using OctoGhast.Renderer.View;
 using OctoGhast.Spatial;

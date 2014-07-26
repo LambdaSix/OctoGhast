@@ -9,12 +9,12 @@ namespace OctoGhast.Map
 {
     public class GameMap : IGameMap
     {
-        private Map2D<Tile> _map { get; set; }
+        private Map2D<ITile> _map { get; set; }
         private int _screenHeight;
         private int _screenWidth;
 
         public GameMap(int screenHeight, int screenWidth) {
-            _map = new Map2D<Tile>(16, 16);
+            _map = new Map2D<ITile>(16, 16);
             _screenHeight = screenHeight;
             _screenWidth = screenWidth;
 
@@ -33,12 +33,12 @@ namespace OctoGhast.Map
             return !_map[position.X, position.Y].IsTransparent;
         }
 
-        public Tile this[int x, int y] {
+        public ITile this[int x, int y] {
             get { return _map[x, y]; }
             set { _map[x, y] = value; }
         }
 
-        public Tile this[Vec pos] {
+        public ITile this[Vec pos] {
             get { return _map[pos.X, pos.Y]; }
             set { _map[pos.X, pos.Y] = value; }
         }

@@ -11,7 +11,7 @@ namespace OctoGhast.MapGeneration.Dungeons
 {
     public class BSPDungeonGenerator : ITileMapGenerator
     {
-        public Array2D<Tile> Map { get; private set; }
+        public Array2D<ITile> Map { get; private set; }
 
         public uint Seed { get; set; }
 
@@ -27,7 +27,7 @@ namespace OctoGhast.MapGeneration.Dungeons
         public Func<Rect, bool> ItemPlacementFunc { get; set; } 
 
         public void GenerateMap(Rect dimensions) {
-            Map = new Array2D<Tile>(dimensions.Width, dimensions.Height);
+            Map = new Array2D<ITile>(dimensions.Width, dimensions.Height);
             Map.Fill(vec => new Tile {Glyph = '#'});
             Dimensions = dimensions;
 

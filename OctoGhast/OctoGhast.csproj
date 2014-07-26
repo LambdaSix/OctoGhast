@@ -57,7 +57,7 @@
     <Compile Include="Map\Tile.cs" />
     <Compile Include="OctoGhastGame.cs" />
     <Compile Include="Renderer\Camera.cs" />
-    <Compile Include="Renderer\Engine.cs" />
+    <Compile Include="Renderer\CameraExtensions.cs" />
     <Compile Include="Entity\Player.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
