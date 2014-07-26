@@ -53,6 +53,8 @@
     <Compile Include="Framework\Game.cs" />
     <Compile Include="Framework\IGame.cs" />
     <Compile Include="Framework\InputManager.cs" />
+    <Compile Include="Map\GameMap.cs" />
+    <Compile Include="Map\Tile.cs" />
     <Compile Include="OctoGhastGame.cs" />
     <Compile Include="Renderer\Camera.cs" />
     <Compile Include="Renderer\Engine.cs" />
@@ -90,13 +92,13 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\lib\InfiniMap\InfiniMap\InfiniMap.csproj">
+      <Project>{955AF4C9-12E7-4447-8E7C-C3ACD38F2DA9}</Project>
+      <Name>InfiniMap</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OctoGhast.DataStructures\OctoGhast.DataStructures.csproj">
       <Project>{3ABB811A-C183-463B-B32D-F63A314F8D6D}</Project>
       <Name>OctoGhast.DataStructures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\OctoGhast.MapGeneration\OctoGhast.MapGeneration.csproj">
-      <Project>{E178B4FA-597C-47B9-BC44-2984D2A1466D}</Project>
-      <Name>OctoGhast.MapGeneration</Name>
     </ProjectReference>
     <ProjectReference Include="..\OctoGhast.Spatial\OctoGhast.Spatial.csproj">
       <Project>{23DB428F-E97F-4C80-910A-FDD91C548A8C}</Project>
