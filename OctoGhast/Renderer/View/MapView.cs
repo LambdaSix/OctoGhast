@@ -99,6 +99,11 @@ namespace OctoGhast.Renderer.View
             return Model.TooltipFor(toWorld(ScreenToLocal(CurrentMousePosition), Camera.ViewFrustum));
         }
 
+        /// <summary>
+        /// Determine screen drawing offset due to framing.
+        /// </summary>
+        private int DrawOffset { get { return (HasFrame) ? 2 : 0; } }
+
         private Random _random = new Random();
 
         protected override void Redraw() {
@@ -106,12 +111,9 @@ namespace OctoGhast.Renderer.View
 
             var lightMap = Model.CalculateLightMap();
 
-            var start = (HasFrame) ? 2 : 0;
-
-            for (int y = start; y < Camera.ViewFrustum.Height; y++) {
-                for (int x = start; x < Camera.ViewFrustum.Width; x++) {
+            for (int y = DrawOffset; y < Camera.ViewFrustum.Height; y++) {
+                for (int x = DrawOffset; x < Camera.ViewFrustum.Width; x++) {
                     var worldPos = toWorld(x, y, Camera.ViewFrustum);
-                    lightMap[x, y].LightColor = new Color((byte)_random.Next(0,255), (byte) _random.Next(0, 255), (byte) _random.Next(0, 255));
 
                     if (lightMap[x, y].IsLit) {
                         var tile = Map[worldPos];
