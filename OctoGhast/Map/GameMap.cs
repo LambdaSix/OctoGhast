@@ -4,6 +4,7 @@ using InfiniMap;
 using OctoGhast.DataStructures.Lighting;
 using OctoGhast.DataStructures.Map;
 using OctoGhast.Spatial;
+using OctoGhast.UserInterface.Core;
 
 namespace OctoGhast.Map
 {
@@ -53,6 +54,7 @@ namespace OctoGhast.Map
                 (x, y) => {
                     var screenPos = translateFunc(x, y);
                     lightMap[screenPos].IsLit = true;
+                    lightMap[screenPos].LightColor = new Color(128, 128, 128);
                 });
             return lightMap;
         }
