@@ -1,8 +1,11 @@
-﻿using libtcod;
+﻿using System.Collections;
+using System.Collections.Generic;
+using libtcod;
 using OctoGhast.Entity;
 using OctoGhast.Framework;
 using OctoGhast.Map;
 using OctoGhast.Renderer;
+using OctoGhast.Renderer.Screens;
 using OctoGhast.Renderer.View;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Controls;
@@ -29,43 +32,20 @@ namespace OctoGhast
 
     public class OctoWindow : Window
     {
+        private Stack<ScreenBase> Screens { get; set; }
+
         public OctoWindow(WindowTemplate template) : base(template) {
+            Screens = new Stack<ScreenBase>();
+
+            Screens.Push(new TitleScreen());
         }
 
         public override void OnSettingUp() {
             base.OnSettingUp();
 
-            var quitButtonTemplate = new ButtonTemplate()
-            {
-                Label = "QUIT",
-                Tooltip = "Quit the application",
-                HasFrameBorder = true,
-                UpperLeftPos = new Vec(5, 5),
-            };
-
-            var windowSize = ParentApplication.CurrentWindow.Size.Offset(-25, -15);
-            var mapViewTemplate = new MapViewTemplate
-            {
-                Size = windowSize,
-                Title = "MapView",
-                HasFrameBorder = true,
-                UpperLeftPos = new Vec(20,10)
-            };
-
-            var controlSize = mapViewTemplate.CalculateSize();
-
-            var mapView = new MapView(mapViewTemplate,
-                new MapViewModel()
-                {
-                    Camera = new Camera(Vec.Zero, windowSize),
-                    Map = new GameMap(windowSize.Height, windowSize.Width),
-                    Player = new Player(Vec.Zero, '@', TCODColor.amber)
-                });
-
-            var quitButton = new Button(quitButtonTemplate);
-            quitButton.ButtonClick += (o, e) => ParentApplication.IsQuitting = true;
-            AddControl(quitButton);
-            AddControl(mapView);
+            var screen = Screens.Pop();
+            AddManager(screen);
+            screen.OnSettingUp();
         }
 
         protected override void Redraw() {
