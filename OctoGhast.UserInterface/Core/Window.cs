@@ -103,6 +103,13 @@ namespace OctoGhast.UserInterface.Core
             ManagersRemoving = new List<Manager>();
         }
 
+        /// <summary>
+        /// Add a Manager to this window.
+        /// All added instances must be reference unique.
+        /// This should be done before initialization code in the Manager, as its
+        /// parent window is set here.
+        /// </summary>
+        /// <param name="manager"></param>
         public void AddManager(Manager manager) {
             if (Managers.Contains(manager) || ManagersPending.Contains(manager))
                 throw new ArgumentException("Manager instances should be unique", "manager");
