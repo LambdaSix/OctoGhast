@@ -77,6 +77,9 @@ namespace OctoGhast.UserInterface.Core
         internal Tooltip CurrentTooltip { get; set; }
         internal ControlBase CurrentDragging { get; set; }
 
+        protected Stack<ScreenBase> Screens { get; set; }
+        protected ScreenBase CurrentScreen { get; set; }
+
         // TODO: Replace with the application framework reference
         private Size WindowSize { get; set; }
 
@@ -267,6 +270,10 @@ namespace OctoGhast.UserInterface.Core
         public override void OnTick() {
             base.OnTick();
 
+            // Update the current screen, which may involve adding/removing controls & managers.
+            UpdateScreenState();
+            
+            // Now update managers/controls to match the current screen.
             UpdateManagers();
             UpdateControls();
 
@@ -444,6 +451,29 @@ namespace OctoGhast.UserInterface.Core
             ManagersRemoving.Clear();
         }
 
+        private void UpdateScreenState() {
+            if (Screens.Any() && Screens.Peek() != CurrentScreen) {
+                var screen = Screens.Pop();
+
+                // Old screen is about to be removed.
+                // Let them unload stuff
+                if (CurrentScreen != null) {
+                    CurrentScreen.OnTearingDown();
+                    RemoveManager(CurrentScreen);
+                    // Move all the current controls into the removal list.
+                    foreach (var control in Controls) {
+                        RemoveControl(control);
+                    }
+                }
+
+                // Add the new screen as a manager
+                // Let them setup and then register.
+                AddManager(screen);
+                screen.OnSettingUp();
+                CurrentScreen = screen;
+            }
+        }
+
         private void UpdateControls() {
             foreach (var control in ControlsPending) {
                 Controls.Add(control);
@@ -482,6 +512,10 @@ namespace OctoGhast.UserInterface.Core
                 if (CurrentTooltip != null)
                     CurrentTooltip.Dispose();
             }
+        }
+
+        public void EnqueueScreen(ScreenBase screen) {
+            Screens.Push(screen);
         }
     }
 }
