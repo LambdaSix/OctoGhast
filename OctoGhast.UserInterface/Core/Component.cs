@@ -37,6 +37,7 @@ namespace OctoGhast.UserInterface.Core
         private ICollection<Schedule> ScheduleRemoveList = new List<Schedule>();
         private ICollection<Schedule> ScheduleAddList = new List<Schedule>();
         private bool _isSetup;
+        private bool _isTornDown;
 
         public bool Initialized { get { return _isSetup; } }
 
@@ -58,6 +59,8 @@ namespace OctoGhast.UserInterface.Core
 
         public event EventHandler SettingUp;
 
+        public event EventHandler TearingDown;
+        
         public event EventHandler Tick;
 
         public event EventHandler Quitting;
@@ -106,6 +109,16 @@ namespace OctoGhast.UserInterface.Core
                 SettingUp(this, EventArgs.Empty);
 
             _isSetup = true;
+        }
+
+        public virtual void OnTearingDown() {
+            if (_isTornDown)
+                return;
+
+            if (TearingDown != null)
+                TearingDown(this, EventArgs.Empty);
+
+            _isTornDown = true;
         }
 
         public virtual void OnTick() {
