@@ -60,7 +60,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Renderer\MapViewController.cs" />
-    <Compile Include="Renderer\Screens\ScreenBase.cs" />
     <Compile Include="Renderer\Screens\Title\AboutScreen.cs" />
     <Compile Include="Renderer\Screens\Title\TitleScreen.cs" />
     <Compile Include="Renderer\View\MapView.cs" />
