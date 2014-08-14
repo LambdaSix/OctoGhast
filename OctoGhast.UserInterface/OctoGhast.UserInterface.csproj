@@ -52,6 +52,7 @@
     <Compile Include="Controls\Panel.cs" />
     <Compile Include="Controls\TextEntry.cs" />
     <Compile Include="Controls\Tooltip.cs" />
+    <Compile Include="Core\ScreenBase.cs" />
     <Compile Include="Core\Window.cs" />
     <Compile Include="Core\Canvas.cs" />
     <Compile Include="Core\Color.cs" />
