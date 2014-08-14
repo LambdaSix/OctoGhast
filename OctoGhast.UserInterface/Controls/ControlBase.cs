@@ -25,7 +25,7 @@ namespace OctoGhast.UserInterface.Controls
             HasKeyboardFocus = false;
             CanHaveKeyboardFocus = true;
             IsActive = true;
-            HasFrame = true;
+            HasFrame = template.HasFrameBorder;
             TooltipText = template.Tooltip;
             MouseOverHighlight = false;
             IsActive = template.IsActiveInitially;
