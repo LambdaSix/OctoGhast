@@ -25,10 +25,11 @@ namespace OctoGhast.MapGeneration.Dungeons
         /// </summary>
         public Action<Rect> MobilePlacementFunc { get; set; }
         public Func<Rect, bool> ItemPlacementFunc { get; set; } 
+        public Func<ITile> TileFactory { get; set; }
 
         public void GenerateMap(Rect dimensions) {
             Map = new Array2D<ITile>(dimensions.Width, dimensions.Height);
-            Map.Fill(vec => new Tile {Glyph = '#'});
+            Map.Fill(vec => TileFactory());
             Dimensions = dimensions;
 
             Generate();
@@ -51,7 +52,11 @@ namespace OctoGhast.MapGeneration.Dungeons
 
             for (int x = fromVec.X; x <= toVec.X; x++) {
                 for (int y = fromVec.Y; y <= toVec.Y; y++) {
-                    Map[x, y] = new Tile {Glyph = '.', IsWalkable = true, IsTransparent = true};
+                    var tile = TileFactory();
+                    tile.Glyph = '.';
+                    tile.IsWalkable = true;
+                    tile.IsTransparent = true;
+                    Map[x, y] = tile;
                 }
             }
         }
@@ -108,22 +113,6 @@ namespace OctoGhast.MapGeneration.Dungeons
             });
 
             bsp.traverseInvertedLevelOrder(callback);
-        }
-
-        /// <summary>
-        /// Test method, draw the generated map to an offscreen buffer and return the buffer handle
-        /// </summary>
-        /// <param name="map"></param>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        internal TCODConsole Draw(Array2D<Tile> map, TCODConsole buffer) {
-            for (int x = 0; x < Map.Width; x++) {
-                for (int y = 0; y < Map.Height; y++) {
-                    var c = map[x, y].Glyph;
-                    buffer.setChar(x, y, c);
-                }
-            }
-            return buffer;
         }
     }
 
