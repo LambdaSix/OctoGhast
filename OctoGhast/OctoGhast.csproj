@@ -99,6 +99,10 @@
       <Project>{3ABB811A-C183-463B-B32D-F63A314F8D6D}</Project>
       <Name>OctoGhast.DataStructures</Name>
     </ProjectReference>
+    <ProjectReference Include="..\OctoGhast.MapGeneration\OctoGhast.MapGeneration.csproj">
+      <Project>{E178B4FA-597C-47B9-BC44-2984D2A1466D}</Project>
+      <Name>OctoGhast.MapGeneration</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OctoGhast.Spatial\OctoGhast.Spatial.csproj">
       <Project>{23DB428F-E97F-4C80-910A-FDD91C548A8C}</Project>
       <Name>OctoGhast.Spatial</Name>

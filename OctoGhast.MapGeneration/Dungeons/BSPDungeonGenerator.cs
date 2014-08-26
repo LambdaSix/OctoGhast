@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using libtcod;
 using OctoGhast.DataStructures.Map;
 using OctoGhast.Spatial;
@@ -26,16 +22,15 @@ namespace OctoGhast.MapGeneration.Dungeons
         public Action<Rect> MobilePlacementFunc { get; set; }
         public Func<Rect, bool> ItemPlacementFunc { get; set; } 
         public Func<ITile> TileFactory { get; set; }
+        public Size Dimensions { get; set; }
 
-        public void GenerateMap(Rect dimensions) {
+        public void GenerateMap(Size dimensions) {
             Map = new Array2D<ITile>(dimensions.Width, dimensions.Height);
             Map.Fill(vec => TileFactory());
             Dimensions = dimensions;
 
             Generate();
         }
-
-        public Rect Dimensions { get; set; }
 
         public void Dig(Vec fromVec, Vec toVec) {
             if (toVec.X < fromVec.X) {
@@ -83,7 +78,7 @@ namespace OctoGhast.MapGeneration.Dungeons
             var RoomMaxSize = 12;
             var roomNumber = 0;
 
-            var bsp = new TCODBsp(Dimensions.X, Dimensions.Y, Dimensions.Width, Dimensions.Height);
+            var bsp = new TCODBsp(0, 0, Dimensions.Width, Dimensions.Height);
             bsp.splitRecursive(TCODRandom.getInstance(), 8, RoomMaxSize, RoomMaxSize, 1.5f, 1.5f);
 
             int lastX = 0, lastY = 0;
