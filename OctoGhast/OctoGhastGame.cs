@@ -1,14 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using libtcod;
-using OctoGhast.Entity;
+﻿using System.Collections.Generic;
 using OctoGhast.Framework;
-using OctoGhast.Map;
-using OctoGhast.Renderer;
 using OctoGhast.Renderer.Screens;
-using OctoGhast.Renderer.View;
-using OctoGhast.Spatial;
-using OctoGhast.UserInterface.Controls;
 using OctoGhast.UserInterface.Core;
 
 namespace OctoGhast
@@ -32,26 +24,10 @@ namespace OctoGhast
 
     public class OctoWindow : Window
     {
-        private Stack<ScreenBase> Screens { get; set; }
-
         public OctoWindow(WindowTemplate template) : base(template) {
             Screens = new Stack<ScreenBase>();
 
-            Screens.Push(new TitleScreen());
-        }
-
-        public override void OnSettingUp() {
-            base.OnSettingUp();
-
-            var screen = Screens.Pop();
-            AddManager(screen);
-            screen.OnSettingUp();
-        }
-
-        protected override void Redraw() {
-            base.Redraw();
-
-            Canvas.PrintString(0, 0, "Hello, OctoGhast!");
+            EnqueueScreen(new TitleScreen());
         }
     }
 }
