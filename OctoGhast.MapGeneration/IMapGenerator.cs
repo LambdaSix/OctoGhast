@@ -20,12 +20,10 @@ namespace OctoGhast.MapGeneration
         /// Generate a map for use
         /// </summary>
         /// <param name="dimensions">Dimensions to generate within</param>
-        void GenerateMap(Rect dimensions);
-
-        // TODO: Properties for supported methods? (Contiguous, layered, indoor/outdoor, portalled, chunkable, threading, etc)
+        void GenerateMap(Size dimensions);
     }
 
-	public interface ITileMapGenerator : IMapGenerator<Tile>
+	public interface ITileMapGenerator : IMapGenerator<ITile>
 	{
 		/// <summary>
 		/// Provides co-ordinates for the player in the form of the room size
@@ -36,5 +34,10 @@ namespace OctoGhast.MapGeneration
 		/// Provides for placing NPC's or recording their suggested position
 		/// </summary>
 		Action<Rect> MobilePlacementFunc { get; set; }
+
+        /// <summary>
+        /// Provides for creating new tile instances.
+        /// </summary>
+        Func<ITile> TileFactory { get; set; }
 	}
 }

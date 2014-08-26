@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Linq.Expressions;
 using OctoGhast.Framework;
-using OctoGhast.Spatial;
-using OctoGhast.UserInterface.Controls;
+using OctoGhast.Renderer.Screens;
+using OctoGhast.UserInterface.Core;
 
 namespace OctoGhast
 {
@@ -26,28 +25,9 @@ namespace OctoGhast
     public class OctoWindow : Window
     {
         public OctoWindow(WindowTemplate template) : base(template) {
-        }
+            Screens = new Stack<ScreenBase>();
 
-        public override void OnSettingUp() {
-            base.OnSettingUp();
-
-            var quitButtonTemplate = new ButtonTemplate()
-            {
-                Label = "QUIT",
-                Tooltip = "Quit the application",
-                HasFrameBorder = true,
-                UpperLeftPos = new Vec(5, 5),
-            };
-
-            var quitButton = new Button(quitButtonTemplate);
-            quitButton.ButtonClick += (o, e) => ParentApplication.IsQuitting = true;
-            AddControl(quitButton);
-        }
-
-        protected override void Redraw() {
-            base.Redraw();
-
-            Canvas.PrintString(0, 0, "Hello, OctoGhast!");
+            EnqueueScreen(new TitleScreen());
         }
     }
 }

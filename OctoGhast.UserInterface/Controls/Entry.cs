@@ -202,7 +202,7 @@ namespace OctoGhast.UserInterface.Controls
             if (template.HasFrameBorder)
                 viewRect = viewRect.Inflate(-1, -1);
 
-            int remaining = viewRect.Size.Y;
+            int remaining = viewRect.Size.Height;
             int labelLength = template.Label.Length;
             int fieldLength = template.CalculateMaxCharacters();
 
@@ -222,8 +222,8 @@ namespace OctoGhast.UserInterface.Controls
                 labelLength = 0;
             }
 
-            _labelRect = new Rect(viewRect.TopLeft, new Size(labelLength, viewRect.Size.X));
-            _fieldRect = new Rect(_labelRect.TopRight.OffsetX(1), new Size(fieldLength, viewRect.Size.X));
+            _labelRect = new Rect(viewRect.TopLeft, new Size(labelLength, viewRect.Size.Width));
+            _fieldRect = new Rect(_labelRect.TopRight.OffsetX(1), new Size(fieldLength, viewRect.Size.Width));
 
             switch (VerticalAlign)
             {

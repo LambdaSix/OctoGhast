@@ -21,12 +21,13 @@ namespace OctoGhast.UserInterface.Controls
         protected ControlBase(ControlTemplate template) : base(template) {
             Position = template.UpperLeftPos;
 
+            Title = template.Title;
             HasKeyboardFocus = false;
-            CanHaveKeyboardFocus = true;
+            CanHaveKeyboardFocus = template.CanHaveKeyboardFocus;
             IsActive = true;
-            HasFrame = true;
+            HasFrame = template.HasFrameBorder;
             TooltipText = template.Tooltip;
-            MouseOverHighlight = false;
+            MouseOverHighlight = template.MouseOverHighlight;
             IsActive = template.IsActiveInitially;
         }
 
@@ -35,6 +36,11 @@ namespace OctoGhast.UserInterface.Controls
         ///     the framework in response to user input, or by calling Window.TakeKeyboard.
         /// </summary>
         public bool HasKeyboardFocus { get; private set; }
+
+        /// <summary>
+        ///     Will be printed into the frames title area if set.
+        /// </summary>
+        public string Title { get; private set; }
 
         /// <summary>
         ///     True tells parent window that this control is able to
@@ -131,7 +137,7 @@ namespace OctoGhast.UserInterface.Controls
         /// </summary>
         protected void DrawFrame(Pigment pigment = null) {
             if (Size.Width > 2 && Size.Height > 2) {
-                Canvas.PrintFrame(null, pigment);
+                Canvas.PrintFrame(Title, pigment);
             }
         }
 
