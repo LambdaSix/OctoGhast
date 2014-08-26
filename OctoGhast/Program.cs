@@ -21,8 +21,6 @@ namespace OctoGhast
 	        using (var application = new OctoghastGame()) {
 	            application.Start(info);
 	        }
-
-	        Console.ReadLine();
 	    }
 	}
 }
