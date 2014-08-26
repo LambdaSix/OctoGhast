@@ -20,7 +20,7 @@ namespace OctoGhast.MapGeneration
         /// Generate a map for use
         /// </summary>
         /// <param name="dimensions">Dimensions to generate within</param>
-        void GenerateMap(Rect dimensions);
+        void GenerateMap(Size dimensions);
     }
 
 	public interface ITileMapGenerator : IMapGenerator<ITile>
