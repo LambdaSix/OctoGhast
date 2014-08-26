@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Core;
 using OctoGhast.UserInterface.Core.Interface;
@@ -25,14 +26,18 @@ namespace OctoGhast.UserInterface.Controls
         private Window ParentWindow { get; set; }
 
         public Tooltip(string text, Vec screenPosition, Window parentWindow) {
-            Size = new Size(CanvasUtil.MeasureStr(text) + 2, 3);
+            Size = new Size(CanvasUtil.MeasureLongestLine(text) + 2, 3 + text.Count(s => s == '\n'));
             ParentWindow = parentWindow;
 
             Position = AutoPosition(screenPosition);
             Canvas = new Canvas(Size);
             Canvas.SetDefaultPigment(parentWindow.Pigments[PigmentType.Tooltip]);
             Canvas.PrintFrame("");
-            Canvas.PrintString(1, 1, text);
+
+            foreach (var line in text.Split('\r', '\n').Where(s => s != "").Select((s, i) => new {Line = s, i})) {
+                var printLine = line.Line.PadRight(line.Line.Length + (Size.Width - line.Line.Length) - 2);
+                Canvas.PrintString(1, 1 + line.i, printLine);
+            }
         }
 
         public void DrawToScreen() {

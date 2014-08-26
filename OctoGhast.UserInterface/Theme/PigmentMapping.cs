@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using libtcod;
+using OctoGhast.DataStructures;
 using OctoGhast.UserInterface.Core;
 using OctoGhast.UserInterface.Core.Interface;
 
@@ -32,15 +33,15 @@ namespace OctoGhast.UserInterface.Theme
 
     public class Pigment
     {
-        private readonly Color _foreground;
-        private readonly Color _background;
+        private readonly IColor _foreground;
+        private readonly IColor _background;
         private readonly TCODBackgroundFlag _backFlag;
 
-        public Color Foreground {
+        public IColor Foreground {
             get { return _foreground; }
         }
 
-        public Color Background {
+        public IColor Background {
             get { return _background; }
         }
 
@@ -48,13 +49,13 @@ namespace OctoGhast.UserInterface.Theme
             get { return _backFlag; }
         }
 
-        public Pigment(Color foreground, Color background, TCODBackgroundFlag backFlag) {
+        public Pigment(IColor foreground, IColor background, TCODBackgroundFlag backFlag) {
             _foreground = foreground;
             _background = background;
             _backFlag = backFlag;
         }
 
-        public Pigment(Color foreground, Color background) : this(foreground, background, TCODBackgroundFlag.Set) {
+        public Pigment(IColor foreground, IColor background) : this(foreground, background, TCODBackgroundFlag.Set) {
         }
 
         public Pigment(long foreground, long background, TCODBackgroundFlag backFlag)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using System.Xml.Schema;
 using libtcod;
@@ -34,8 +35,8 @@ namespace OctoGhast.UserInterface.Core
             if (pigment == null)
                 throw new ArgumentNullException("pigment");
 
-            Buffer.setCharBackground(x, y, pigment.Background);
-            Buffer.setCharForeground(x, y, pigment.Foreground);
+            Buffer.setCharBackground(x, y, pigment.Background.ToTcodColor());
+            Buffer.setCharForeground(x, y, pigment.Foreground.ToTcodColor());
         }
 
         public void SetPigmentAt(Vec position, Pigment pigment) {
@@ -269,7 +270,7 @@ namespace OctoGhast.UserInterface.Core
 
             var color = pigment ?? DefaultPigment ?? new Pigment(0xFFFFFF, 0x000000);
 
-            Buffer.putCharEx(x, y, character, color.Foreground, color.Background);
+            Buffer.putCharEx(x, y, character, color.Foreground.ToTcodColor(), color.Background.ToTcodColor());
         }
 
         public void PrintChar(Vec pos, char character, Pigment pigment = null) {
@@ -333,16 +334,16 @@ namespace OctoGhast.UserInterface.Core
         }
 
         private void checkInBounds(int x, int y) {
-            if (x < 0 || x >= Size.Width)
+            if (x < 0 || x > Size.Width)
                 throw new ArgumentOutOfRangeException("x", "The specified X co-ordinte is out of range");
 
-            if (y < 0 || y >= Size.Height)
+            if (y < 0 || y > Size.Height)
                 throw new ArgumentOutOfRangeException("y", "The specified Y co-ordinate is out of range");
         }
 
         private void setColors(Pigment pigment) {
-            Buffer.setBackgroundColor(pigment.Background);
-            Buffer.setForegroundColor(pigment.Foreground);
+            Buffer.setBackgroundColor(pigment.Background.ToTcodColor());
+            Buffer.setForegroundColor(pigment.Foreground.ToTcodColor());
         }
 
         public void PrintString(int x, int y, string str, Pigment pigment = null) {
@@ -494,6 +495,10 @@ namespace OctoGhast.UserInterface.Core
             }
 
             return length;
+        }
+
+        public static int MeasureLongestLine(string text) {
+            return text.Split('\n').Max(s => s.Length);
         }
     }
 }

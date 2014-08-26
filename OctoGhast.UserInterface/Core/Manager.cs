@@ -4,6 +4,6 @@ namespace OctoGhast.UserInterface.Core
 {
     public class Manager : Component
     {
-        public Window ParentWindow { get; internal set; }
+        public Window ParentWindow { get; set; }
     }
 }

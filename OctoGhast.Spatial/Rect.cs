@@ -113,9 +113,21 @@ namespace OctoGhast.Spatial
             return new Rect(left, top, width, height);
         }
 
-        public static Rect CenterIn(Rect toCenter, Rect main)
-        {
-            Vec pos = main.Position + ((main.Size - toCenter.Size) / 2);
+        /// <summary>
+        /// Move the Rect so its center point is the larger rects center point.
+        /// </summary>
+        /// <param name="toCenter">The <seealso cref="Rect"/> to center</param>
+        /// <param name="main">The <seealso cref="Rect"/> to center <paramref name="toCenter"/> in</param>
+        /// <returns></returns>
+        public static Rect CenterIn(Rect toCenter, Rect main) {
+            var pos = main.Position;
+            var sizeWidth = (main.Size.Width - toCenter.Size.Width);
+            var sizeHeight = (main.Size.Height - toCenter.Size.Height);
+
+            var finalSize = new Size(sizeWidth, sizeHeight);
+            var halfSize = new Size(sizeHeight/2, sizeHeight/2);
+
+            var finalPos = pos + new Vec(halfSize.Width, halfSize.Width);
 
             return new Rect(pos, toCenter.Size);
         }
@@ -150,12 +162,12 @@ namespace OctoGhast.Spatial
         #endregion
 
         public Vec Position { get { return mPos; } }
-        public Vec Size { get { return mSize; } }
+        public Size Size { get { return mSize; } }
 
         public int X { get { return mPos.X; } }
         public int Y { get { return mPos.Y; } }
-        public int Width { get { return mSize.X; } }
-        public int Height { get { return mSize.Y; } }
+        public int Width { get { return mSize.Width; } }
+        public int Height { get { return mSize.Height; } }
 
         public int Left { get { return X; } }
         public int Top { get { return Y; } }
@@ -171,38 +183,31 @@ namespace OctoGhast.Spatial
 
         public int Area { get { return mSize.Area; } }
 
-        public Rect(Vec pos, Vec size)
+        public Rect(Vec pos, Size size)
         {
             mPos = pos;
             mSize = size;
         }
 
-        public Rect(Vec pos, Size size) {
-            mPos = pos;
-            mSize = new Vec(size.Width, size.Height);
-        }
-
-        public Rect(Vec size)
-            : this(Vec.Zero, size)
-        {
+        public Rect(Size size) : this(Vec.Zero, size) {
         }
 
         public Rect(int x, int y, int width, int height)
-            : this(new Vec(x, y), new Vec(width, height))
+            : this(new Vec(x, y), new Size(width, height))
         {
         }
 
         public Rect(Vec pos, int width, int height)
-            : this(pos, new Vec(width, height))
+            : this(pos, new Size(width, height))
         {
         }
 
         public Rect(int width, int height)
-            : this(new Vec(width, height))
+            : this(new Size(width, height))
         {
         }
 
-        public Rect(int x, int y, Vec size)
+        public Rect(int x, int y, Size size)
             : this(new Vec(x, y), size)
         {
         }
@@ -224,36 +229,64 @@ namespace OctoGhast.Spatial
             return mPos.GetHashCode() + mSize.GetHashCode();
         }
 
-        public Rect Offset(Vec pos, Vec size)
-        {
-            return new Rect(mPos + pos, mSize + size);
+        /// <summary>
+        /// Offset this Rect by adding <paramref name="pos"/> to
+        /// the current position.
+        /// 
+        /// Doesn't alter the size.
+        /// </summary>
+        /// <param name="pos">Vector to add to current position</param>
+        /// <returns></returns>
+        public Rect Offset(Vec pos) {
+            return new Rect(mPos + pos, Size);
         }
 
-        public Rect Offset(int x, int y, int width, int height)
-        {
-            return Offset(new Vec(x, y), new Vec(width, height));
-        }
-
-        public Rect Inflate(int dx, int dy) {
-            return new Rect(mPos.Offset(-dx, -dy), mSize.Offset(dx*2, dy*2));
+        public Rect Offset(int x, int y) {
+            return Offset(new Vec(x, y));
         }
 
         /// <summary>
-        /// Inflate the rectangle by adding <paramref name="distance"/> to X/Y components.
+        /// Offset this Rect by adding <paramref name="pos"/> and
+        /// setting the size to <paramref name="size"/>
         /// </summary>
-        /// <param name="distance">Distance to inflate by</param>
+        /// <param name="pos">Vector to add to current position</param>
+        /// <param name="size">New size of rectangle</param>
         /// <returns></returns>
-        public Rect Inflate(int distance)
-        {
-            return new Rect(mPos.Offset(-distance, -distance), mSize.Offset(distance * 2, distance * 2));
+        public Rect Offset(Vec pos, Size size) {
+            return new Rect(mPos + pos, size);
+        }
+
+        public Rect Offset(int x, int y, int width, int height) {
+            return Offset(new Vec(x, y), new Size(width, height));
+        }
+
+        /// <summary>
+        /// Inflate this Rect's size by the delta values.
+        /// Does not affect the origin of the Rect.
+        /// </summary>
+        /// <param name="widthDelta">Amount to add to the width</param>
+        /// <param name="heightDelta">Amount to add to the height</param>
+        /// <returns></returns>
+        public Rect Inflate(int widthDelta, int heightDelta) {
+
+            return new Rect(mPos, new Size(Size.Width + widthDelta, Size.Height + heightDelta));
+        }
+
+        /// <summary>
+        /// Inflate this Rect's size by the delta values.
+        /// </summary>
+        /// <param name="delta">Amount to inflate width/height by</param>
+        /// <returns></returns>
+        public Rect Inflate(int delta) {
+            return new Rect(mPos, new Size(Size.Width + delta, Size.Height + delta));
         }
 
         public bool Contains(Vec pos)
         {
             if (pos.X < mPos.X) return false;
-            if (pos.X >= mPos.X + mSize.X) return false;
+            if (pos.X >= mPos.X + mSize.Width) return false;
             if (pos.Y < mPos.Y) return false;
-            if (pos.Y >= mPos.Y + mSize.Y) return false;
+            if (pos.Y >= mPos.Y + mSize.Height) return false;
 
             return true;
         }
@@ -341,12 +374,12 @@ namespace OctoGhast.Spatial
 
         public IEnumerator<Vec> GetEnumerator()
         {
-            if (mSize.X < 0) throw new ArgumentOutOfRangeException("Cannot enumerate a Rectangle with a negative width.");
-            if (mSize.Y < 0) throw new ArgumentOutOfRangeException("Cannot enumerate a Rectangle with a negative height.");
+            if (mSize.Width < 0) throw new ArgumentOutOfRangeException("Cannot enumerate a Rectangle with a negative width.");
+            if (mSize.Height < 0) throw new ArgumentOutOfRangeException("Cannot enumerate a Rectangle with a negative height.");
 
-            for (int y = mPos.Y; y < mPos.Y + mSize.Y; y++)
+            for (int y = mPos.Y; y < mPos.Y + mSize.Height; y++)
             {
-                for (int x = mPos.X; x < mPos.X + mSize.X; x++)
+                for (int x = mPos.X; x < mPos.X + mSize.Width; x++)
                 {
                     yield return new Vec(x, y);
                 }
@@ -365,6 +398,6 @@ namespace OctoGhast.Spatial
         #endregion
 
         private Vec mPos;
-        private Vec mSize;
+        private Size mSize;
     }
 }

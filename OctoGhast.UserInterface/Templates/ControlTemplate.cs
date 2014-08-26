@@ -59,7 +59,15 @@ namespace OctoGhast.UserInterface.Templates
         /// </summary>
         public Size AutoSizeOverride { get; set; }
 
+        /// <summary>
+        /// Draw a frame around this control
+        /// </summary>
         public bool HasFrameBorder { get; set; }
+
+        /// <summary>
+        /// If set and <seealso cref="HasFrameBorder"/> is true, draw into the controls frame title
+        /// </summary>
+        public string Title { get; set; }
 
         /// <summary>
         /// Default constructor initializes properties to their defaults.

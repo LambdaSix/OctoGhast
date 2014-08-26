@@ -13,8 +13,6 @@ namespace OctoGhast.UserInterface.Controls
         public string Label { get; set; }
         public int MinimumWidth { get; set; }
         public HAlign LabelAlignment { get; set; } 
-        public bool HasFrameBorder { get; set; }
-        public Size AutoSizeOverride { get; set; }
         public VAlign VAlignment { get; set; }
         
         public ButtonTemplate() {
@@ -58,8 +56,6 @@ namespace OctoGhast.UserInterface.Controls
         public Button(ButtonTemplate template) : base(template) {
             Label = template.Label;
             LabelAlignment = template.LabelAlignment;
-            MouseOverHighlight = template.MouseOverHighlight;
-            CanHaveKeyboardFocus = template.CanHaveKeyboardFocus;
 
             LabelRect = new Rect(Vec.Zero, Size);
             VAlignment = template.VAlignment;
@@ -71,7 +67,7 @@ namespace OctoGhast.UserInterface.Controls
         protected override void Redraw() {
             base.Redraw();
             if (!OwnerDraw) {
-                Canvas.PrintStringAligned(LabelRect.TopLeft, Label, LabelAlignment, VAlignment, Size);
+                Canvas.PrintStringAligned(CalcTopLeft(), Label, LabelAlignment, VAlignment, Size);
             }
         }
 
@@ -101,6 +97,11 @@ namespace OctoGhast.UserInterface.Controls
         protected virtual void OnButtonPushed() {
             if (ButtonClick != null)
                 ButtonClick(this, EventArgs.Empty);
+        }
+
+        private Vec CalcTopLeft() {
+            var vec = LabelRect.TopLeft;
+            return vec.OffsetX((HasFrame) ? 2 : 0);
         }
     }
 }
