@@ -116,11 +116,11 @@ namespace OctoGhast.UserInterface.Controls
 
             if (CheckOnLeft) {
                 checkX = inner.Left;
-                _labelRect = new Rect(inner.TopLeft.OffsetX(1), inner.BottomRight);
+                _labelRect = new Rect(inner.TopLeft.OffsetX(1), inner.Size);
             }
             else {
                 checkX = inner.Right;
-                _labelRect = new Rect(inner.TopLeft, inner.BottomRight.OffsetX(-1));
+                _labelRect = new Rect(inner.TopLeft, inner.Size.OffsetWidth(-1));
             }
             switch (VerticalAlignment) {
                 case VAlign.Bottom:

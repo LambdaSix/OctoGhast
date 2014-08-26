@@ -36,8 +36,8 @@ namespace OctoGhast.Spatial
         /// <summary>
         /// Gets the size of the array.
         /// </summary>
-        public Vec Size {
-            get { return new Vec(Width, Height); }
+        public Size Size {
+            get { return new Size(Width, Height); }
         }
 
         /// <summary>

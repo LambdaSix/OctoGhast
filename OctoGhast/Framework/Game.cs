@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Dynamic;
 using libtcod;
 using OctoGhast.Spatial;
-using OctoGhast.UserInterface.Controls;
 using OctoGhast.UserInterface.Core;
 using OctoGhast.UserInterface.Theme;
 
@@ -58,7 +56,11 @@ namespace OctoGhast.Framework
             get { return new Rect(Vec.Zero, ScreenSize); }
         }
 
-        public Window CurrentWindow { get; private set; }
+        public static Window RootWindow { get; private set; }
+
+        public Window CurrentWindow {
+            get { return RootWindow; }
+        }
 
         public Game() {
             IsQuitting = false;
@@ -67,7 +69,7 @@ namespace OctoGhast.Framework
         public void Start(GameInfo info) {
             Setup(info);
             Run();
-            CurrentWindow.OnQuitting();
+            RootWindow.OnQuitting();
         }
 
         public void SetWindow(Window win) {
@@ -75,7 +77,7 @@ namespace OctoGhast.Framework
                 throw new ArgumentNullException("win");
 
             Input = new InputManager(win);
-            CurrentWindow = win;
+            RootWindow = win;
             win.Pigments = new PigmentMapping(Pigments, win.PigmentOverrides);
 
             if (!win.Initialized)
@@ -102,12 +104,12 @@ namespace OctoGhast.Framework
                 UpdateEventHandler(this, EventArgs.Empty);
 
             var elapsed = TCODSystem.getElapsedMilli();
-            CurrentWindow.OnTick();
+            RootWindow.OnTick();
             Input.Update(elapsed);
         }
 
         private int Run() {
-            if (CurrentWindow == null) {
+            if (RootWindow == null) {
                 var win = new Window(new WindowTemplate(ScreenSize));
                 SetWindow(win);
             }
@@ -121,7 +123,7 @@ namespace OctoGhast.Framework
         }
 
         private void Draw() {
-            CurrentWindow.OnDraw();
+            RootWindow.OnDraw();
             TCODConsole.flush();
         }
 
@@ -141,8 +143,8 @@ namespace OctoGhast.Framework
                 return;
 
             if (isDisposing) {
-                if (CurrentWindow != null)
-                    CurrentWindow.Dispose();
+                if (RootWindow != null)
+                    RootWindow.Dispose();
             }
 
             _alreadyDisposed = true;

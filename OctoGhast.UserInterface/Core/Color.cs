@@ -6,14 +6,6 @@ using OctoGhast.DataStructures;
 
 namespace OctoGhast.UserInterface.Core
 {
-    public static class ColorExtensions
-    {
-        public static TCODColor ToTcodColor(this IColor color)
-        {
-            return new TCODColor(color.Red, color.Green, color.Blue);
-        }
-    }
-
     public class Color : IColor
     {
         public byte Red { get; private set; }
@@ -83,6 +75,20 @@ namespace OctoGhast.UserInterface.Core
             return new Color(color);
         }
 
+        public IColor AdditiveBlend(IColor with) {
+            var colorA = this.ToTcodColor();
+            var colorB = with.ToTcodColor();
+
+            return new Color(colorA.Plus(colorB));
+        }
+
+        public IColor SubtractiveBlend(IColor with) {
+            var colorA = this.ToTcodColor();
+            var colorB = with.ToTcodColor();
+
+            return new Color(colorA.Minus(colorB));
+        }
+
         public IColor ChangeHue(float hue)
         {
             float h, s, v;
@@ -147,8 +153,21 @@ namespace OctoGhast.UserInterface.Core
             return CodeStop.ToString(CultureInfo.InvariantCulture);
         }
 
+        public TCODColor ToTcodColor()
+        {
+            return new TCODColor(Red, Green, Blue);
+        }
+
         public static implicit operator TCODColor(Color color) {
             return color.ToTcodColor();
+        }
+
+        public static IColor operator +(Color self, Color other) {
+            return self.AdditiveBlend(other);
+        }
+
+        public static IColor operator -(Color self, Color other) {
+            return self.SubtractiveBlend(other);
         }
     }
 }

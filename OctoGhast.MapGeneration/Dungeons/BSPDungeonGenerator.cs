@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using libtcod;
 using OctoGhast.DataStructures.Map;
 using OctoGhast.Spatial;
@@ -11,7 +7,7 @@ namespace OctoGhast.MapGeneration.Dungeons
 {
     public class BSPDungeonGenerator : ITileMapGenerator
     {
-        public Array2D<Tile> Map { get; private set; }
+        public Array2D<ITile> Map { get; private set; }
 
         public uint Seed { get; set; }
 
@@ -25,16 +21,16 @@ namespace OctoGhast.MapGeneration.Dungeons
         /// </summary>
         public Action<Rect> MobilePlacementFunc { get; set; }
         public Func<Rect, bool> ItemPlacementFunc { get; set; } 
+        public Func<ITile> TileFactory { get; set; }
+        public Size Dimensions { get; set; }
 
-        public void GenerateMap(Rect dimensions) {
-            Map = new Array2D<Tile>(dimensions.Width, dimensions.Height);
-            Map.Fill(vec => new Tile {Glyph = '#'});
+        public void GenerateMap(Size dimensions) {
+            Map = new Array2D<ITile>(dimensions.Width, dimensions.Height);
+            Map.Fill(vec => TileFactory());
             Dimensions = dimensions;
 
             Generate();
         }
-
-        public Rect Dimensions { get; set; }
 
         public void Dig(Vec fromVec, Vec toVec) {
             if (toVec.X < fromVec.X) {
@@ -51,7 +47,11 @@ namespace OctoGhast.MapGeneration.Dungeons
 
             for (int x = fromVec.X; x <= toVec.X; x++) {
                 for (int y = fromVec.Y; y <= toVec.Y; y++) {
-                    Map[x, y] = new Tile {Glyph = '.', IsWalkable = true, IsTransparent = true};
+                    var tile = TileFactory();
+                    tile.Glyph = '.';
+                    tile.IsWalkable = true;
+                    tile.IsTransparent = true;
+                    Map[x, y] = tile;
                 }
             }
         }
@@ -78,7 +78,7 @@ namespace OctoGhast.MapGeneration.Dungeons
             var RoomMaxSize = 12;
             var roomNumber = 0;
 
-            var bsp = new TCODBsp(Dimensions.X, Dimensions.Y, Dimensions.Width, Dimensions.Height);
+            var bsp = new TCODBsp(0, 0, Dimensions.Width, Dimensions.Height);
             bsp.splitRecursive(TCODRandom.getInstance(), 8, RoomMaxSize, RoomMaxSize, 1.5f, 1.5f);
 
             int lastX = 0, lastY = 0;
@@ -108,22 +108,6 @@ namespace OctoGhast.MapGeneration.Dungeons
             });
 
             bsp.traverseInvertedLevelOrder(callback);
-        }
-
-        /// <summary>
-        /// Test method, draw the generated map to an offscreen buffer and return the buffer handle
-        /// </summary>
-        /// <param name="map"></param>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        internal TCODConsole Draw(Array2D<Tile> map, TCODConsole buffer) {
-            for (int x = 0; x < Map.Width; x++) {
-                for (int y = 0; y < Map.Height; y++) {
-                    var c = map[x, y].Glyph;
-                    buffer.setChar(x, y, c);
-                }
-            }
-            return buffer;
         }
     }
 

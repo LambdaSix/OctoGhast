@@ -1,4 +1,6 @@
-﻿using OctoGhast.Spatial;
+﻿using System;
+using OctoGhast.Spatial;
+using OctoGhast.UserInterface.Core;
 using OctoGhast.UserInterface.Templates;
 using OctoGhast.UserInterface.Theme;
 

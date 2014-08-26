@@ -47,8 +47,8 @@
     <Compile Include="Lighting\ILightSource.cs" />
     <Compile Include="Lighting\LightMap.cs" />
     <Compile Include="Lighting\LightSourceType.cs" />
-    <Compile Include="Map\GameMap.cs" />
-    <Compile Include="Map\Tile.cs" />
+    <Compile Include="Map\IGameMap.cs" />
+    <Compile Include="Map\ITile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Renderer\ICamera.cs" />
   </ItemGroup>
