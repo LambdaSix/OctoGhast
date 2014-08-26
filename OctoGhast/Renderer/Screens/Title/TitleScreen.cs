@@ -105,7 +105,7 @@ namespace OctoGhast.Renderer.Screens
         }
 
         private void NewGameButton_OnButtonClick(object sender, EventArgs eventArgs) {
-            // NavigateTo(new GameMapScreen());
+            NavigateTo(new MainGame());
         }
     }
 }
