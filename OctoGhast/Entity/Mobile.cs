@@ -78,6 +78,11 @@ namespace OctoGhast.Entity
         }
 
         public bool MoveTo(Vec pos) {
+            Position = pos;
+
+            if (_onMoveCallback != null)
+                _onMoveCallback(pos);
+
             return true;
         }
 

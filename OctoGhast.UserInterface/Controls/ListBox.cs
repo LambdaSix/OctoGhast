@@ -160,7 +160,7 @@ namespace OctoGhast.UserInterface.Controls
                     itemsRect.TopLeft.Y + index,
                     item.Label,
                     LabelAlignment,
-                    itemsRect.Size.Y,
+                    itemsRect.Size.Height,
                     Pigments[PigmentType.ViewSelected]);
 
                 Canvas.PrintChar(itemsRect.TopRight.X,
@@ -173,7 +173,7 @@ namespace OctoGhast.UserInterface.Controls
                     itemsRect.TopLeft.Y + index,
                     item.Label,
                     LabelAlignment,
-                    itemsRect.Size.Y,
+                    itemsRect.Size.Height,
                     Pigments[PigmentType.ViewHighlight]);
             }
             else {
@@ -181,7 +181,7 @@ namespace OctoGhast.UserInterface.Controls
                     itemsRect.TopLeft.Y + index,
                     item.Label,
                     LabelAlignment,
-                    itemsRect.Size.Y,
+                    itemsRect.Size.Height,
                     Pigments[PigmentType.ViewNormal]);
             }
         }
