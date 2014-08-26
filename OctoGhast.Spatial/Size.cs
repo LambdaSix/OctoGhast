@@ -8,6 +8,8 @@ namespace OctoGhast.Spatial
         private readonly int _width;
         private readonly int _height;
 
+        public Rect Bounds { get { return new Rect(this); }}
+
         public Size(int width, int height) {
             _width = width;
             _height = height;
