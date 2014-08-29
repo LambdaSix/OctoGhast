@@ -11,28 +11,19 @@ using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Controls;
 using OctoGhast.UserInterface.Core;
 using OctoGhast.UserInterface.Core.Messages;
-using OctoGhast.UserInterface.Templates;
 
 namespace OctoGhast.Renderer.Screens
 {
     public class MainGame : ScreenBase
     {
         private IMapViewModel MapModel { get; set; }
-        private Dictionary<TCODKeyCode, Action> KeyBindingMap { get; set; }
 
         public MainGame() {
-            KeyBindingMap = new Dictionary<TCODKeyCode, Action>();
-            RegisterKeys();
-        }
-
-        private void RegisterKeys() {
-            Action<TCODKeyCode, Action> register = (key, action) => KeyBindingMap.Add(key, action);
-
-            register(TCODKeyCode.Up, () => MapModel.Player.MoveTo(MapModel.Player.Position.Offset(0, -1)));
-            register(TCODKeyCode.Down, () => MapModel.Player.MoveTo(MapModel.Player.Position.Offset(0, +1)));
-            register(TCODKeyCode.Left, () => MapModel.Player.MoveTo(MapModel.Player.Position.Offset(-1, 0)));
-            register(TCODKeyCode.Right, () => MapModel.Player.MoveTo(MapModel.Player.Position.Offset(+1, 0)));
-            register(TCODKeyCode.F1, () => MapModel.DrawLighting = !MapModel.DrawLighting);
+            RegisterAction((int)GameActions.GameMap_MoveNorth, () => MapModel.Player.MoveTo(MapModel.Player.Position.Offset(0, -1)));
+            RegisterAction((int)GameActions.GameMap_MoveSouth, () => MapModel.Player.MoveTo(MapModel.Player.Position.Offset(0, +1)));
+            RegisterAction((int)GameActions.GameMap_MoveLeft, () => MapModel.Player.MoveTo(MapModel.Player.Position.Offset(-1, 0)));
+            RegisterAction((int)GameActions.GameMap_MoveRight, () => MapModel.Player.MoveTo(MapModel.Player.Position.Offset(+1, 0)));
+            RegisterAction((int) GameActions.GameMap_ShowLighting, () => MapModel.DrawLighting = !MapModel.DrawLighting);
         }
 
         public override void OnSettingUp() {
@@ -81,15 +72,6 @@ namespace OctoGhast.Renderer.Screens
             {
                 mapControl
             });
-        }
-
-        public override void OnKeyPressed(KeyboardData keyData) {
-            base.OnKeyPressed(keyData);
-
-            Action keyBinding = null;
-            if (KeyBindingMap.TryGetValue(keyData.KeyCode, out keyBinding)) {
-                keyBinding();
-            }
         }
     }
 }
