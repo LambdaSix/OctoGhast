@@ -51,6 +51,7 @@
     <Compile Include="Framework\Game.cs" />
     <Compile Include="Framework\IGame.cs" />
     <Compile Include="Framework\InputManager.cs" />
+    <Compile Include="GameActions.cs" />
     <Compile Include="Map\GameMap.cs" />
     <Compile Include="Map\Tile.cs" />
     <Compile Include="OctoGhastGame.cs" />
