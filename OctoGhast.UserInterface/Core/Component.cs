@@ -65,6 +65,8 @@ namespace OctoGhast.UserInterface.Core
 
         public event EventHandler Quitting;
 
+        public event EventHandler<int> KeyBindingAction;
+
         public event EventHandler<KeyboardEventArgs> KeyPressed;
 
         public event EventHandler<KeyboardEventArgs> KeyReleased;
@@ -151,6 +153,10 @@ namespace OctoGhast.UserInterface.Core
 
         public virtual void OnQuitting() {
             if (Quitting != null) Quitting(this, EventArgs.Empty);
+        }
+
+        public virtual void OnKeyBindingAction(int actionId) {
+            if (KeyBindingAction != null) KeyBindingAction(this, actionId);
         }
 
         public virtual void OnKeyPressed(KeyboardData keyData) {
