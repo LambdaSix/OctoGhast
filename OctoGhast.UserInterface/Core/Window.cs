@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -69,6 +70,11 @@ namespace OctoGhast.UserInterface.Core
         private ICollection<Manager> ManagersPending { get; set; } 
         private ICollection<Manager> ManagersRemoving { get; set; }
 
+        /// <summary>
+        /// Map of Keybindings to their tokens.
+        /// </summary>
+        private ConcurrentDictionary<KeyBindInfo,int> keybindingMap { get; set; }
+
         public ControlBase CurrentKeyboardFocus { get; private set; }
         public ControlBase CurrentUnderMouse { get; private set; }
         public ControlBase LastLeftButtonDown { get; private set; }
@@ -104,6 +110,16 @@ namespace OctoGhast.UserInterface.Core
             Managers = new List<Manager>();
             ManagersPending = new List<Manager>();
             ManagersRemoving = new List<Manager>();
+            keybindingMap = new ConcurrentDictionary<KeyBindInfo, int>();
+        }
+
+        public void RegisterKey(KeyBindInfo key, int token) {
+            keybindingMap.AddOrUpdate(key, (x) => token, (info, i) => i);
+        }
+
+        public void UnregisterKey(KeyBindInfo key) {
+            int unused;
+            keybindingMap.TryRemove(key, out unused);
         }
 
         /// <summary>
@@ -290,6 +306,12 @@ namespace OctoGhast.UserInterface.Core
 
         public override void OnKeyPressed(KeyboardData keyData) {
             base.OnKeyPressed(keyData);
+
+            // KeyBinding
+            int actionId;
+            if (keybindingMap.TryGetValue(keyData, out actionId)) {
+                Notify(Managers, _ => _.OnKeyBindingAction(actionId));
+            }
 
             Notify(Managers, _ => _.OnKeyPressed(keyData));
             Notify(Controls, _ => _.OnKeyPressed(keyData));
