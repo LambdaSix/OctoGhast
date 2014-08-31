@@ -136,7 +136,7 @@ namespace RenderLike
         internal Texture2D Texture { get; set; }
 
         private Point[] charMap;
-        private const byte SolidChar = 0xFF;
+        public const byte SolidChar = 0xFF;
 
         public Font() {
             charMap = new Point[256];
