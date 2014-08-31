@@ -46,6 +46,7 @@
     <Compile Include="RLConsole.cs" />
     <Compile Include="Font.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Surface.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
