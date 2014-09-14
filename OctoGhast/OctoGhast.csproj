@@ -32,8 +32,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="libtcod-net">
-      <HintPath>..\lib\libtcod\libtcod-net.dll</HintPath>
+    <Reference Include="MonoGame.Framework">
+      <HintPath>..\packages\MonoGame.Binaries.3.2.0\build\net40\MonoGame.Framework.dll</HintPath>
     </Reference>
     <Reference Include="Ninject">
       <HintPath>..\packages\Ninject.3.0.1.10\lib\net45-full\Ninject.dll</HintPath>
@@ -76,14 +76,6 @@
       <Link>celtic_garamond_10x10_gs_tc.png</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\lib\libtcod\libtcod-net-unmanaged.dll">
-      <Link>libtcod-net-unmanaged.dll</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\lib\libtcod\libtcod-VS.dll">
-      <Link>libtcod-VS.dll</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="..\lib\libtcod\SDL.dll">
       <Link>SDL.dll</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -113,6 +105,10 @@
     <ProjectReference Include="..\OctoGhast.UserInterface\OctoGhast.UserInterface.csproj">
       <Project>{CB3E5076-87FD-4C85-8F23-F76780C53E9C}</Project>
       <Name>OctoGhast.UserInterface</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RenderLike\RenderLike.csproj">
+      <Project>{6644b2d9-98dd-4c0a-a51b-c0a0a104a135}</Project>
+      <Name>RenderLike</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

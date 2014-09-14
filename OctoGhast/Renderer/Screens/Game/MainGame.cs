@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.Remoting.Messaging;
-using libtcod;
 using OctoGhast.Entity;
 using OctoGhast.Map;
 using OctoGhast.MapGeneration.Dungeons;
@@ -11,6 +10,7 @@ using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Controls;
 using OctoGhast.UserInterface.Core;
 using OctoGhast.UserInterface.Core.Messages;
+using XColor = Microsoft.Xna.Framework.Color;
 
 namespace OctoGhast.Renderer.Screens
 {
@@ -35,7 +35,7 @@ namespace OctoGhast.Renderer.Screens
             {
                 Camera = new Camera(Vec.Zero, windowSize),
                 Map = new GameMap(windowSize.Height, windowSize.Width),
-                Player = new Player(Vec.Zero, '@', TCODColor.amber),
+                Player = new Player(Vec.Zero, '@', new Color(XColor.Orange)),
             };
 
             MapModel.Camera.BindTo(MapModel.Player);

@@ -1,5 +1,4 @@
-﻿using libtcod;
-using OctoGhast.DataStructures.Map;
+﻿using OctoGhast.DataStructures.Map;
 using OctoGhast.DataStructures.Renderer;
 using OctoGhast.Entity;
 using OctoGhast.Renderer.View;
@@ -7,6 +6,7 @@ using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Controls;
 using OctoGhast.UserInterface.Core;
 using OctoGhast.UserInterface.Theme;
+using XColor = Microsoft.Xna.Framework.Color;
 
 namespace OctoGhast.Renderer.Screens.Game.Controls
 {
@@ -66,13 +66,12 @@ namespace OctoGhast.Renderer.Screens.Game.Controls
                     if (!Model.DrawLighting || lightMap[x, y].IsLit)
                     {
                         var tile = Map[worldPos];
-                        var color = lightMap[x, y].LightColor ?? new Color(TCODColor.grey);
+                        var color = lightMap[x, y].LightColor ?? new Color(Microsoft.Xna.Framework.Color.Gray);
 
-                        Canvas.PrintChar(x, y, (char)tile.Glyph, new Pigment(color, new Color(TCODColor.black)));
+                        Canvas.PrintChar(x, y, (char) tile.Glyph, new Pigment(color, new Color(XColor.Black)));
                     }
-                    else
-                    {
-                        Canvas.PrintChar(x, y, ' ', new Pigment(new Color(TCODColor.black), new Color(TCODColor.black)));
+                    else {
+                        Canvas.PrintChar(x, y, ' ', new Pigment(new Color(XColor.Black), new Color(XColor.Black)));
                     }
                 }
             }
@@ -84,9 +83,9 @@ namespace OctoGhast.Renderer.Screens.Game.Controls
             var distanceFromCamera = playerFrustum.TopLeft - Camera.ViewFrustum.TopLeft;
 
             Canvas.PrintChar(playerX + distanceFromCamera.X, playerY + distanceFromCamera.Y, '@',
-                new Pigment(new Color(TCODColor.brass), new Color(TCODColor.black)));
+                new Pigment(new Color(Microsoft.Xna.Framework.Color.Brown), new Color(XColor.Black)));
 
-            Canvas.PrintString(0, 0, "FPS: " + TCODSystem.getFps());
+            Canvas.PrintString(0, 0, "FPS: " + Framework.Game.FrameCounter.CurrentFramesPerSecond);
         }
     }
 }

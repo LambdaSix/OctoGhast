@@ -1,11 +1,10 @@
-﻿using libtcod;
+﻿using Microsoft.Xna.Framework.Input;
 
 namespace OctoGhast.UserInterface.Core.Messages.Interface
 {
     public interface IKeyboardData
     {
-        char Character { get; }
-        TCODKeyCode KeyCode { get; }
+        Keys KeyCode { get; }
         bool IsKeyDown { get; }
         ControlKeys ControlKeys { get; }
     }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using libtcod;
+using OctoGhast.DataStructures;
 using OctoGhast.DataStructures.Entity;
 using OctoGhast.DataStructures.Map;
 using OctoGhast.Spatial;
@@ -35,7 +35,7 @@ namespace OctoGhast.Entity
 
         public virtual IMobile Combatant { get; set; }
 
-        public Mobile(Vec position, char glyph, TCODColor color, string name) : base(position, glyph, color, name) {
+        public Mobile(Vec position, char glyph, IColor color, string name) : base(position, glyph, color, name) {
 
         }
 
