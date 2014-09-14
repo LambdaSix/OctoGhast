@@ -127,10 +127,24 @@ namespace RenderLike
 
     public class Font
     {
+        /// <summary>
+        /// Width of an individual character in the font.
+        /// </summary>
         public int CharacterWidth { get; private set; }
+
+        /// <summary>
+        /// Height of an individual character in the font.
+        /// </summary>
         public int CharacterHeight { get; private set; }
 
+        /// <summary>
+        /// Count of Rows
+        /// </summary>
         public int RowCount { get; private set; }
+
+        /// <summary>
+        /// Count of Columns
+        /// </summary>
         public int ColumnCount { get; private set; }
 
         internal Texture2D Texture { get; set; }

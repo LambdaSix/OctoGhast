@@ -30,8 +30,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="libtcod-net">
-      <HintPath>..\lib\libtcod\libtcod-net.dll</HintPath>
+    <Reference Include="MonoGame.Framework">
+      <HintPath>..\packages\MonoGame.Binaries.3.2.0\build\net40\MonoGame.Framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -52,6 +52,7 @@
     <Compile Include="Controls\Panel.cs" />
     <Compile Include="Controls\TextEntry.cs" />
     <Compile Include="Controls\Tooltip.cs" />
+    <Compile Include="Core\KeyboardUtils.cs" />
     <Compile Include="Core\Messages\KeyBindInfo.cs" />
     <Compile Include="Core\ScreenBase.cs" />
     <Compile Include="Core\Window.cs" />
@@ -81,6 +82,10 @@
     <ProjectReference Include="..\OctoGhast.Spatial\OctoGhast.Spatial.csproj">
       <Project>{23DB428F-E97F-4C80-910A-FDD91C548A8C}</Project>
       <Name>OctoGhast.Spatial</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RenderLike\RenderLike.csproj">
+      <Project>{6644B2D9-98DD-4C0A-A51B-C0A0A104A135}</Project>
+      <Name>RenderLike</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

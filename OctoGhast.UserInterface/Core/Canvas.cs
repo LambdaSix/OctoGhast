@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
-using System.Xml.Schema;
-using libtcod;
+using Microsoft.Xna.Framework;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Core.Interface;
 using OctoGhast.UserInterface.Theme;
+using RenderLike;
 
 namespace OctoGhast.UserInterface.Core
 {
@@ -14,13 +14,15 @@ namespace OctoGhast.UserInterface.Core
         public Pigment DefaultPigment { get; set; }
         private Config _config;
 
-        public TCODConsole Buffer { get; private set; }
+        private RLConsole _console;
+        public Surface Buffer { get; private set; }
         public Size Size { get; private set; }
 
-        public Canvas(Size size) {
+        public Canvas(RLConsole console, Size size) {
             _config = new Config();
             DefaultPigment = new Pigment(0xFFFFFF, 0x000000);
-            Buffer = new TCODConsole(size.Width, size.Height);
+            _console = console;
+            Buffer = console.CreateSurface(size.Width, size.Height);
             Size = size;
         }
 
@@ -35,15 +37,15 @@ namespace OctoGhast.UserInterface.Core
             if (pigment == null)
                 throw new ArgumentNullException("pigment");
 
-            Buffer.setCharBackground(x, y, pigment.Background.ToTcodColor());
-            Buffer.setCharForeground(x, y, pigment.Foreground.ToTcodColor());
+            Buffer.SetBackground(x, y, (Color)pigment.Background);
+            Buffer.SetForeground(x, y, (Color)pigment.Foreground);
         }
 
         public void SetPigmentAt(Vec position, Pigment pigment) {
             SetPigmentAt(position.X, position.Y, pigment);
         }
 
-        public void Blit(TCODConsole console, int x, int y) {
+        public void Blit(Surface surface, int x, int y) {
             int maxWidth = _config.Width - x;
             int maxHeight = _config.Height - y;
 
@@ -54,13 +56,10 @@ namespace OctoGhast.UserInterface.Core
             int finalHeight = Math.Min(Size.Height, maxHeight);
 
             var finalSize = new Size(finalWidth, finalHeight);
-            TCODConsole.blit(Buffer,
-                0, 0,
-                finalSize.Width, finalSize.Height,
-                console, x, y);
+            _console.Blit(Buffer, surface, new Rectangle(0, 0, finalSize.Width, finalSize.Height), x, y);
         }
 
-        public void Blit(TCODConsole console, int x, int y, float fgAlpha, float bgAlpha) {
+        public void Blit(Surface surface, int x, int y, float alpha) {
             int maxWidth = _config.Width - x;
             int maxHeight = _config.Height - y;
 
@@ -71,34 +70,33 @@ namespace OctoGhast.UserInterface.Core
             int finalHeight = Math.Min(Size.Height, maxHeight);
 
             var finalSize = new Size(finalWidth, finalHeight);
-            TCODConsole.blit(Buffer,
-                0, 0,
-                finalSize.Width, finalSize.Height,
-                TCODConsole.root, x, y, fgAlpha, bgAlpha);
+            _console.BlitAlpha(Buffer, _console.RootSurface,
+                new Rectangle(0, 0, finalSize.Width, finalSize.Height), x,
+                y, alpha);
         }
 
-        public void Blit(TCODConsole console, Vec position) {
-            Blit(console, position.X, position.Y);
+        public void Blit(Surface surface, Vec position) {
+            Blit(surface, position.X, position.Y);
         }
 
-        public void Blit(TCODConsole console, Vec position, float fgAlpha, float bgAlpha) {
-            Blit(console, position.X, position.Y, fgAlpha, bgAlpha);
+        public void Blit(Surface surface, Vec position, float alpha) {
+            Blit(surface, position.X, position.Y, alpha);
         }
 
         public void Blit(int x, int y) {
-            Blit(TCODConsole.root, x, y);
+            Blit(_console.RootSurface, x, y);
         }
 
-        public void Blit(int x, int y, float fgAlpha, float bgAlpha) {
-            Blit(TCODConsole.root, x, y, fgAlpha, bgAlpha);
+        public void Blit(int x, int y, float alpha) {
+            Blit(_console.RootSurface, x, y, alpha);
         }
 
         public void Blit(Vec position) {
-            Blit(TCODConsole.root, position.X, position.Y);
+            Blit(_console.RootSurface, position.X, position.Y);
         }
 
-        public void Blit(Vec position, float fgAlpha, float bgAlpha) {
-            Blit(TCODConsole.root, position.X, position.Y, fgAlpha, bgAlpha);
+        public void Blit(Vec position, float alpha) {
+            Blit(_console.RootSurface, position.X, position.Y, alpha);
         }
 
         public void Blit(ICanvas dest, int x, int y) {
@@ -114,11 +112,10 @@ namespace OctoGhast.UserInterface.Core
                 setPigment(pigment);
 
             if (string.IsNullOrWhiteSpace(title)) {
-                Buffer.printFrame(0, 0, Size.Width, Size.Height, false);
+                Buffer.DrawFrame(new Rectangle(0, 0, Size.Height, Size.Width));
             }
             else {
-                Buffer.printFrame(0, 0, Size.Width, Size.Height, false,
-                    TCODBackgroundFlag.Set, title);
+                Buffer.DrawFrame(new Rectangle(0, 0, Size.Height, Size.Width), title);
             }
 
             if (pigment != null)
@@ -126,14 +123,15 @@ namespace OctoGhast.UserInterface.Core
         }
 
         public void Clear() {
-            Buffer.clear();
+            Buffer.Clear();
         }
 
         public void Scroll(int deltaX, int deltaY) {
-            var srcSize = new Size(width: Size.Width - Math.Abs(deltaX),
+            var srcSize = new Size(
+                width: Size.Width - Math.Abs(deltaX),
                 height: Size.Height - Math.Abs(deltaY));
 
-            using (ICanvas canvas = new Canvas(srcSize)) {
+            using (ICanvas canvas = new Canvas(_console, srcSize)) {
                 int srcY, destX, destY;
                 int srcX = srcY = destX = destY = 0;
 
@@ -149,9 +147,8 @@ namespace OctoGhast.UserInterface.Core
                 if (deltaY > 0)
                     destY = deltaY;
 
-                TCODConsole.blit(Buffer,
-                    srcX, srcY, srcSize.Width, srcSize.Height,
-                    canvas.Buffer,
+                _console.Blit(Buffer, canvas.Buffer,
+                    new Rectangle(srcX, srcY, srcSize.Width, srcSize.Height),
                     destX, destY);
                 Clear();
                 Blit(canvas, 0, 0);
@@ -163,8 +160,8 @@ namespace OctoGhast.UserInterface.Core
         }
 
         public Size MeasureChar() {
-            int w, h;
-            TCODSystem.getCharSize(out w, out h);
+            var h = _console.CharacterHeight;
+            var w = _console.CharacterWidth;
 
             return new Size(w, h);
         }
@@ -270,7 +267,7 @@ namespace OctoGhast.UserInterface.Core
 
             var color = pigment ?? DefaultPigment ?? new Pigment(0xFFFFFF, 0x000000);
 
-            Buffer.putCharEx(x, y, character, color.Foreground.ToTcodColor(), color.Background.ToTcodColor());
+            Buffer.PrintChar(x, y, character, (Color) color.Foreground, (Color) color.Background);
         }
 
         public void PrintChar(Vec pos, char character, Pigment pigment = null) {
@@ -278,42 +275,46 @@ namespace OctoGhast.UserInterface.Core
         }
 
         private void setPigment(Pigment pigment) {
-            Buffer.setBackgroundColor(pigment.Background.ToTcodColor());
-            Buffer.setBackgroundFlag(pigment.BackgroundFlag);
-            Buffer.setForegroundColor(pigment.Foreground.ToTcodColor());
+            Buffer.DefaultBackground = (Color) pigment.Background;
+            Buffer.DefaultForeground = (Color) pigment.Foreground;
         }
 
         private void print(int x, int y, string str) {
             int cX = x;
-            var bg = Buffer.getBackgroundColor();
-            var fg = Buffer.getForegroundColor();
+            var bg = Buffer.DefaultBackground;
+            var fg = Buffer.DefaultForeground;
             int i = 0;
 
             while (i < str.Length) {
                 char c = str[i];
 
                 if (c == Color.CodeForeground) {
-                    int r = str[i + 1];
-                    int g = str[i + 2];
-                    int b = str[i + 3];
+                    // Normally this wouldn't be a great idea, but we know from the
+                    // foreground start code that the next 3 chars are <255 and can
+                    // be safely cast to a byte.
+                    byte r = (byte) str[i + 1];
+                    byte g = (byte) str[i + 2];
+                    byte b = (byte) str[i + 3];
 
-                    Buffer.setForegroundColor(new TCODColor(r, g, b));
+                    Buffer.DefaultForeground = new Color(r, g, b);
                     i += 4; // Skip over the codes
                 }
                 else if (c == Color.CodeBackground) {
-                    int r = str[i + 1];
-                    int g = str[i + 2];
-                    int b = str[i + 3];
-                    Buffer.setBackgroundColor(new TCODColor(r, g, b));
+                    // Same as above, we can safely cast from byte to char because it
+                    // is <255
+                    byte r = (byte) str[i + 1];
+                    byte g = (byte) str[i + 2];
+                    byte b = (byte) str[i + 3];
+                    Buffer.DefaultBackground = new Color(r, g, b);
                     i += 4;
                 }
                 else if (c == Color.CodeStop) {
-                    Buffer.setForegroundColor(fg);
-                    Buffer.setBackgroundColor(bg);
+                    Buffer.DefaultForeground = fg;
+                    Buffer.DefaultBackground = bg;
                     i++;
                 }
                 else {
-                    Buffer.putChar(cX, y, c);
+                    Buffer.PrintChar(cX, y, c);
                     i++;
                     cX++;
 
@@ -342,8 +343,8 @@ namespace OctoGhast.UserInterface.Core
         }
 
         private void setColors(Pigment pigment) {
-            Buffer.setBackgroundColor(pigment.Background.ToTcodColor());
-            Buffer.setForegroundColor(pigment.Foreground.ToTcodColor());
+            Buffer.DefaultBackground = (Color) pigment.Background;
+            Buffer.DefaultForeground = (Color) pigment.Foreground;
         }
 
         public void PrintString(int x, int y, string str, Pigment pigment = null) {
@@ -413,7 +414,7 @@ namespace OctoGhast.UserInterface.Core
             checkInBounds(startX, startY);
 
             using (var session = CreatePigmentSession(pigment, DefaultPigment)) {
-                Buffer.hline(startX, startY, length);
+                Buffer.DrawHorizontalLine(startX, startY, length);
             }
         }
 
@@ -425,7 +426,7 @@ namespace OctoGhast.UserInterface.Core
             checkInBounds(startX, startY);
 
             using (CreatePigmentSession(pigment, DefaultPigment)) {
-                Buffer.vline(startX, startX, length);
+                Buffer.DrawVerticalLine(startX, startX, length);
             }
         }
 
@@ -445,7 +446,8 @@ namespace OctoGhast.UserInterface.Core
                 return;
 
             if (disposing) {
-                Buffer.Dispose();
+                // Used to be stuff to dispose, maybe textures for RLConsole?
+                // TODO: Profile
             }
 
             _alreadyDisposed = true;

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using libtcod;
 using OctoGhast.Spatial;
 
 namespace OctoGhast.DataStructures.Entity
@@ -27,34 +26,27 @@ namespace OctoGhast.DataStructures.Entity
         Vec Position { get; }
         IGlyph Glyph { get; }
         string Name { get; }
-
-        void Draw(TCODConsole buffer, Vec drawPos);
     }
 
     public class GameObject : IGameObject
     {
         public Vec Position { get; protected set; }
         public IGlyph Glyph { get; protected set; }
-        public TCODColor Color { get; protected set; }
+        public IColor Color { get; protected set; }
         public string Name { get; protected set; }
 
-        public GameObject(Vec position, IGlyph glyph, TCODColor color) {
+        public GameObject(Vec position, IGlyph glyph, IColor color) {
             Position = position;
             Glyph = glyph;
             Color = color;
         }
 
-        public GameObject(Vec position, int glyph, TCODColor color) : this(position, new Glyph(glyph), color) {
+        public GameObject(Vec position, int glyph, IColor color) : this(position, new Glyph(glyph), color) {
             
         }
 
-        public GameObject(Vec position, int glyph, TCODColor color, string name) : this(position, new Glyph(glyph), color) {
+        public GameObject(Vec position, int glyph, IColor color, string name) : this(position, new Glyph(glyph), color) {
             Name = name;
-        }
-
-        public virtual void Draw(TCODConsole buffer, Vec drawPosition)
-        {
-            buffer.putCharEx(drawPosition.X, drawPosition.Y, Glyph.Icon, Color, TCODColor.black);
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using libtcod;
+using Microsoft.Xna.Framework.Input;
 using OctoGhast.Framework;
 using OctoGhast.Renderer.Screens;
 using OctoGhast.UserInterface.Core;
@@ -22,6 +22,10 @@ namespace OctoGhast
 
             SetWindow(window);
         }
+
+        public OctoghastGame(GameInfo info) : base(info) {
+            
+        }
     }
 
     public class OctoWindow : Window
@@ -32,11 +36,11 @@ namespace OctoGhast
             EnqueueScreen(new TitleScreen());
 
             // Register our keybindings -> actions
-            RegisterKey(TCODKeyCode.Up, (int) GameActions.GameMap_MoveNorth);
-            RegisterKey(TCODKeyCode.Down, (int) GameActions.GameMap_MoveSouth);
-            RegisterKey(TCODKeyCode.Left, (int) GameActions.GameMap_MoveLeft);
-            RegisterKey(TCODKeyCode.Right, (int) GameActions.GameMap_MoveRight);
-            RegisterKey(TCODKeyCode.F1, (int) GameActions.GameMap_ShowLighting);
+            RegisterKey(Keys.Up, (int) GameActions.GameMap_MoveNorth);
+            RegisterKey(Keys.Down, (int) GameActions.GameMap_MoveSouth);
+            RegisterKey(Keys.Left, (int) GameActions.GameMap_MoveLeft);
+            RegisterKey(Keys.Right, (int) GameActions.GameMap_MoveRight);
+            RegisterKey(Keys.F1, (int) GameActions.GameMap_ShowLighting);
         }
     }
 }

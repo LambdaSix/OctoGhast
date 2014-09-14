@@ -155,7 +155,6 @@ namespace RenderLike
             int deltaX = srcRect.Left - blitRect.Left;
             int deltaY = srcRect.Top - blitRect.Top;
 
-            bool dstIsRoot = dst is RootSurface;
             var dstAsRoot = dst as RootSurface;
 
             blitRect = Rectangle.Intersect(blitRect, new Rectangle(0, 0, dst.Width, dst.Height));
@@ -182,7 +181,7 @@ namespace RenderLike
                     dst.Cells[x + y*dst.Width].Fore = foreCol;
                     dst.Cells[x + y*dst.Width].Char = ch;
 
-                    if (dstIsRoot)
+                    if (dstAsRoot != null)
                         dstAsRoot.DirtyCells[x + y*dst.Width] = true;
                 }
             }

@@ -1,7 +1,10 @@
 ﻿using System;
-using libtcod;
+using System.Linq;
+using Microsoft.Xna.Framework;
 using OctoGhast.DataStructures.Map;
 using OctoGhast.Spatial;
+using RenderLike;
+using RenderLike.BSP;
 
 namespace OctoGhast.MapGeneration.Dungeons
 {
@@ -77,52 +80,35 @@ namespace OctoGhast.MapGeneration.Dungeons
             var RoomMinSize = 6;
             var RoomMaxSize = 12;
             var roomNumber = 0;
+            var rand = new Rand();
 
-            var bsp = new TCODBsp(0, 0, Dimensions.Width, Dimensions.Height);
-            bsp.splitRecursive(TCODRandom.getInstance(), 8, RoomMaxSize, RoomMaxSize, 1.5f, 1.5f);
+            var bsp = new BSPTree(new Rectangle(0, 0, Dimensions.Width, Dimensions.Height));
+            bsp.SplitRecursive(8, RoomMaxSize, RoomMinSize, 1.5f, 1.5f, rand);
 
             int lastX = 0, lastY = 0;
 
-            var callback = new BSPListener( node => {
+            foreach (var node in bsp.LevelOrder.Reverse()) {
+
                 int x, y, w, h;
 
-                if (node.isLeaf()) {
-                    var rand = TCODRandom.getInstance();
-                    w = rand.getInt(RoomMinSize, node.w - 2);
-                    h = rand.getInt(RoomMinSize, node.h - 2);
-                    x = rand.getInt(node.x + 1, node.x + node.w - w - 1);
-                    y = rand.getInt(node.y + 1, node.y + node.h - h - 1);
+                if (node.IsLeaf) {
+                    w = rand.GetInt(RoomMinSize, node.Rect.Width - 2);
+                    h = rand.GetInt(RoomMinSize, node.Rect.Height - 2);
+                    x = rand.GetInt(node.Rect.X + 1, node.Rect.X + node.Rect.Width - w - 1);
+                    y = rand.GetInt(node.Rect.Y + 1, node.Rect.Y + node.Rect.Height - h - 1);
 
                     MakeRoom(roomNumber == 0, x, y, x + w - 1, y + h - 1);
 
                     if (roomNumber != 0) {
-                        Dig(new Vec(lastX, lastY), new Vec(x + w/2, lastY));
-                        Dig(new Vec(x + w/2, lastY), new Vec(x + w/2, y + h/2));
+                        Dig(new Vec(lastX, lastY), new Vec(x + w / 2, lastY));
+                        Dig(new Vec(x + w / 2, lastY), new Vec(x + w / 2, y + h / 2));
                     }
 
                     lastX = x + w / 2;
                     lastY = y + h / 2;
                     roomNumber++;
                 }
-                return true;
-            });
-
-            bsp.traverseInvertedLevelOrder(callback);
-        }
-    }
-
-    public class BSPListener : ITCODBspCallback
-    {
-        public Func<TCODBsp, bool> CallBack { get; private set; }
-
-        public BSPListener(Func<TCODBsp, bool> callBack)
-        {
-            CallBack = callBack;
-        }
-
-        public override bool visitNode(TCODBsp node)
-        {
-            return CallBack(node);
+            }
         }
     }
 }

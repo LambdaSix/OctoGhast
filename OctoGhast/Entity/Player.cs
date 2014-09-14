@@ -1,5 +1,5 @@
 ﻿using System;
-using libtcod;
+using OctoGhast.DataStructures;
 using OctoGhast.DataStructures.Entity;
 using OctoGhast.Renderer;
 using OctoGhast.Spatial;
@@ -32,7 +32,7 @@ namespace OctoGhast.Entity
     {
         public IWeapon ActiveWeapon { get; set; }
 
-        public Player(Vec position, char glyph, TCODColor color) : base(position, glyph, color, "Player") {
+        public Player(Vec position, char glyph, IColor color) : base(position, glyph, color, "Player") {
             ActiveWeapon = new Dagger();
         }
 

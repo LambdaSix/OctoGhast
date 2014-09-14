@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using libtcod;
+using Microsoft.Xna.Framework;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Core.Messages;
 
@@ -11,14 +11,14 @@ namespace OctoGhast.UserInterface.Core
     {
         public Action Callback { get; private set; }
         public uint DelayMs { get; private set; }
-        public uint Count { get; private set; }
+        public int Count { get; private set; }
 
         public Schedule(Action callback, uint delayMs) {
             Callback = callback;
             DelayMs = delayMs;
         }
 
-        public void Update(uint elapsedMs) {
+        public void Update(int elapsedMs) {
             Count += elapsedMs;
             if (Count >= DelayMs) {
                 Count = 0;
@@ -50,12 +50,12 @@ namespace OctoGhast.UserInterface.Core
         /// <summary>
         /// Total elapsed milliseconds since the start of application
         /// </summary>
-        public uint TotalElapsed { get; private set; }
+        public int TotalElapsed { get; private set; }
 
         /// <summary>
         /// Time elapsed since last tick message this component received.
         /// </summary>
-        public uint LastTickElapsed { get; private set; }
+        public int LastTickElapsed { get; private set; }
 
         public event EventHandler SettingUp;
 
@@ -123,8 +123,8 @@ namespace OctoGhast.UserInterface.Core
             _isTornDown = true;
         }
 
-        public virtual void OnTick() {
-            uint milli = TCODSystem.getElapsedMilli();
+        public virtual void OnTick(GameTime time) {
+            var milli = time.ElapsedGameTime.Milliseconds;
 
             LastTickElapsed = milli - TotalElapsed;
             TotalElapsed = milli;

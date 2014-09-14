@@ -1,5 +1,4 @@
 ﻿using System;
-using libtcod;
 using OctoGhast.Framework;
 using OctoGhast.Spatial;
 
@@ -18,7 +17,7 @@ namespace OctoGhast
 	        UserInterface.Core.Config.HeightFunc = () => info.ScreenSize.Height;
 	        UserInterface.Core.Config.WidthFunc = () => info.ScreenSize.Width;
 
-	        using (var application = new OctoghastGame()) {
+	        using (var application = new OctoghastGame(info)) {
 	            application.Start(info);
 	        }
 	    }

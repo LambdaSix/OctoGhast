@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using libtcod;
 using OctoGhast.DataStructures.Lighting;
 using OctoGhast.DataStructures.Map;
 using OctoGhast.DataStructures.Renderer;

@@ -1,7 +1,7 @@
 ﻿using System;
-using libtcod;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Theme;
+using RenderLike;
 
 namespace OctoGhast.UserInterface.Core.Interface
 {
@@ -33,7 +33,7 @@ namespace OctoGhast.UserInterface.Core.Interface
     /// </summary>
     public interface ICanvas : IDisposable
     {
-        TCODConsole Buffer { get; }
+        Surface Buffer { get; }
         Pigment DefaultPigment { get; }
 
         // Blit(...)
@@ -45,36 +45,34 @@ namespace OctoGhast.UserInterface.Core.Interface
         /// <param name="x">The target console</param>
         /// <param name="y">X co-ordinate to blit to in the target</param>
         /// <param name="y">Y co-ordinate to blit to in the target</param>
-        void Blit(TCODConsole console, int x, int y);
+        void Blit(Surface surface, int x, int y);
 
         /// <summary>
         /// Blit this <seealso cref="OctoGhast.UserInterface.Core.Canvas"/> to the given <seealso cref="TCODConsole"/> at the
         /// given co-ordinates.
         /// </summary>
-        /// <param name="console">The target <seealso cref="TCODConsole"/></param>
+        /// <param name="surface">The target <seealso cref="TCODConsole"/></param>
         /// <param name="x">X co-ordinate to blit to in the target</param>
         /// <param name="y">Y co-ordinate to blit to in the target</param>
-        /// <param name="fgAlpha">Alpha value for the foreground</param>
-        /// <param name="bgAlpha">Alpha value for the background</param>
-        void Blit(TCODConsole console, int x, int y, float fgAlpha, float bgAlpha);
+        /// <param name="alpha">Alpha to apply to surface to be blitted</param>
+        void Blit(Surface surface, int x, int y, float alpha);
 
         /// <summary>
         /// Blit this <seealso cref="OctoGhast.UserInterface.Core.Canvas"/> to the given <seealso cref="TCODConsole"/> at the 
         /// given co-ordinates.
         /// </summary>
-        /// <param name="console">The target <seealso cref="TCODConsole"/></param>
+        /// <param name="surface">The target <seealso cref="TCODConsole"/></param>
         /// <param name="position">Co-ordinates to blit to in the target</param>
-        void Blit(TCODConsole console, Vec position);
+        void Blit(Surface surface, Vec position);
 
         /// <summary>
         /// Blit this <seealso cref="OctoGhast.UserInterface.Core.Canvas"/> to the given <seealso cref="TCODConsole"/> at the 
         /// given co-ordinates.
         /// </summary>
-        /// <param name="console">The target <seealso cref="TCODConsole"/></param>
+        /// <param name="surface">The target <seealso cref="TCODConsole"/></param>
         /// <param name="position">Co-ordinates to blit to in the target</param>
-        /// <param name="fgAlpha">Alpha value for the foreground</param>
-        /// <param name="bgAlpha">Alpha value for the background</param>
-        void Blit(TCODConsole console, Vec position, float fgAlpha, float bgAlpha);
+        /// <param name="alpha">Alpha to apply to surface to be blitted</param>
+        void Blit(Surface surface, Vec position, float alpha);
 
         /// <summary>
         /// Blit to the <seealso cref="TCODConsole"/>'s root buffer.
@@ -88,9 +86,8 @@ namespace OctoGhast.UserInterface.Core.Interface
         /// </summary>
         /// <param name="x">X co-ordinate to blit to in the root console</param>
         /// <param name="y">Y co-ordinate to blit to in the root console</param>
-        /// <param name="fgAlpha">Alpha value for the foreground</param>
-        /// <param name="bgAlpha">Alpha value for the background</param>
-        void Blit(int x, int y, float fgAlpha, float bgAlpha);
+        /// <param name="alpha">Alpha to apply to surface to be blitted</param>
+        void Blit(int x, int y, float alpha);
 
         /// <summary>
         /// Blit to the <seealso cref="TCODConsole"/>'s root buffer.
@@ -102,9 +99,8 @@ namespace OctoGhast.UserInterface.Core.Interface
         /// Blit to the <seealso cref="TCODConsole"/>'s root buffer.
         /// </summary>
         /// <param name="position">Co-ordinates to blit to in the root console</param>
-        /// <param name="fgAlpha">Alpha value for the foreground</param>
-        /// <param name="bgAlpha">Alpha value for the background</param>
-        void Blit(Vec position, float fgAlpha, float bgAlpha);
+        /// <param name="alpha">Alpha to apply to surface to be blitted</param>
+        void Blit(Vec position, float alpha);
 
         /// <summary>
         /// Blit this <seealso cref="OctoGhast.UserInterface.Core.Canvas"/> to the destination <seealso cref="OctoGhast.UserInterface.Core.Canvas"/>

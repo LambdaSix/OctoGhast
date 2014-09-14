@@ -1,5 +1,5 @@
 ﻿using System;
-using libtcod;
+using Microsoft.Xna.Framework.Input;
 using OctoGhast.UserInterface.Core.Messages.Interface;
 
 namespace OctoGhast.UserInterface.Core.Messages
@@ -17,34 +17,35 @@ namespace OctoGhast.UserInterface.Core.Messages
 
     public class KeyboardData : IKeyboardData
     {
-        public char Character { get; private set; }
-        public TCODKeyCode KeyCode { get; private set; }
+        public Keys KeyCode { get; private set; }
         public bool IsKeyDown { get; private set; }
         public ControlKeys ControlKeys { get; private set; }
 
-        public KeyboardData(char character, TCODKeyCode keyCode, bool isKeyDown, ControlKeys controlKeys) {
-            Character = character;
+        public KeyboardData(Keys keyCode, bool isKeyDown, ControlKeys controlKeys) {
             KeyCode = keyCode;
             IsKeyDown = isKeyDown;
             ControlKeys = controlKeys;
         }
 
-        public KeyboardData(TCODKey tcodKey) {
-            Character = tcodKey.Character;
-            KeyCode = tcodKey.KeyCode;
-            IsKeyDown = tcodKey.Pressed;
+        public KeyboardData(Keys key, KeyboardState keyboardState) {
+            KeyCode = key;
+            IsKeyDown = keyboardState.IsKeyDown(key);
 
             var modifier = ControlKeys.None;
 
-            if (tcodKey.LeftAlt)
+            if (keyboardState.IsKeyDown(Keys.LeftAlt))
                 modifier |= ControlKeys.LeftAlt;
-            if (tcodKey.RightAlt)
+
+            if (keyboardState.IsKeyDown(Keys.RightAlt))
                 modifier |= ControlKeys.RightAlt;
-            if (tcodKey.LeftControl)
+
+            if (keyboardState.IsKeyDown(Keys.LeftControl))
                 modifier |= ControlKeys.LeftControl;
-            if (tcodKey.RightControl)
+
+            if (keyboardState.IsKeyDown(Keys.RightControl))
                 modifier |= ControlKeys.RightControl;
-            if (tcodKey.Shift)
+
+            if (keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift))
                 modifier |= ControlKeys.Shift;
 
             ControlKeys = modifier;

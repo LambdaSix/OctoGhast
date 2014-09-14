@@ -1,6 +1,4 @@
-﻿using libtcod;
-
-namespace OctoGhast.DataStructures
+﻿namespace OctoGhast.DataStructures
 {
     public interface IColor
     {
@@ -25,7 +23,5 @@ namespace OctoGhast.DataStructures
         string ForegroundCode();
         string BackgroundCode();
         string DefaultColorCode();
-
-        TCODColor ToTcodColor();
     }
 }
