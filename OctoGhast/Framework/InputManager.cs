@@ -1,5 +1,6 @@
 ﻿using System;
-using libtcod;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Core;
 using OctoGhast.UserInterface.Core.Messages;
@@ -14,12 +15,16 @@ namespace OctoGhast.Framework
         private Vec lastMousePixelPosition;
         private MouseButton lastMouseButton;
         private float lastMouseMoveTime;
+
         private bool isHovering;
         private Vec StartLeftButtonDown;
         private bool isDragging;
 
         private const int DragPixel = 24;
         private const float HoverMs = 600f;
+        
+        private KeyboardState _previousKeyState { get; set; }
+        private KeyboardState _currentKeyState { get; set; }
 
         /// <summary>
         /// Create an InputManager instance bound to a Window instance.
@@ -32,23 +37,20 @@ namespace OctoGhast.Framework
             OwningWindow = IComponent;
         }
 
-        public void Update(uint elapsedMilliseconds) {
-            PollMouse(elapsedMilliseconds);
+        public void Update(GameTime time) {
+            PollMouse(time.ElapsedGameTime.Milliseconds);
             PollKeyboard();
         }
 
-        public static bool IsKeyDown(TCODKeyCode key) {
-            return TCODConsole.isKeyPressed(key);
-        }
-
         private void PollKeyboard() {
-            var key = TCODConsole.checkForKeypress((int) TCODKeyStatus.KeyPressed | (int) TCODKeyStatus.KeyReleased);
+            _previousKeyState = _currentKeyState;
+            _currentKeyState = Keyboard.GetState();
 
-            if (key.KeyCode != TCODKeyCode.NoKey) {
-                if (key.Pressed)
-                    OwningWindow.OnKeyPressed(new KeyboardData(key));
-                else
-                    OwningWindow.OnKeyReleased(new KeyboardData(key));
+            foreach (var key in _currentKeyState.GetPressedKeys()) {
+                if (_currentKeyState[key] == KeyState.Down)
+                    OwningWindow.OnKeyPressed(new KeyboardData(key, _currentKeyState));
+                else if (_previousKeyState[key] == KeyState.Down && _currentKeyState.IsKeyUp(key))
+                    OwningWindow.OnKeyReleased(new KeyboardData(key, _currentKeyState));
             }
         }
 
@@ -114,8 +116,8 @@ namespace OctoGhast.Framework
             OwningWindow.OnMouseButtonUp(mouse);
         }
 
-        private void PollMouse(uint totalElapsed) {
-            var mouse = new MouseData(TCODMouse.getStatus());
+        private void PollMouse(int totalElapsed) {
+            var mouse = new MouseData(Mouse.GetState(), Game.CurrentFont);
             CheckMouseButtons(mouse);
 
             if (mouse.ScreenPosition != lastMousePixelPosition) {

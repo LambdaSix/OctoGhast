@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Microsoft.Xna.Framework;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Controls;
 using OctoGhast.UserInterface.Core.Messages;
@@ -283,8 +284,8 @@ namespace OctoGhast.UserInterface.Core
                 CurrentTooltip.DrawToScreen();
         }
 
-        public override void OnTick() {
-            base.OnTick();
+        public override void OnTick(GameTime time) {
+            base.OnTick(time);
 
             // Update the current screen, which may involve adding/removing controls & managers.
             UpdateScreenState();
@@ -293,8 +294,8 @@ namespace OctoGhast.UserInterface.Core
             UpdateManagers();
             UpdateControls();
 
-            Notify(Managers, _ => _.OnTick());
-            Notify(Controls, _ => _.OnTick());
+            Notify(Managers, _ => _.OnTick(time));
+            Notify(Controls, _ => _.OnTick(time));
         }
 
         public override void OnQuitting() {
@@ -491,7 +492,6 @@ namespace OctoGhast.UserInterface.Core
                 // Add the new screen as a manager
                 // Let them setup and then register.
                 AddManager(screen);
-                screen.OnSettingUp();
                 CurrentScreen = screen;
             }
         }

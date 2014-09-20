@@ -30,7 +30,7 @@ namespace OctoGhast.UserInterface.Controls
             ParentWindow = parentWindow;
 
             Position = AutoPosition(screenPosition);
-            Canvas = new Canvas(Size);
+            Canvas = new Canvas(Config.RootConsoleFunc(), Size);
             Canvas.SetDefaultPigment(parentWindow.Pigments[PigmentType.Tooltip]);
             Canvas.PrintFrame("");
 

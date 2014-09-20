@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;WINDOWS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -32,8 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="libtcod-net">
-      <HintPath>..\lib\libtcod\libtcod-net.dll</HintPath>
+    <Reference Include="MonoGame.Framework, Version=3.1.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Program Files\MonoGame\v3.0\Assemblies\Windows\MonoGame.Framework.dll</HintPath>
     </Reference>
     <Reference Include="Ninject">
       <HintPath>..\packages\Ninject.3.0.1.10\lib\net45-full\Ninject.dll</HintPath>
@@ -73,15 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\lib\libtcod\celtic_garamond_10x10_gs_tc.png">
-      <Link>celtic_garamond_10x10_gs_tc.png</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\lib\libtcod\libtcod-net-unmanaged.dll">
-      <Link>libtcod-net-unmanaged.dll</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\lib\libtcod\libtcod-VS.dll">
-      <Link>libtcod-VS.dll</Link>
+      <Link>Content\celtic_garamond_10x10_gs_tc.png</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\lib\libtcod\SDL.dll">
@@ -113,6 +106,10 @@
     <ProjectReference Include="..\OctoGhast.UserInterface\OctoGhast.UserInterface.csproj">
       <Project>{CB3E5076-87FD-4C85-8F23-F76780C53E9C}</Project>
       <Name>OctoGhast.UserInterface</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RenderLike\RenderLike.csproj">
+      <Project>{6644b2d9-98dd-4c0a-a51b-c0a0a104a135}</Project>
+      <Name>RenderLike</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

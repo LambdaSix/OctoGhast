@@ -1,7 +1,9 @@
 ﻿using System;
-using libtcod;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Core.Messages.Interface;
+using RenderLike;
 
 namespace OctoGhast.UserInterface.Core.Messages
 {
@@ -17,17 +19,17 @@ namespace OctoGhast.UserInterface.Core.Messages
             ScreenPosition = screenPosition;
         }
 
-        public MouseData(TCODMouseData tcodMouseData) {
-            Position = new Vec(tcodMouseData.CellX, tcodMouseData.CellY);
-            ScreenPosition = new Vec(tcodMouseData.PixelX, tcodMouseData.PixelY);
+        public MouseData(MouseState xnaState, Font cellSize) {
+            ScreenPosition = new Vec(xnaState.X, xnaState.Y);
+            Position = new Vec(xnaState.X/cellSize.CharacterWidth, xnaState.Y/cellSize.CharacterHeight);
             MouseButton = MouseButton.None;
 
-            if (tcodMouseData.LeftButton)
+            if (xnaState.LeftButton == ButtonState.Pressed)
                 MouseButton = MouseButton.Left;
-            if (tcodMouseData.MiddleButton)
-                MouseButton = MouseButton.Middle;
-            if (tcodMouseData.RightButton)
+            if (xnaState.RightButton == ButtonState.Pressed)
                 MouseButton = MouseButton.Right;
+            if (xnaState.MiddleButton == ButtonState.Pressed)
+                MouseButton = MouseButton.Middle;
         }
     }
 

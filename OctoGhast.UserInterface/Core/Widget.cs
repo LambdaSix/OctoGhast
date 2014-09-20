@@ -3,6 +3,7 @@ using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Core.Interface;
 using OctoGhast.UserInterface.Templates;
 using OctoGhast.UserInterface.Theme;
+using RenderLike;
 
 namespace OctoGhast.UserInterface.Core
 {
@@ -47,7 +48,7 @@ namespace OctoGhast.UserInterface.Core
         public Widget(WidgetTemplate template) {
             Position = Vec.Zero;
             Size = template.CalculateSize();
-            Canvas = new Canvas(Size);
+            Canvas = new Canvas(Config.RootConsoleFunc(), Size);
 
             OwnerDraw = template.OwnerDraw;
             PigmentOverrides = template.Pigments;

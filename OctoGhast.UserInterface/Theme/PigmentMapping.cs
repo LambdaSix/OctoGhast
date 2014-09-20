@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using libtcod;
 using OctoGhast.DataStructures;
 using OctoGhast.UserInterface.Core;
 using OctoGhast.UserInterface.Core.Interface;
@@ -35,7 +34,6 @@ namespace OctoGhast.UserInterface.Theme
     {
         private readonly IColor _foreground;
         private readonly IColor _background;
-        private readonly TCODBackgroundFlag _backFlag;
 
         public IColor Foreground {
             get { return _foreground; }
@@ -45,24 +43,13 @@ namespace OctoGhast.UserInterface.Theme
             get { return _background; }
         }
 
-        public TCODBackgroundFlag BackgroundFlag {
-            get { return _backFlag; }
-        }
-
-        public Pigment(IColor foreground, IColor background, TCODBackgroundFlag backFlag) {
+        public Pigment(IColor foreground, IColor background) {
             _foreground = foreground;
             _background = background;
-            _backFlag = backFlag;
         }
 
-        public Pigment(IColor foreground, IColor background) : this(foreground, background, TCODBackgroundFlag.Set) {
-        }
-
-        public Pigment(long foreground, long background, TCODBackgroundFlag backFlag)
-            : this(new Color(foreground), new Color(background), backFlag) {
-        }
-
-        public Pigment(long foreground, long background) : this(foreground, background, TCODBackgroundFlag.Set) {
+        public Pigment(long foreground, long background)
+            : this(new Color(foreground), new Color(background)) {
         }
 
         public Pigment Invert() {

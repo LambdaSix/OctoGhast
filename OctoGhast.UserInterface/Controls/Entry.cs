@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Reflection.Emit;
-using libtcod;
+using Microsoft.Xna.Framework.Input;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Core;
 using OctoGhast.UserInterface.Core.Interface;
@@ -133,8 +132,8 @@ namespace OctoGhast.UserInterface.Controls
             if (_cursorOn && HasKeyboardFocus) {
                 int cursorX = _fieldRect.Left + CursorPos;
                 if (cursorX <= LocalRectangle.Right) {
-                    Canvas.PrintChar(cursorX, _cursorY, (char) TCODSpecialCharacter.Block1,
-                        Pigments[PigmentType.ViewSelected]);
+                    Canvas.PrintChar(cursorX, _cursorY, (char)179,
+                            Pigments[PigmentType.ViewSelected]);
                 }
             }
         }
@@ -147,26 +146,28 @@ namespace OctoGhast.UserInterface.Controls
         public override void OnKeyPressed(KeyboardData keyData) {
             base.OnKeyPressed(keyData);
 
-            if (keyData.Character != 0 && ValidateCharacter(keyData.Character)) {
+            var key = KeyboardUtils.KeyToString(keyData.KeyCode, keyData.ControlKeys.HasFlag(ControlKeys.Shift));
+
+            if (key.HasValue && ValidateCharacter(key.Value)) {
                 if (waitingToOverwrite) {
-                    TextInput = keyData.Character.ToString();
+                    TextInput = key.Value.ToString();
                     CursorPos = 1;
                     waitingToOverwrite = false;
                 }
                 else if (TextInput.Length < MaximumCharacters) {
-                    TextInput += keyData.Character;
+                    TextInput += key.Value;
                     CursorPos++;
                 }
             }
-            else if (keyData.KeyCode == TCODKeyCode.Backspace && TextInput.Length > 0) {
+            else if (keyData.KeyCode == Keys.Back && TextInput.Length > 0) {
                 TextInput = TextInput.Substring(0, TextInput.Length - 1);
                 CursorPos--;
             }
-            else if (keyData.KeyCode == TCODKeyCode.Enter) {
+            else if (keyData.KeyCode == Keys.Enter) {
                 waitingToCommitText = true;
                 ParentWindow.ReleaseKeyboard(this);
             }
-            else if (keyData.KeyCode == TCODKeyCode.Escape) {
+            else if (keyData.KeyCode == Keys.Escape) {
                 TextInput = CurrentText;
                 waitingToCommitText = true;
                 ParentWindow.ReleaseKeyboard(this);
