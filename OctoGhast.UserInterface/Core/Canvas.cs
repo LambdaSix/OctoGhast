@@ -128,10 +128,10 @@ namespace OctoGhast.UserInterface.Core
                 setPigment(pigment);
 
             if (string.IsNullOrWhiteSpace(title)) {
-                Buffer.DrawFrame(new Rectangle(0, 0, Size.Height, Size.Width));
+                Buffer.DrawFrame(new Rectangle(0, 0, Size.Width, Size.Height));
             }
             else {
-                Buffer.DrawFrame(new Rectangle(0, 0, Size.Height, Size.Width), title);
+                Buffer.DrawFrame(new Rectangle(0, 0, Size.Width, Size.Height), title);
             }
 
             if (pigment != null)
