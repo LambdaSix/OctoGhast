@@ -143,6 +143,54 @@ namespace RenderLike
             }
         }
 
+        public void BlitAlpha(Surface src, Surface dst, Rectangle srcRect, int destX, int destY, float fgAlpha, float bgAlpha) {
+            if (src == null)
+                throw new ArgumentNullException("src");
+            if (dst == null)
+                throw new ArgumentNullException("dst");
+
+            fgAlpha = MathHelper.Clamp(fgAlpha, 0f, 1.0f);
+            bgAlpha = MathHelper.Clamp(bgAlpha, 0f, 1.0f);
+
+            var blitRect = new Rectangle(destX, destY, srcRect.Width, srcRect.Height);
+            int deltaX = srcRect.Left - blitRect.Left;
+            int deltaY = srcRect.Top - blitRect.Top;
+
+            var dstAsRoot = dst as RootSurface;
+
+            blitRect = Rectangle.Intersect(blitRect, new Rectangle(0, 0, dst.Width, dst.Height));
+            Color backCol, foreCol;
+            char ch;
+
+            for (int y = blitRect.Top; y < blitRect.Bottom; y++) {
+                for (int x = blitRect.Left; x < blitRect.Right; x++) {
+                    int sx = deltaX + x;
+                    int sy = deltaY + y;
+
+                    backCol = dst.Cells[x + y*dst.Width].Back;
+                    backCol.A = (byte)(bgAlpha * 255.0f + 0.5f);
+
+                    if (src.Cells[sx + sy*src.Width].Char == ' ') {
+                        foreCol = dst.Cells[x + y*dst.Width].Fore;
+                        foreCol.A = (byte) (fgAlpha*255.0f + 0.5f);
+                        ch = dst.Cells[x + y*dst.Width].Char;
+                    }
+                    else {
+                        foreCol = src.Cells[sx + sy*src.Width].Fore;
+                        ch = src.Cells[sx + sy*src.Width].Char;
+                    }
+
+                    dst.Cells[x + y*dst.Width].Back = backCol;
+                    dst.Cells[x + y*dst.Width].Fore = foreCol;
+                    dst.Cells[x + y*dst.Width].Char = ch;
+
+                    if (dstAsRoot != null) {
+                        dstAsRoot.DirtyCells[x + y*dst.Width] = true;
+                    }
+                }
+            }
+        }
+
         public void BlitAlpha(Surface src, Surface dst, Rectangle srcRect, int destX, int destY, float alpha) {
             if (src == null)
                 throw new ArgumentNullException("src");

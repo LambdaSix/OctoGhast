@@ -41,7 +41,6 @@ namespace OctoGhast.UserInterface.Controls
         }
 
         public void DrawToScreen() {
-            Canvas.Blit(Position, ParentWindow.TooltipBGAlpha);
             Canvas.Blit(Position, ParentWindow.TooltipFGAlpha, ParentWindow.TooltipBGAlpha);
         }
 
