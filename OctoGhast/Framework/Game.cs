@@ -102,7 +102,6 @@ namespace OctoGhast.Framework
         }
 
         public void Start(GameInfo info) {
-            Setup(info);
             Run();
             RootWindow.OnQuitting();
         }
@@ -128,12 +127,15 @@ namespace OctoGhast.Framework
             CurrentFont = Font.CreateFromTexture(fontTexture, Info.FontLayout, Info.FontType);
 
             Console = new RLConsole(GraphicsDevice, CurrentFont, ConWidth, ConHeight);
+            Config.RootConsoleFunc = () => Console;
 
             Graphics.PreferredBackBufferWidth = ConWidth*CurrentFont.CharacterWidth;
             Graphics.PreferredBackBufferHeight = ConHeight*CurrentFont.CharacterHeight;
             Graphics.ApplyChanges();
 
             Console.RootSurface.Clear();
+
+            Setup(Info);
         }
 
         protected virtual void Setup(GameInfo info) {
@@ -181,6 +183,7 @@ namespace OctoGhast.Framework
             {
                 SpriteBatcher.Draw(render, Vector2.Zero, Color.White);
             }
+            SpriteBatcher.End();
         }
 
         private bool _alreadyDisposed;

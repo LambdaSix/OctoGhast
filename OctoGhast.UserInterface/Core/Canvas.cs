@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
@@ -97,6 +98,21 @@ namespace OctoGhast.UserInterface.Core
 
         public void Blit(Vec position, float alpha) {
             Blit(_console.RootSurface, position.X, position.Y, alpha);
+        }
+
+        public void Blit(Vec position, float fgAlpha, float bgAlpha) {
+            int maxWidth = _config.Width - position.X;
+            int maxHeight = _config.Height - position.Y;
+
+            if (maxWidth < 1 || maxHeight < 1)
+                return;
+
+            int finalWidth = Math.Min(Size.Width, maxWidth);
+            int finalHeight = Math.Min(Size.Height, maxHeight);
+
+            var finalSize = new Size(finalWidth, finalHeight);
+            _console.BlitAlpha(Buffer, _console.RootSurface,
+                new Rectangle(0, 0, finalSize.Width, finalSize.Height), position.X, position.Y, fgAlpha, bgAlpha);
         }
 
         public void Blit(ICanvas dest, int x, int y) {
