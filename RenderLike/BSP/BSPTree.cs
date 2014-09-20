@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using OpenTK.Graphics.OpenGL;
-using OpenTK.Platform.Windows;
-
 namespace RenderLike.BSP
 {
     internal static class BspNodeExtension
