@@ -492,7 +492,6 @@ namespace OctoGhast.UserInterface.Core
                 // Add the new screen as a manager
                 // Let them setup and then register.
                 AddManager(screen);
-                screen.OnSettingUp();
                 CurrentScreen = screen;
             }
         }

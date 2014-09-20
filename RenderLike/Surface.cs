@@ -62,11 +62,11 @@ namespace RenderLike
         }
 
         internal override void SetCell(int x, int y, char? c, Color? fore, Color? back) {
-            if (x < 0 || x >= width || y < 0 || y >= Height)
+            if (x < 0 || x >= Width || y < 0 || y >= Height)
                 return;
 
             base.SetCell(x, y, c, fore, back);
-            DirtyCells[x + y*width] = true;
+            DirtyCells[x + y*Width] = true;
         }
 
         internal override void ClearSurface() {
@@ -81,8 +81,6 @@ namespace RenderLike
         internal readonly Cell[] Cells;
         internal Font Font;
         internal readonly RLConsole ParentConsole;
-
-        internal int width;
 
         internal Surface(int width, int height, Font font, RLConsole parent) {
             Width = width;
@@ -135,12 +133,12 @@ namespace RenderLike
         /// <param name="y"></param>
         /// <returns></returns>
         public char GetChar(int x, int y) {
-            if (x < 0 || x >= width)
+            if (x < 0 || x >= Width)
                 throw new ArgumentOutOfRangeException("x");
             if (y < 0 || y >= Height)
                 throw new ArgumentOutOfRangeException("y");
 
-            return Cells[x + y*width].Char;
+            return Cells[x + y*Width].Char;
         }
 
         /// <summary>
@@ -151,12 +149,12 @@ namespace RenderLike
         /// <param name="y"></param>
         /// <returns></returns>
         public Color GetForeground(int x, int y) {
-            if (x < 0 || x >= width)
+            if (x < 0 || x >= Width)
                 throw new ArgumentOutOfRangeException("x");
             if (y < 0 || y >= Height)
                 throw new ArgumentOutOfRangeException("y");
 
-            return Cells[x + y*width].Fore;
+            return Cells[x + y*Width].Fore;
         }
 
         /// <summary>
@@ -167,12 +165,12 @@ namespace RenderLike
         /// <param name="y"></param>
         /// <returns></returns>
         public Color GetBackground(int x, int y) {
-            if (x < 0 || x >= width)
+            if (x < 0 || x >= Width)
                 throw new ArgumentOutOfRangeException("x");
             if (y < 0 || y >= Height)
                 throw new ArgumentOutOfRangeException("y");
 
-            return Cells[x + y*width].Back;
+            return Cells[x + y*Width].Back;
         }
 
         /// <summary>
@@ -183,7 +181,7 @@ namespace RenderLike
         /// <param name="y"></param>
         /// <param name="fore"></param>
         public void SetForeground(int x, int y, Color fore) {
-            if (x < 0 || x >= width)
+            if (x < 0 || x >= Width)
                 throw new ArgumentOutOfRangeException("x");
             if (y < 0 || y >= Height)
                 throw new ArgumentOutOfRangeException("y");
@@ -199,7 +197,7 @@ namespace RenderLike
         /// <param name="y"></param>
         /// <param name="back"></param>
         public void SetBackground(int x, int y, Color back) {
-            if (x < 0 || x >= width)
+            if (x < 0 || x >= Width)
                 throw new ArgumentOutOfRangeException("x");
             if (y < 0 || y >= Height)
                 throw new ArgumentOutOfRangeException("y");
@@ -215,7 +213,7 @@ namespace RenderLike
         /// <param name="y"></param>
         /// <param name="c"></param>
         public void SetChar(int x, int y, char c) {
-            if (x < 0 || x >= width)
+            if (x < 0 || x >= Width)
                 throw new ArgumentOutOfRangeException("x");
             if (y < 0 || y >= Height)
                 throw new ArgumentOutOfRangeException("y");
@@ -498,7 +496,7 @@ namespace RenderLike
         /// <param name="fore"></param>
         /// <param name="back"></param>
         public void DrawVerticalLine(int topX, int topY, int length, Color fore, Color back) {
-            DrawVerticalLine(topX, topY, length, (char) SpecialChar.VerticalLine, fore, back);
+            DrawVerticalLine(topX, topY, length, (char)SpecialChar.VerticalLine, fore, back);
         }
 
         /// <summary>
@@ -691,19 +689,19 @@ namespace RenderLike
         }
 
         internal virtual void SetCell(int x, int y, char? c, Color? fore, Color? back) {
-            if (x < 0 || x >= width || y < 0 || y >= Height)
+            if (x < 0 || x >= Width || y < 0 || y >= Height)
                 return;
 
             if (back.HasValue)
-                Cells[x + y*width].Back = back.Value;
+                Cells[x + y*Width].Back = back.Value;
             if (fore.HasValue)
-                Cells[x + y*width].Fore = fore.Value;
+                Cells[x + y*Width].Fore = fore.Value;
             if (c.HasValue)
-                Cells[x + y*width].Char = c.Value;
+                Cells[x + y*Width].Char = c.Value;
         }
 
         internal virtual void ClearSurface() {
-            for (int i = 0; i < width*Height; i++) {
+            for (int i = 0; i < Width*Height; i++) {
                 Cells[i].Back = DefaultBackground;
                 Cells[i].Char = ' ';
                 Cells[i].Fore = DefaultForeground;
