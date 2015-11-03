@@ -1,3 +1,6 @@
 [submodule "lib/InfiniMap"]
 	path = lib/InfiniMap
-	url = git@github.com:LambdaSix/InfiniMap.git
+url=https://github.com/LambdaSix/InfiniMap
+[submodule "lib/RenderLike"]
+	path = lib/RenderLike
+	url = https://github.com/LambdaSix/RenderLike

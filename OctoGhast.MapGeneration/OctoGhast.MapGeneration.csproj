@@ -45,6 +45,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\lib\RenderLike\RenderLike.csproj">
+      <Project>{6644B2D9-98DD-4C0A-A51B-C0A0A104A135}</Project>
+      <Name>RenderLike</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OctoGhast.DataStructures\OctoGhast.DataStructures.csproj">
       <Project>{3ABB811A-C183-463B-B32D-F63A314F8D6D}</Project>
       <Name>OctoGhast.DataStructures</Name>
@@ -52,10 +56,6 @@
     <ProjectReference Include="..\OctoGhast.Spatial\OctoGhast.Spatial.csproj">
       <Project>{23DB428F-E97F-4C80-910A-FDD91C548A8C}</Project>
       <Name>OctoGhast.Spatial</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\RenderLike\RenderLike.csproj">
-      <Project>{6644B2D9-98DD-4C0A-A51B-C0A0A104A135}</Project>
-      <Name>RenderLike</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

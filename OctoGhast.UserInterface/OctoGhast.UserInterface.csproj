@@ -30,8 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MonoGame.Framework">
-      <HintPath>..\packages\MonoGame.Binaries.3.2.0\build\net40\MonoGame.Framework.dll</HintPath>
+    <Reference Include="MonoGame.Framework, Version=3.1.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MonoGame.Framework.Portable.3.2.99.1-Beta\lib\portable-net45+win+wpa81+Xamarin.iOS10+MonoAndroid10+MonoTouch10\MonoGame.Framework.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -75,6 +76,10 @@
     <Compile Include="Theme\PigmentMapping.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\lib\RenderLike\RenderLike.csproj">
+      <Project>{6644B2D9-98DD-4C0A-A51B-C0A0A104A135}</Project>
+      <Name>RenderLike</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OctoGhast.DataStructures\OctoGhast.DataStructures.csproj">
       <Project>{3ABB811A-C183-463B-B32D-F63A314F8D6D}</Project>
       <Name>OctoGhast.DataStructures</Name>
@@ -83,10 +88,9 @@
       <Project>{23DB428F-E97F-4C80-910A-FDD91C548A8C}</Project>
       <Name>OctoGhast.Spatial</Name>
     </ProjectReference>
-    <ProjectReference Include="..\RenderLike\RenderLike.csproj">
-      <Project>{6644B2D9-98DD-4C0A-A51B-C0A0A104A135}</Project>
-      <Name>RenderLike</Name>
-    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

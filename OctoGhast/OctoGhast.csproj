@@ -33,8 +33,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework, Version=3.1.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Program Files\MonoGame\v3.0\Assemblies\Windows\MonoGame.Framework.dll</HintPath>
+      <HintPath>..\packages\MonoGame.Framework.Portable.3.2.99.1-Beta\lib\portable-net45+win+wpa81+Xamarin.iOS10+MonoAndroid10+MonoTouch10\MonoGame.Framework.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Ninject">
       <HintPath>..\packages\Ninject.3.0.1.10\lib\net45-full\Ninject.dll</HintPath>
@@ -73,23 +73,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\lib\libtcod\celtic_garamond_10x10_gs_tc.png">
-      <Link>Content\celtic_garamond_10x10_gs_tc.png</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\lib\libtcod\SDL.dll">
-      <Link>SDL.dll</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\lib\libtcod\zlib1.dll">
-      <Link>zlib1.dll</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\lib\InfiniMap\InfiniMap\InfiniMap.csproj">
       <Project>{955AF4C9-12E7-4447-8E7C-C3ACD38F2DA9}</Project>
       <Name>InfiniMap</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\lib\RenderLike\RenderLike.csproj">
+      <Project>{6644B2D9-98DD-4C0A-A51B-C0A0A104A135}</Project>
+      <Name>RenderLike</Name>
     </ProjectReference>
     <ProjectReference Include="..\OctoGhast.DataStructures\OctoGhast.DataStructures.csproj">
       <Project>{3ABB811A-C183-463B-B32D-F63A314F8D6D}</Project>
@@ -107,12 +97,12 @@
       <Project>{CB3E5076-87FD-4C85-8F23-F76780C53E9C}</Project>
       <Name>OctoGhast.UserInterface</Name>
     </ProjectReference>
-    <ProjectReference Include="..\RenderLike\RenderLike.csproj">
-      <Project>{6644b2d9-98dd-4c0a-a51b-c0a0a104a135}</Project>
-      <Name>RenderLike</Name>
-    </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Content\celtic_garamond_10x10_gs_tc.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
