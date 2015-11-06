@@ -192,12 +192,12 @@ namespace OctoGhast.Framework
             Dispose(false);
         }
 
-        public void Dispose() {
+        public new void Dispose() {
             Dispose(true);
-            GC.SuppressFinalize(true);
+            GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool isDisposing) {
+        protected new virtual void Dispose(bool isDisposing) {
             if (_alreadyDisposed)
                 return;
 
