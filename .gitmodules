@@ -4,3 +4,6 @@ url=https://github.com/LambdaSix/InfiniMap
 [submodule "lib/RenderLike"]
 	path = lib/RenderLike
 	url = https://github.com/LambdaSix/RenderLike
+[submodule "lib/Capsicum"]
+	path = lib/Capsicum
+	url = https://github.com/LambdaSix/Capsicum
