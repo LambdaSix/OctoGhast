@@ -39,23 +39,12 @@ namespace OctoGhast.UserInterface.Core.Interface
         // Blit(...)
 
         /// <summary>
-        /// Blit this <seealso cref="RLConsole"/> to the given <seealso cref="RLConsole"/> at the
-        /// given co-ordinates.
+        /// Blit this <seealso cref="RLConsole"/> to the destination Surface at the given co-ordinates.
         /// </summary>
-        /// <param name="x">The target console</param>
+        /// <param name="dstSurface">The desination surface to blit to</param>        
         /// <param name="y">X co-ordinate to blit to in the target</param>
         /// <param name="y">Y co-ordinate to blit to in the target</param>
-        void Blit(Surface surface, int x, int y);
-
-        /// <summary>
-        /// Blit this <seealso cref="OctoGhast.UserInterface.Core.Canvas"/> to the given <seealso cref="RLConsole"/> at the
-        /// given co-ordinates.
-        /// </summary>
-        /// <param name="surface">The target <seealso cref="RLConsole"/></param>
-        /// <param name="x">X co-ordinate to blit to in the target</param>
-        /// <param name="y">Y co-ordinate to blit to in the target</param>
-        /// <param name="alpha">Alpha to apply to surface to be blitted</param>
-        void Blit(Surface surface, int x, int y, float alpha);
+        void Blit(Surface dstSurface, int x, int y);
 
         /// <summary>
         /// Blit this <seealso cref="OctoGhast.UserInterface.Core.Canvas"/> to the given <seealso cref="RLConsole"/> at the 
@@ -64,15 +53,6 @@ namespace OctoGhast.UserInterface.Core.Interface
         /// <param name="surface">The target <seealso cref="RLConsole"/></param>
         /// <param name="position">Co-ordinates to blit to in the target</param>
         void Blit(Surface surface, Vec position);
-
-        /// <summary>
-        /// Blit this <seealso cref="OctoGhast.UserInterface.Core.Canvas"/> to the given <seealso cref="RLConsole"/> at the 
-        /// given co-ordinates.
-        /// </summary>
-        /// <param name="surface">The target <seealso cref="RLConsole"/></param>
-        /// <param name="position">Co-ordinates to blit to in the target</param>
-        /// <param name="alpha">Alpha to apply to surface to be blitted</param>
-        void Blit(Surface surface, Vec position, float alpha);
 
         /// <summary>
         /// Blit to the <seealso cref="RLConsole"/>'s root buffer.
@@ -86,8 +66,8 @@ namespace OctoGhast.UserInterface.Core.Interface
         /// </summary>
         /// <param name="x">X co-ordinate to blit to in the root console</param>
         /// <param name="y">Y co-ordinate to blit to in the root console</param>
-        /// <param name="alpha">Alpha to apply to surface to be blitted</param>
-        void Blit(int x, int y, float alpha);
+        /// <param name="alpha">Alpha to apply to dstSurface to be blitted</param>
+        void BlitToConsole(int x, int y, float alpha);
 
         /// <summary>
         /// Blit to the <seealso cref="RLConsole"/>'s root buffer.
@@ -99,7 +79,7 @@ namespace OctoGhast.UserInterface.Core.Interface
         /// Blit to the <seealso cref="RLConsole"/>'s root buffer.
         /// </summary>
         /// <param name="position">Co-ordinates to blit to in the root console</param>
-        /// <param name="alpha">Alpha to apply to surface to be blitted</param>
+        /// <param name="alpha">Alpha to apply to dstSurface to be blitted</param>
         void Blit(Vec position, float alpha);
 
         /// <summary>
@@ -109,7 +89,7 @@ namespace OctoGhast.UserInterface.Core.Interface
         /// <param name="position">Co-ordinates to blit to in the root console</param>
         /// <param name="tooltipFgAlpha">Value to set for foreground alpha</param>
         /// <param name="tooltipBgAlpha">Value to set for the background alpha</param>
-        void Blit(Vec position, float tooltipFgAlpha, float tooltipBgAlpha);
+        void BlitToConsole(Vec position, float tooltipFgAlpha, float tooltipBgAlpha);
 
         /// <summary>
         /// Blit this <seealso cref="OctoGhast.UserInterface.Core.Canvas"/> to the destination <seealso cref="OctoGhast.UserInterface.Core.Canvas"/>

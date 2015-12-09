@@ -46,7 +46,7 @@ namespace OctoGhast.UserInterface.Core
             SetPigmentAt(position.X, position.Y, pigment);
         }
 
-        public void Blit(Surface surface, int x, int y) {
+        public void Blit(Surface dstSurface, int x, int y) {
             int maxWidth = _config.Width - x;
             int maxHeight = _config.Height - y;
 
@@ -57,50 +57,41 @@ namespace OctoGhast.UserInterface.Core
             int finalHeight = Math.Min(Size.Height, maxHeight);
 
             var finalSize = new Size(finalWidth, finalHeight);
-            _console.Blit(Buffer, surface, new Rectangle(0, 0, finalSize.Width, finalSize.Height), x, y);
-        }
-
-        public void Blit(Surface surface, int x, int y, float alpha) {
-            int maxWidth = _config.Width - x;
-            int maxHeight = _config.Height - y;
-
-            if (maxWidth < 1 || maxHeight < 1)
-                return;
-
-            int finalWidth = Math.Min(Size.Width, maxWidth);
-            int finalHeight = Math.Min(Size.Height, maxHeight);
-
-            var finalSize = new Size(finalWidth, finalHeight);
-            _console.BlitAlpha(Buffer, _console.RootSurface,
-                new Rectangle(0, 0, finalSize.Width, finalSize.Height), x,
-                y, alpha);
+            _console.Blit(Buffer, dstSurface, new Rectangle(0, 0, finalSize.Width, finalSize.Height), x, y);
         }
 
         public void Blit(Surface surface, Vec position) {
             Blit(surface, position.X, position.Y);
         }
 
-        public void Blit(Surface surface, Vec position, float alpha) {
-            Blit(surface, position.X, position.Y, alpha);
-        }
-
         public void Blit(int x, int y) {
-            Blit(_console.RootSurface, x, y);
-        }
-
-        public void Blit(int x, int y, float alpha) {
-            Blit(_console.RootSurface, x, y, alpha);
+            BlitToConsole(x, y, 0.0f);
         }
 
         public void Blit(Vec position) {
-            Blit(_console.RootSurface, position.X, position.Y);
+            Blit(position.X, position.Y);
         }
 
         public void Blit(Vec position, float alpha) {
-            Blit(_console.RootSurface, position.X, position.Y, alpha);
+            BlitToConsole(position.X, position.Y, alpha);
         }
 
-        public void Blit(Vec position, float fgAlpha, float bgAlpha) {
+        public void BlitToConsole(int x, int y, float alpha)
+        {
+            int maxWidth = _config.Width - x;
+            int maxHeight = _config.Height - y;
+
+            if (maxWidth < 1 || maxHeight < 1)
+                return;
+
+            int finalWidth = Math.Min(Size.Width, maxWidth);
+            int finalHeight = Math.Min(Size.Height, maxHeight);
+
+            var finalSize = new Size(finalWidth, finalHeight);
+            _console.BlitAlpha(Buffer, new Rectangle(0, 0, finalSize.Width, finalSize.Height), x, y, alpha);
+        }
+
+        public void BlitToConsole(Vec position, float fgAlpha, float bgAlpha) {
             int maxWidth = _config.Width - position.X;
             int maxHeight = _config.Height - position.Y;
 
@@ -111,8 +102,8 @@ namespace OctoGhast.UserInterface.Core
             int finalHeight = Math.Min(Size.Height, maxHeight);
 
             var finalSize = new Size(finalWidth, finalHeight);
-            _console.BlitAlpha(Buffer, _console.RootSurface,
-                new Rectangle(0, 0, finalSize.Width, finalSize.Height), position.X, position.Y, fgAlpha, bgAlpha);
+            _console.BlitAlpha(Buffer, new Rectangle(0, 0, finalSize.Width, finalSize.Height), position.X, position.Y,
+                fgAlpha, bgAlpha);
         }
 
         public void Blit(ICanvas dest, int x, int y) {

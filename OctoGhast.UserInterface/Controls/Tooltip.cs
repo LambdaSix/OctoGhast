@@ -41,7 +41,7 @@ namespace OctoGhast.UserInterface.Controls
         }
 
         public void DrawToScreen() {
-            Canvas.Blit(Position, ParentWindow.TooltipFGAlpha, ParentWindow.TooltipBGAlpha);
+            Canvas.BlitToConsole(Position, ParentWindow.TooltipFGAlpha, ParentWindow.TooltipBGAlpha);
         }
 
         private Vec AutoPosition(Vec nearPos) {

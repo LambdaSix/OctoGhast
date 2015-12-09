@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -133,7 +135,7 @@ namespace OctoGhast.Framework
             Graphics.PreferredBackBufferHeight = ConHeight*CurrentFont.CharacterHeight;
             Graphics.ApplyChanges();
 
-            Console.RootSurface.Clear();
+            Console.Clear();
 
             Setup(Info);
         }
@@ -167,7 +169,7 @@ namespace OctoGhast.Framework
         }
 
         protected override void Draw(GameTime gameTime) {
-            Console.RootSurface.Clear();
+            Console.Clear();
 
             Draw();
 
@@ -178,7 +180,6 @@ namespace OctoGhast.Framework
             RootWindow.OnDraw();
 
             var render = Console.Flush();
-
             SpriteBatcher.Begin();
             {
                 SpriteBatcher.Draw(render, Vector2.Zero, Color.White);
