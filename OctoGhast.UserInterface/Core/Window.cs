@@ -253,7 +253,7 @@ namespace OctoGhast.UserInterface.Core
         }
 
         protected ControlBase GetTopControlAt(Vec screenPos) {
-            return Controls.Where(control => control.IsActive)
+            return Controls.Where(control => control.IsActive).Reverse()
                 .FirstOrDefault(control => control.ScreenRectangle.Contains(screenPos));
         }
 
