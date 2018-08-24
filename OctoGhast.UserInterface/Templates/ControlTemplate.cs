@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OctoGhast.Spatial;
+using OctoGhast.UserInterface.Core;
 
 namespace OctoGhast.UserInterface.Templates
 {
@@ -27,7 +28,9 @@ namespace OctoGhast.UserInterface.Templates
     /// positioning controls relative to each other.
     /// </summary>
     public abstract class ControlTemplate : WidgetTemplate
-    {       
+    {
+        public BindingTarget Binding { get; set; }
+
         /// <summary>
         /// The upper left position of this control.  Defaults to the origin (0,0)
         /// </summary>

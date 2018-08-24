@@ -44,10 +44,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\BindingMode.cs" />
+    <Compile Include="Core\BindingTarget.cs" />
     <Compile Include="Controls\Button.cs" />
     <Compile Include="Controls\CheckBox.cs" />
     <Compile Include="Controls\ControlBase.cs" />
     <Compile Include="Controls\Entry.cs" />
+    <Compile Include="Core\ExpressionExtensions.cs" />
     <Compile Include="Controls\Label.cs" />
     <Compile Include="Controls\ListBox.cs" />
     <Compile Include="Controls\Menu.cs" />

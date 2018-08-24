@@ -1,4 +1,7 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Linq.Expressions;
+using System.Reflection;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Core;
 using OctoGhast.UserInterface.Core.Messages;
@@ -29,7 +32,10 @@ namespace OctoGhast.UserInterface.Controls
             TooltipText = template.Tooltip;
             MouseOverHighlight = template.MouseOverHighlight;
             IsActive = template.IsActiveInitially;
+            Binding = template.Binding;
         }
+
+        public BindingTarget Binding { get; set; }
 
         /// <summary>
         ///     True if currently has keyboard focus.  This is set automatically by
@@ -129,6 +135,31 @@ namespace OctoGhast.UserInterface.Controls
         /// <returns></returns>
         public Vec LocalToScreen(Vec localPos) {
             return new Vec(localPos.X + ScreenRectangle.TopLeft.X, localPos.Y + ScreenRectangle.TopLeft.Y);
+        }
+
+        private object _bindingTarget;
+        private PropertyInfo _bindingProperty;
+
+        protected void SetupBinding<T>(object owner, Expression<Func<T>> target) {
+            if (Binding != null) {
+                _bindingTarget = this;
+                _bindingProperty = target.GetProperty();
+
+                Binding.RetrieveBinding().PropertyChanged += BindingPropertyChanged;
+                if (Binding.RetrieveBindingSite() is INotifyPropertyChanged site)
+                    site.PropertyChanged += BindingParentChanged;
+            }
+        }
+
+        private void BindingParentChanged(object sender, PropertyChangedEventArgs e) {
+            var type = _bindingProperty.PropertyType;
+            _bindingProperty.SetValue(_bindingTarget, Convert.ChangeType(Binding.RetrieveValue(), type));
+        }
+
+        private void BindingPropertyChanged(object sender, PropertyChangedEventArgs e) {
+            if (_bindingProperty.Name == e.PropertyName) {
+                _bindingProperty.SetValue(_bindingTarget, Binding.RetrieveValue());
+            }
         }
 
         /// <summary>
