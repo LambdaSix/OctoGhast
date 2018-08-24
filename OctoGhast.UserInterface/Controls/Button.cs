@@ -95,8 +95,7 @@ namespace OctoGhast.UserInterface.Controls
         }
 
         protected virtual void OnButtonPushed() {
-            if (ButtonClick != null)
-                ButtonClick(this, EventArgs.Empty);
+            ButtonClick?.Invoke(this, EventArgs.Empty);
         }
 
         private Vec CalcTopLeft() {
