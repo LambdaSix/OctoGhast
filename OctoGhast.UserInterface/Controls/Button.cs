@@ -16,7 +16,7 @@ namespace OctoGhast.UserInterface.Controls
         public VAlign VAlignment { get; set; }
         
         public ButtonTemplate() {
-            LabelAlignment = HAlign.Left;
+            LabelAlignment = HAlign.Center;
             Label = "";
             MinimumWidth = 0;
             MouseOverHighlight = true;
@@ -29,7 +29,7 @@ namespace OctoGhast.UserInterface.Controls
             if (AutoSizeOverride.IsEmpty) {
                 int len = CanvasUtil.MeasureStr(Label);
                 int width = len;
-                int height = 2;
+                int height = 1;
 
                 if (HasFrameBorder) {
                     width += 2;
@@ -100,7 +100,7 @@ namespace OctoGhast.UserInterface.Controls
 
         private Vec CalcTopLeft() {
             var vec = LabelRect.TopLeft;
-            return vec.OffsetX((HasFrame) ? 2 : 0);
+            return vec.OffsetX(0);
         }
     }
 }
