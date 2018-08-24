@@ -60,6 +60,8 @@ namespace OctoGhast.UserInterface.Controls
 
             if (template.HasFrameBorder && Size.Width > 2 && Size.Height > 2)
                 LabelRect = LabelRect.Inflate(-1, -1);
+
+            SetupBinding(this, () => LabelText);
         }
 
         protected override void Redraw() {

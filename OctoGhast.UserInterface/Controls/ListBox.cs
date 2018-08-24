@@ -16,10 +16,12 @@ namespace OctoGhast.UserInterface.Controls
     /// </summary>
     public class ListItemSelectedEventArgs : EventArgs
     {
-        public int Index { get; private set; }
+        public int Index { get; }
+        public ListItemData ListItemData { get; }
 
-        public ListItemSelectedEventArgs(int index) {
+        public ListItemSelectedEventArgs(int index, ListItemData listItemData) {
             Index = index;
+            ListItemData = listItemData;
         }
     }
 
@@ -121,7 +123,15 @@ namespace OctoGhast.UserInterface.Controls
         private int numberItemsDisplayed;
 
         public ListBox(ListBoxTemplate template) : base(template) {
-            throw new NotImplementedException();
+            CurrentSelection = 0;
+            Items = template.Items.ToList();
+
+            Title = template.Title;
+            TitleAlignment = template.TitleAlignment;
+
+            // TODO: Support making this a scrolling listbox?
+
+            CalculateMetrics(template);
         }
 
         public string GetItemLabel(int index) {
@@ -235,8 +245,7 @@ namespace OctoGhast.UserInterface.Controls
         }
 
         protected virtual void OnItemSelected(int index) {
-            if (ItemSelected != null)
-                ItemSelected(this, new ListItemSelectedEventArgs(index));
+            ItemSelected?.Invoke(this, new ListItemSelectedEventArgs(index, Items[index]));
         }
 
         private void CalculateMetrics(ListBoxTemplate template) {
@@ -258,7 +267,7 @@ namespace OctoGhast.UserInterface.Controls
 
             if (Title != "") {
                 if (template.HasFrameBorder) {
-                    titleRect = new Rect(Vec.Zero.Offset(1, 1), new Size(titleWidth - 2, titleHeight));
+                    titleRect = new Rect(Vec.Zero.Offset(1,1), new Size(titleWidth - 2, titleHeight-1));
                 }
                 else {
                     titleRect = new Rect(Vec.Zero, new Size(titleWidth, titleHeight));
