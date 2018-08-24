@@ -47,6 +47,11 @@ namespace OctoGhast.UserInterface.Templates
         public bool IsActiveInitially { get; set; }
 
         /// <summary>
+        /// If true (the default), this control will be Visible when created.
+        /// </summary>
+        public bool IsVisibleInitially { get; set; }
+
+        /// <summary>
         /// True if this control should react when the mouse is over it.
         /// </summary>
         public bool MouseOverHighlight { get; set; }
@@ -79,6 +84,7 @@ namespace OctoGhast.UserInterface.Templates
         {
             Tooltip = null;
             IsActiveInitially = true;
+            IsVisibleInitially = true;
         }
 
         /// <summary>

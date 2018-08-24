@@ -32,6 +32,7 @@ namespace OctoGhast.UserInterface.Controls
             TooltipText = template.Tooltip;
             MouseOverHighlight = template.MouseOverHighlight;
             IsActive = template.IsActiveInitially;
+            IsVisible = template.IsVisibleInitially;
             Binding = template.Binding;
         }
 
@@ -56,14 +57,19 @@ namespace OctoGhast.UserInterface.Controls
 
         /// <summary>
         ///     If false, notifies framework that it does not want to receive user input messages.  This
-        ///     control will stil receive system messages.  Input messages will propagate under
+        ///     control will still receive system messages.  Input messages will propagate under
         ///     inactive controls - this allows inactive controls to be placed over other controls
         ///     without blocking messages.
         /// </summary>
         public bool IsActive { get; set; }
 
         /// <summary>
-        ///     True if this control will draw itself hilighted when the mouse is over it.
+        ///     If false, this control will not be drawn to the screen.
+        /// </summary>
+        public bool IsVisible { get; set; }
+
+        /// <summary>
+        ///     True if this control will draw itself high-lighted when the mouse is over it.
         /// </summary>
         public bool MouseOverHighlight { get; set; }
 

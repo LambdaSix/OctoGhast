@@ -282,7 +282,7 @@ namespace OctoGhast.UserInterface.Core
         public override void OnDraw() {
             base.OnDraw();
 
-            foreach (var control in Controls) {
+            foreach (var control in Controls.Where(s => s.IsVisible)) {
                 control.OnDraw();
             }
 
