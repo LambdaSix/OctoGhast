@@ -46,7 +46,17 @@ namespace OctoGhast.UserInterface.Controls
 
     public class Label : ControlBase
     {
-        public string LabelText { get; set; }
+        private string _labelText;
+        private bool _isDirty;
+
+        public string LabelText
+        {
+            get => _labelText;
+            set { _labelText = value;
+                _isDirty = true;
+            }
+        }
+
         public HAlign LabelAlignment { get; set; }
         public VAlign VAlignment { get; set; }
         private Rect LabelRect { get; set; }
@@ -65,10 +75,12 @@ namespace OctoGhast.UserInterface.Controls
         }
 
         protected override void Redraw() {
-            base.Redraw();
+            if (_isDirty) {
+                base.Redraw();
 
-            if (!OwnerDraw)
-                Canvas.PrintStringAligned(CalcTopLeft(), LabelText, LabelAlignment, VAlignment, Size);
+                if (!OwnerDraw)
+                    Canvas.PrintStringAligned(CalcTopLeft(), LabelText, LabelAlignment, VAlignment, Size);
+            }
         }
 
         protected override Pigment DetermineMainPigment()
