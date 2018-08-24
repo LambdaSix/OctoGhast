@@ -204,7 +204,8 @@ namespace OctoGhast.Framework
 
             if (isDisposing) {
                 if (RootWindow != null)
-                    RootWindow.Dispose();
+                    GraphicsDevice?.Dispose();
+                    RootWindow?.Dispose();
             }
 
             _alreadyDisposed = true;
