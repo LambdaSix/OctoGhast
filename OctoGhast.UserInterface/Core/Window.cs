@@ -207,6 +207,14 @@ namespace OctoGhast.UserInterface.Core
                 ControlsPending.Remove(control);
         }
 
+        public void RemoveControls(params ControlBase[] controls)
+        {
+            foreach (var control in controls)
+            {
+                RemoveControl(control);
+            }
+        }
+
         public void MoveToTop(ControlBase control) {
             if (control == null)
                 throw new ArgumentNullException("control");
