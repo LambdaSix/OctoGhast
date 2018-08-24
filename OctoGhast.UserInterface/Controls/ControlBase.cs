@@ -153,12 +153,16 @@ namespace OctoGhast.UserInterface.Controls
 
         private void BindingParentChanged(object sender, PropertyChangedEventArgs e) {
             var type = _bindingProperty.PropertyType;
-            _bindingProperty.SetValue(_bindingTarget, Convert.ChangeType(Binding.RetrieveValue(), type));
+            _bindingProperty.SetValue(_bindingTarget,
+                Binding.Formatter?.Invoke(Binding.RetrieveValue()) ??
+                Convert.ChangeType(Binding.RetrieveValue(), type));
         }
 
         private void BindingPropertyChanged(object sender, PropertyChangedEventArgs e) {
             if (_bindingProperty.Name == e.PropertyName) {
-                _bindingProperty.SetValue(_bindingTarget, Binding.RetrieveValue());
+                var type = _bindingProperty.PropertyType;
+                _bindingProperty.SetValue(_bindingTarget,
+                    Binding.Formatter?.Invoke(Binding.RetrieveValue()) ?? Convert.ChangeType(Binding.RetrieveValue(), type));
             }
         }
 

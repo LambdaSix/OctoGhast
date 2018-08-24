@@ -71,34 +71,59 @@ namespace OctoGhast.Renderer.Screens {
                 Label = " ",
                 MinimumWidth = entireWidth,
                 UpperLeftPos = anchor.Offset(1,1),
-                Binding = new BindingTarget(() => Model.CurrentWorld.Name, BindingMode.OneWay),
+                Binding = new BindingTarget
+                {
+                    Target = () => Model.CurrentWorld.Name,
+                    BindMode = BindingMode.OneWay,
+                    Formatter = s => $"Name: {s}",
+                },
             };
 
             var worldModList_t = new LabelTemplate()
             {
                 Label = " ", MinimumWidth = entireWidth, HasFrameBorder = false,
-                Binding = new BindingTarget(() => Model.CurrentWorld.Mods, BindingMode.OneWay),
+                Binding = new BindingTarget
+                {
+                    Target = () => Model.CurrentWorld.Name,
+                    BindMode = BindingMode.OneWay,
+                    Formatter = s => $"Mods: {s}",
+                },
             };
             worldModList_t.AlignTo(LayoutDirection.South, worldName_t, -2);
 
             var worldCharCount_t = new LabelTemplate()
             {
                 Label = " ", MinimumWidth = entireWidth,
-                Binding = new BindingTarget(() => Model.CurrentWorld.Characters, BindingMode.OneWay),
+                Binding = new BindingTarget
+                {
+                    Target = () => Model.CurrentWorld.Characters,
+                    BindMode = BindingMode.OneWay,
+                    Formatter = s => $"Character Count: {s}",
+                },
             };
             worldCharCount_t.AlignTo(LayoutDirection.South, worldModList_t, -2);
 
             var worldGenDate_t = new LabelTemplate()
             {
                 Label = " ", MinimumWidth = entireWidth,
-                Binding = new BindingTarget(() => Model.CurrentWorld.WorldGenTime, BindingMode.OneWay),
+                Binding = new BindingTarget
+                {
+                    Target = () => Model.CurrentWorld.WorldGenTime,
+                    BindMode = BindingMode.OneWay,
+                    Formatter = s => $"Generated: {s}",
+                },
             };
             worldGenDate_t.AlignTo(LayoutDirection.South, worldCharCount_t, -2);
 
             var worldAccessDate_t = new LabelTemplate()
             {
                 Label = " ", MinimumWidth = entireWidth,
-                Binding = new BindingTarget(() => Model.CurrentWorld.WorldAccessTime, BindingMode.OneWay),
+                Binding = new BindingTarget
+                {
+                    Target = () => Model.CurrentWorld.WorldAccessTime,
+                    BindMode = BindingMode.OneWay,
+                    Formatter = s => $"Last Accessed: {s}",
+                },
             };
             worldAccessDate_t.AlignTo(LayoutDirection.South, worldGenDate_t, -2);
 
