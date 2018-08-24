@@ -65,7 +65,7 @@ namespace OctoGhast.UserInterface.Core
         }
 
         public void Blit(int x, int y) {
-            BlitToConsole(x, y, 0.0f);
+            BlitToConsole(x, y);
         }
 
         public void Blit(Vec position) {
@@ -74,6 +74,20 @@ namespace OctoGhast.UserInterface.Core
 
         public void Blit(Vec position, float alpha) {
             BlitToConsole(position.X, position.Y, alpha);
+        }
+
+        public void BlitToConsole(int x, int y) {
+            int maxWidth = _config.Width - x;
+            int maxHeight = _config.Height - y;
+
+            if (maxWidth < 1 || maxHeight < 1)
+                return;
+
+            int finalWidth = Math.Min(Size.Width, maxWidth);
+            int finalHeight = Math.Min(Size.Height, maxHeight);
+
+            var finalSize = new Size(finalWidth, finalHeight);
+            _console.Blit(Buffer, new Rectangle(0, 0, finalSize.Width, finalSize.Height), x, y);
         }
 
         public void BlitToConsole(int x, int y, float alpha)
