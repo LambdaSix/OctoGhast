@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Controls;
 using OctoGhast.UserInterface.Core;
@@ -69,7 +67,7 @@ namespace OctoGhast.Renderer.Screens {
             var worldName_t = new LabelTemplate()
             {
                 Label = " ",
-                MinimumWidth = entireWidth,
+                MinimumWidth = entireWidth -2,
                 UpperLeftPos = anchor.Offset(1,1),
                 Binding = new BindingTarget
                 {
@@ -81,10 +79,10 @@ namespace OctoGhast.Renderer.Screens {
 
             var worldModList_t = new LabelTemplate()
             {
-                Label = " ", MinimumWidth = entireWidth, HasFrameBorder = false,
+                Label = " ", MinimumWidth = entireWidth -2,
                 Binding = new BindingTarget
                 {
-                    Target = () => Model.CurrentWorld.Name,
+                    Target = () => Model.CurrentWorld.Mods,
                     BindMode = BindingMode.OneWay,
                     Formatter = s => $"Mods: {s}",
                 },
@@ -93,7 +91,7 @@ namespace OctoGhast.Renderer.Screens {
 
             var worldCharCount_t = new LabelTemplate()
             {
-                Label = " ", MinimumWidth = entireWidth,
+                Label = " ", MinimumWidth = entireWidth -2,
                 Binding = new BindingTarget
                 {
                     Target = () => Model.CurrentWorld.Characters,
@@ -105,7 +103,7 @@ namespace OctoGhast.Renderer.Screens {
 
             var worldGenDate_t = new LabelTemplate()
             {
-                Label = " ", MinimumWidth = entireWidth,
+                Label = " ", MinimumWidth = entireWidth -2,
                 Binding = new BindingTarget
                 {
                     Target = () => Model.CurrentWorld.WorldGenTime,
@@ -117,7 +115,7 @@ namespace OctoGhast.Renderer.Screens {
 
             var worldAccessDate_t = new LabelTemplate()
             {
-                Label = " ", MinimumWidth = entireWidth,
+                Label = " ", MinimumWidth = entireWidth -2,
                 Binding = new BindingTarget
                 {
                     Target = () => Model.CurrentWorld.WorldAccessTime,
@@ -126,6 +124,22 @@ namespace OctoGhast.Renderer.Screens {
                 },
             };
             worldAccessDate_t.AlignTo(LayoutDirection.South, worldGenDate_t, -2);
+
+            var loadWorldButton_t = new ButtonTemplate()
+            {
+                Label = "Load World", HasFrameBorder = true,
+            };
+            loadWorldButton_t.AlignTo(LayoutDirection.South, worldAccessDate_t, 2);
+            var loadWorldButton = new Button(loadWorldButton_t);
+            loadWorldButton.ButtonClick += LoadWorldButtonOnButtonClick;
+
+            var deleteWorldButton_t = new ButtonTemplate()
+            {
+                Label = "Delete World", HasFrameBorder = true
+            };
+            deleteWorldButton_t.AlignTo(LayoutDirection.East, loadWorldButton_t, 2);
+            var deleteWorldButton = new Button(deleteWorldButton_t);
+            deleteWorldButton.ButtonClick += DeleteWorldButtonOnButtonClick;
 
             var worldList = new ListBox(worldList_t);
             var worldInfo = new Panel(panel_t);
@@ -139,7 +153,18 @@ namespace OctoGhast.Renderer.Screens {
             LoadWorld(Model.Worlds[0].Name);
 
             ParentWindow.AddControls(worldList, worldInfo, worldName,
-                worldModsList, worldCharCount, worldGenDate, worldAccessDate);
+                worldModsList, worldCharCount, worldGenDate, worldAccessDate, 
+                loadWorldButton, deleteWorldButton);
+        }
+
+        private void DeleteWorldButtonOnButtonClick(object sender, EventArgs e) {
+            // TODO: Query Y/N dialog, user confirm deletion
+            UIHelper.QueryYN(ParentWindow, "Are you sure you wish to delete this world?",
+                v => { Console.WriteLine($"{(v ? "confirmed" : "rejected")} deletion of {Model.CurrentWorld.Name}"); });
+        }
+
+        private void LoadWorldButtonOnButtonClick(object sender, EventArgs e) {
+            throw new NotImplementedException();
         }
 
         private IEnumerable<ListItemData> RetrieveWorldList() {
@@ -153,6 +178,8 @@ namespace OctoGhast.Renderer.Screens {
         private void LoadWorld(string name) {
             Model.CurrentWorld = GetWorldInfo(name);
             Console.WriteLine($"Loading world {worldName}");
+
+            // TODO: Load the GameScreen with a WorldInstance loaded
         }
 
         private IEnumerable<WorldInfo> LoadWorlds() {
@@ -195,52 +222,17 @@ namespace OctoGhast.Renderer.Screens {
         }
     }
 
-    public class WorldInfo : INotifyPropertyChanged {
-        private DateTime _worldAccessTime = DateTime.Now.AddDays(-12);
-        private DateTime _worldGenTime = DateTime.Now.AddDays(-24);
-        private int _characters;
-        private string _mods = "Core;WildLiving;MoreSurvivalTools;No_Fungus";
-        private string _name;
+    public class WorldInfo {
+        public string Name { get; set; }
 
-        public string Name
-        {
-            get => _name;
-            set { _name = value;
-                OnPropertyChanged(nameof(Name));
-            }
-        }
+        public string Mods { get; set; } = "Core;WildLiving;MoreSurvivalTools;No_Fungus";
 
-        public string Mods
-        {
-            get => _mods;
-            set { _mods = value;
-                OnPropertyChanged(nameof(Mods));
-            }
-        }
+        public DateTime WorldGenTime { get; set; } = DateTime.Now.AddDays(-24);
 
-        public DateTime WorldGenTime
-        {
-            get => _worldGenTime;
-            set { _worldGenTime = value; OnPropertyChanged(nameof(WorldGenTime)); }
-        }
+        public DateTime WorldAccessTime { get; set; } = DateTime.Now.AddDays(-12);
 
-        public DateTime WorldAccessTime
-        {
-            get => _worldAccessTime;
-            set { _worldAccessTime = value; OnPropertyChanged(nameof(WorldAccessTime)); }
-        }
-
-        public int Characters
-        {
-            get => _characters;
-            set { _characters = value; OnPropertyChanged(nameof(Characters)); }
-        }
-
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        public int Characters { get; set; }
+        
+        // TODO: WorldInstance
     }
 }
