@@ -101,6 +101,7 @@ namespace OctoGhast.Framework
             // TODO: Config
             IsFixedTimeStep = true;
             Graphics.SynchronizeWithVerticalRetrace = true;
+            base.IsMouseVisible = true;
         }
 
         public void Start(GameInfo info) {
