@@ -101,7 +101,7 @@ namespace OctoGhast.Renderer.Screens
         }
 
         private void LoadGameButton_OnButtonClick(object sender, EventArgs eventArgs) {
-            
+            NavigateTo(new LoadGameScreen());
         }
 
         private void NewGameButton_OnButtonClick(object sender, EventArgs eventArgs) {

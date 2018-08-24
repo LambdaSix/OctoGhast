@@ -190,6 +190,12 @@ namespace OctoGhast.UserInterface.Core
             }
         }
 
+        public void AddControls(params ControlBase[] controls) {
+            foreach (var control in controls) {
+                AddControl(control);
+            }
+        }
+
         public void RemoveControl(ControlBase control) {
             if (control == null)
                 throw new ArgumentNullException("control");

@@ -67,6 +67,8 @@
     <Compile Include="Renderer\Screens\Game\Controls\GameMapControl.cs" />
     <Compile Include="Renderer\Screens\Game\MainGame.cs" />
     <Compile Include="Renderer\Screens\Title\AboutScreen.cs" />
+    <Compile Include="Renderer\Screens\Title\LoadGameScreen.cs" />
+    <Compile Include="Renderer\Screens\ModelBase.cs" />
     <Compile Include="Renderer\Screens\Title\TitleScreen.cs" />
     <Compile Include="Renderer\View\IMapViewModel.cs" />
     <Compile Include="Renderer\View\MapViewModel.cs" />
