@@ -91,5 +91,9 @@ namespace OctoGhast.Spatial
         public static bool operator !=(Size left, Size right) {
             return !(left == right);
         }
+
+        public static Size operator /(Size left, int right) {
+            return new Size(left.Height / right, left.Width / right);
+        }
     }
 }

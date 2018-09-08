@@ -1,4 +1,6 @@
-﻿using OctoGhast.DataStructures.Map;
+﻿using System;
+using InfiniMap;
+using OctoGhast.DataStructures.Map;
 using OctoGhast.DataStructures.Renderer;
 using OctoGhast.Entity;
 using OctoGhast.Renderer.View;
@@ -12,28 +14,28 @@ namespace OctoGhast.Renderer.Screens.Game.Controls
 {
     public class GameMapControlTemplate : PanelTemplate
     {
-        public IMapViewModel Model { get; set; }
+        public IGameViewModel Model { get; set; }
 
         public GameMapControlTemplate() {
             Size = new Size(80, 24);
         }
     }
 
+    /// <summary>
+    /// Handles the Drawing of the World to the screen.
+    /// No handling of game logic is done here, that should be handled by WorldInstance and Systems
+    /// </summary>
     public class GameMapControl : Panel
     {
-        IMapViewModel Model { get; set; }
+        /// <summary>
+        /// Access to the WorldInstance is handled via the ViewModel
+        /// </summary>
+        IGameViewModel Model { get; set; }
 
-        public IPlayer Player {
-            get { return Model.Player; }
-        }
-
-        public ICamera Camera {
-            get { return Model.Camera; }
-        }
-
-        public IGameMap Map {
-            get { return Model.Map; }
-        }
+        // Shortcuts
+        public IPlayer Player => Model.World.Player;
+        public ICamera Camera => Model.World.Camera;
+        public Map2D<ITile> Map => Model.World.Map;
 
         public GameMapControl(GameMapControlTemplate template) : base(template) {
             Model = template.Model;
@@ -55,6 +57,7 @@ namespace OctoGhast.Renderer.Screens.Game.Controls
         protected override void Redraw() {
             base.Redraw();
 
+            // Should the Lightmap calculations move here or be handled by a System?
             var lightMap = Model.CalculateLightMap();
 
             for (int y = 0; y < Camera.ViewFrustum.Height; y++)
@@ -63,10 +66,9 @@ namespace OctoGhast.Renderer.Screens.Game.Controls
                 {
                     var worldPos = toWorld(x, y, Camera.ViewFrustum);
 
-                    if (!Model.DrawLighting || lightMap[x, y].IsLit)
-                    {
-                        var tile = Map[worldPos];
-                        var color = lightMap[x, y].LightColor ?? new Color(Microsoft.Xna.Framework.Color.Gray);
+                    if (lightMap[x, y].IsLit) {
+                        var tile = Map[worldPos.X, worldPos.Y];
+                        var color = lightMap[x, y].LightColor ?? new Color(XColor.Gray);
 
                         Canvas.PrintChar(x, y, (char) tile.Glyph, new Pigment(color, new Color(XColor.Black)));
                     }
@@ -83,7 +85,7 @@ namespace OctoGhast.Renderer.Screens.Game.Controls
             var distanceFromCamera = playerFrustum.TopLeft - Camera.ViewFrustum.TopLeft;
 
             Canvas.PrintChar(playerX + distanceFromCamera.X, playerY + distanceFromCamera.Y, '@',
-                new Pigment(new Color(Microsoft.Xna.Framework.Color.Brown), new Color(XColor.Black)));
+                new Pigment(new Color(XColor.Brown), new Color(XColor.Black)));
 
             Canvas.PrintString(0, 0, "FPS: " + Framework.Game.FrameCounter.CurrentFramesPerSecond);
         }

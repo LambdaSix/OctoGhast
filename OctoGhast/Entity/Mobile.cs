@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using OctoGhast.DataStructures;
 using OctoGhast.DataStructures.Entity;
 using OctoGhast.DataStructures.Map;
 using OctoGhast.Spatial;
+using OctoGhast.SystemManager;
 
 namespace OctoGhast.Entity
 {
@@ -29,11 +31,16 @@ namespace OctoGhast.Entity
         void OnMove(Action<Vec> func);
     }
 
-    public class Mobile : GameObject, IMobile
+    public class Mobile : GameObject, IMobile, IScheduleable
     {
         private Action<Vec> _onMoveCallback;
 
         public virtual IMobile Combatant { get; set; }
+        public int Speed { get; set; }
+
+        public int AvailableEnergy { get; set; } = 100;
+        public int MaxEnergy { get; set; } = 100;
+        public int MoveCost { get; set; } = 100;
 
         public Mobile(Vec position, char glyph, IColor color, string name) : base(position, glyph, color, name) {
 
@@ -76,12 +83,12 @@ namespace OctoGhast.Entity
         private bool isWall(IGameMap map, Vec position) {
             return !map.IsWalkable(position);
         }
+        
 
         public bool MoveTo(Vec pos) {
             Position = pos;
 
-            if (_onMoveCallback != null)
-                _onMoveCallback(pos);
+            _onMoveCallback?.Invoke(pos);
 
             return true;
         }
@@ -104,5 +111,8 @@ namespace OctoGhast.Entity
             }
             return false;
         }
+
+        /// <inheritdoc />
+        public int Time { get => Speed; }
     }
 }

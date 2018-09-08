@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework, Version=3.1.2.0, Culture=neutral, processorArchitecture=MSIL">
@@ -57,6 +59,7 @@
     <Compile Include="Controls\Panel.cs" />
     <Compile Include="Controls\TextEntry.cs" />
     <Compile Include="Controls\Tooltip.cs" />
+    <Compile Include="Core\WeakFunc.cs" />
     <Compile Include="Core\KeyboardUtils.cs" />
     <Compile Include="Core\Messages\KeyBindInfo.cs" />
     <Compile Include="Core\ScreenBase.cs" />

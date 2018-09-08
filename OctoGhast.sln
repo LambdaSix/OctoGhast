@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2003
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OctoGhast", "OctoGhast\OctoGhast.csproj", "{02E6A779-B800-47D9-9E6D-05F3362362EB}"
 EndProject
@@ -23,12 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shells", "Shells", "{4685C6
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OctoGhast.Shell.Win32", "OctoGhast.Shell.Win32\OctoGhast.Shell.Win32.csproj", "{E0BCC79E-E6F7-4857-99DF-B7D613AE22B5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Capsicum", "lib\Capsicum\Capsicum\Capsicum.csproj", "{15FC1429-8161-4A89-A1E1-5AF4C8AA134A}"
-EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -118,18 +113,6 @@ Global
 		{E0BCC79E-E6F7-4857-99DF-B7D613AE22B5}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{E0BCC79E-E6F7-4857-99DF-B7D613AE22B5}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{E0BCC79E-E6F7-4857-99DF-B7D613AE22B5}.Release|x86.ActiveCfg = Release|Any CPU
-		{15FC1429-8161-4A89-A1E1-5AF4C8AA134A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{15FC1429-8161-4A89-A1E1-5AF4C8AA134A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{15FC1429-8161-4A89-A1E1-5AF4C8AA134A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{15FC1429-8161-4A89-A1E1-5AF4C8AA134A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{15FC1429-8161-4A89-A1E1-5AF4C8AA134A}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{15FC1429-8161-4A89-A1E1-5AF4C8AA134A}.Debug|x86.Build.0 = Debug|Any CPU
-		{15FC1429-8161-4A89-A1E1-5AF4C8AA134A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{15FC1429-8161-4A89-A1E1-5AF4C8AA134A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{15FC1429-8161-4A89-A1E1-5AF4C8AA134A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{15FC1429-8161-4A89-A1E1-5AF4C8AA134A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{15FC1429-8161-4A89-A1E1-5AF4C8AA134A}.Release|x86.ActiveCfg = Release|Any CPU
-		{15FC1429-8161-4A89-A1E1-5AF4C8AA134A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -138,6 +121,11 @@ Global
 		{955AF4C9-12E7-4447-8E7C-C3ACD38F2DA9} = {4EE4B899-4493-4924-B3A7-E3DEEC53E3FD}
 		{6644B2D9-98DD-4C0A-A51B-C0A0A104A135} = {4EE4B899-4493-4924-B3A7-E3DEEC53E3FD}
 		{E0BCC79E-E6F7-4857-99DF-B7D613AE22B5} = {4685C659-57C6-4AA6-9628-AC9B67A5539A}
-		{15FC1429-8161-4A89-A1E1-5AF4C8AA134A} = {4EE4B899-4493-4924-B3A7-E3DEEC53E3FD}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7BE5ABCF-0390-4125-BD32-103CE84CE62C}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

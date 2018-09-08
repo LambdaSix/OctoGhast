@@ -97,7 +97,7 @@ namespace OctoGhast.Renderer.Screens
         }
 
         private void OptionsButton_OnButtonClick(object sender, EventArgs eventArgs) {
-            
+            NavigateTo(new OptionsScreen());
         }
 
         private void LoadGameButton_OnButtonClick(object sender, EventArgs eventArgs) {
@@ -105,7 +105,7 @@ namespace OctoGhast.Renderer.Screens
         }
 
         private void NewGameButton_OnButtonClick(object sender, EventArgs eventArgs) {
-            NavigateTo(new MainGame());
+            NavigateTo(new MainGame(new WorldFactory())); 
         }
     }
 }

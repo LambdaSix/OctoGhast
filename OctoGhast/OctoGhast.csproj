@@ -22,6 +22,7 @@
     <DefineConstants>TRACE;DEBUG;WINDOWS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -31,6 +32,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -40,11 +42,17 @@
       <HintPath>..\packages\MonoGame.Framework.Portable.3.2.99.1-Beta\lib\portable-net45+win+wpa81+Xamarin.iOS10+MonoAndroid10+MonoTouch10\MonoGame.Framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Ninject">
       <HintPath>..\packages\Ninject.3.0.1.10\lib\net45-full\Ninject.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -53,11 +61,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entity\Mobile.cs" />
+    <Compile Include="Factory\ItemFactory.cs" />
+    <Compile Include="Factory\WorldFactory.cs" />
     <Compile Include="Framework\Game.cs" />
     <Compile Include="Framework\IGame.cs" />
     <Compile Include="Framework\InputManager.cs" />
     <Compile Include="GameActions.cs" />
-    <Compile Include="Map\GameMap.cs" />
     <Compile Include="Map\Tile.cs" />
     <Compile Include="OctoGhastGame.cs" />
     <Compile Include="Renderer\Camera.cs" />
@@ -72,8 +81,14 @@
     <Compile Include="Renderer\Screens\Title\OptionsScreen.cs" />
     <Compile Include="Renderer\Screens\Title\TitleScreen.cs" />
     <Compile Include="Renderer\Screens\Title\UIHelper.cs" />
-    <Compile Include="Renderer\View\IMapViewModel.cs" />
-    <Compile Include="Renderer\View\MapViewModel.cs" />
+    <Compile Include="Renderer\View\IGameViewModel.cs" />
+    <Compile Include="Renderer\View\GameViewModel.cs" />
+    <Compile Include="SystemManager\CommandSystem.cs" />
+    <Compile Include="SystemManager\MessageSystem.cs" />
+    <Compile Include="SystemManager\SchedulingSystem.cs" />
+    <Compile Include="SystemManager\SystemPriority.cs" />
+    <Compile Include="SystemMechanic\ChronologySystemMechanic.cs" />
+    <Compile Include="World\WorldInstance.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
