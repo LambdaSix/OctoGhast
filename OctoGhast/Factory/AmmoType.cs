@@ -37,7 +37,7 @@ namespace OctoGhast {
         public bool IsSoft { get; set; }
 
         public IEnumerable<VitaminInfo> Vitamins { get; set; }
-        public IEnumerable<string> DamageAdjectives { get; set; }
+        public List<string> DamageAdjectives { get; set; }
         public string BashDamageVerb { get; set; }
         public string CutDamageVerb { get; set; }
         public IEnumerable<BurnData> BurnData { get; set; }
@@ -106,9 +106,7 @@ namespace OctoGhast {
         }
 
         public string DamageAdjective(int damage) {
-            if (damage <= 0)
-                return String.Empty;
-            return DamageAdjectives.ElementAt(Math.Min(4,))
+            return damage <= 0 ? String.Empty : DamageAdjectives[Math.Min(damage, DamageAdjectives.Count) - 1];
         }
     }
 
