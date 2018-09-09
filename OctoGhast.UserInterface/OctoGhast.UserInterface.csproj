@@ -33,9 +33,8 @@
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MonoGame.Framework, Version=3.1.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MonoGame.Framework.Portable.3.2.99.1-Beta\lib\portable-net45+win+wpa81+Xamarin.iOS10+MonoAndroid10+MonoTouch10\MonoGame.Framework.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="MonoGame.Framework, Version=3.6.0.1625, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MonoGame.Framework.Portable.3.6.0.1625\lib\portable-net45+win8+wpa81\MonoGame.Framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -83,8 +82,8 @@
     <Compile Include="Theme\PigmentMapping.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\lib\RenderLike\RenderLike.csproj">
-      <Project>{6644B2D9-98DD-4C0A-A51B-C0A0A104A135}</Project>
+    <ProjectReference Include="..\lib\RenderLike\RenderLike\RenderLike.csproj">
+      <Project>{6644b2d9-98dd-4c0a-a51b-c0a0a104a135}</Project>
       <Name>RenderLike</Name>
     </ProjectReference>
     <ProjectReference Include="..\OctoGhast.DataStructures\OctoGhast.DataStructures.csproj">

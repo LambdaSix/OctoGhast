@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Remoting.Activation;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Ninject.Planning.Bindings.Resolvers;
 using OctoGhast.Entity;
+using OctoGhast.Extensions;
 
 namespace OctoGhast {
     public class TemplateLoader {
@@ -108,10 +111,10 @@ namespace OctoGhast {
     }
 
     // Base loader for just about all kinds of items
-    [TemplateLoader("AMMO", "GUN", "ARMOR", "TOOL", "TOOLMOD", "TOOL_ARMOR", "BOOK", "CONTAINER", "ENGINE", "WHEEL",
-        "FUEL", "GUNMOD", "MAGAZINE", "GENERIC", "BIONIC_ITEM")]
+        [TemplateLoader("AMMO", "GUN", "ARMOR", "TOOL", "TOOLMOD", "TOOL_ARMOR", "BOOK", "CONTAINER", "ENGINE", "WHEEL",
+            "FUEL", "GUNMOD", "MAGAZINE", "GENERIC", "BIONIC_ITEM")]
     public class ItemFactory : ITemplateLoader {
-        private Dictionary<string, BaseItemTemplate> _items { get; set; } = new Dictionary<string, BaseTemplate>();
+        private Dictionary<string, BaseItemTemplate> _items { get; set; } = new Dictionary<string, BaseItemTemplate>();
         private Dictionary<string, TypeInfo> Loaders { get; set; } = new Dictionary<string, TypeInfo>();
 
         /// <summary>
@@ -120,8 +123,8 @@ namespace OctoGhast {
         private List<(string, JObject)> _deferred = new List<(string, JObject)>();
 
         public ItemFactory() {
-            RegisterLoader<AmmoItemTemplate>("AMMO");
-            RegisterLoader<GunItemTemplate>("GUN");
+            RegisterLoader<BaseItemTemplate>("item_info");
+            RegisterLoader<RangedDataTemplate>("ranged_info");
         }
 
         public void LoadTemplate(string type, JObject data) {
@@ -137,11 +140,11 @@ namespace OctoGhast {
              *
              * 4. Process any templates in the deferred list as in 2 & 3
              */
-            if (LoadDefinition(type, data, out var itemDef)) {
-                if (Loaders.TryGetValue(type, out var value)) {
-                    Activator.CreateInstance(value.AsType(), BindingFlags.CreateInstance, data, itemDef);
-                }
-            }
+            
+            /*
+             * Item("bow_self")
+             * -> HasComponents("item", "melee", "armor", "ranged");
+             */
         }
 
         public void RegisterLoader<T>(string type) {
@@ -194,77 +197,140 @@ namespace OctoGhast {
         }
     }
 
-    public class Quality {
-        public string Id { get; }
-        public string Name { get; }
+    public class BaseItemInfo {
+        public string Id { get; set; }
+        public IEnumerable<string> Flags { get; set; }
+        public IEnumerable<(string Name,int Level)> Qualities { get; set; }
+        public IEnumerable<string> Techniques { get; set; }
 
-        // TODO: Usages implied from qualities
+        public BaseItemInfo(JObject data) {
+            Id = data.GetValueOr("id", default(string));
+            Flags = data.GetArray<string>("flags").ToList();
+            Qualities = data.GetArrayOfPairs("qualities",
+                (name, level) => (name.Value<string>(), level.Value<int>())).ToList();
+            Techniques = data.GetArray<string>("techniques").ToList();
+        }
 
-        public Quality(string id, string name) {
-            Id = id;
-            Name = name;
+        public BaseItemInfo() { }
+
+        public bool HasFlag(string flagName) {
+            return Flags.Contains(flagName);
+        }
+
+        public (bool, int Level) HasQuality(string qualityName) {
+            var qualitity = Qualities.Where(s => s.Name == qualityName).ToList();
+            if (qualitity.Any()) {
+                return (true, qualitity.Single().Level);
+            }
+            return (false,-1);
+        }
+
+        public bool HasTechnique(string techniqueName) => Techniques.Contains(techniqueName);
+    }
+
+    public class ItemInfo : BaseItemInfo {
+        public int DamageMin = -1000;
+        public int DamageMax = 4000;
+
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Symbol { get; set; }
+        public string Color { get; set; }
+        public string Category { get; set; }
+        public int Weight { get; set; }
+        public int Volume { get; set; }
+        public IEnumerable<string> Materials { get; set; }
+
+        /// <inheritdoc />
+        public ItemInfo(JObject data) {
+            Name = data.GetValueOr("name", default(string));
+            Description = data.GetValueOr("description", default(string));
+            Symbol = data.GetValueOr("symbol", default(string));
+            Color = data.GetValueOr("color", default(string));
+            Category = data.GetValueOr("category", default(string));
+            Weight = data.GetValueOr("weight", 0);
+            Volume = data.GetValueOr("volume", 0);
+            // TODO: This needs to be processed & linked to the Materials loader
+            Materials = data.GetArray<string>("material");
         }
     }
 
-    public class Material {
-        /*
-         {
-           "type": "material",
-           "ident": "aluminum",
-           "name": "Aluminum",
-           "density": 10,
-           "bash_resist": 0,
-           "cut_resist": 4,
-           "acid_resist": 4,
-           "fire_resist": 2,
-           "elec_resist": 0,
-           "chip_resist": 10,
-           "repaired_with": "material_aluminium_ingot",
-           "dmg_adj": [ "dented", "bent", "smashed", "shattered" ],
-           "bash_dmg_verb": "dented",
-           "cut_dmg_verb": "scratched"
-         },
-         */
-        public string Identity { get; set; }
-        public string Name { get; set; }
+    public class MeleeInfo : BaseItemInfo {
+        public int Cutting { get; set; }
+        public int Bashing { get; set; }
+        public IEnumerable<string> Techniques { get; set; }
+        public int ToHit { get; set; }
+
+        public MeleeInfo(JObject data) {
+            Cutting = data.GetValueOr("cutting", 0);
+            Bashing = data.GetValueOr("bashing", 0);
+            Techniques = data.GetArray<string>("techniques");
+            ToHit = data.GetValueOr("to_hit", 0);
+        }
+    }
+
+    public class ArmorInfo : BaseItemInfo {
+        public IEnumerable<string> Covers { get; set; }
+        public int Coverage { get; set; }
+        public int MaterialThickness { get; set; }
+        public int Encumbrance { get; set; }
+        public int Warmth { get; set; }
+        public int EnvironmentalProtection { get; set; }
+
+        public ArmorInfo(JObject data) {
+            Covers = data.GetArray<string>("covers");
+            Coverage = data.GetValueOr("coverage", 0);
+            MaterialThickness = data.GetValueOr("material_thickness", 0);
+            Encumbrance = data.GetValueOr("encumbrance", 0);
+        }
+    }
+
+    public class RangedInfo : BaseItemInfo {
+        public int ReloadNoiseVolume { get;set; }
+        public string Skill { get; set; }
+        public string Ammo { get; set; }
+        public int RangedDamage { get; set; }
+        public int Range { get; set; }
+        public int Dispersion { get; set; }
+        public int MagazineSize { get; set; }
+        public int ReloadTime { get; set; }
+        public int Durability { get; set; }
+
+        public RangedInfo(JObject data) {
+            ReloadNoiseVolume = data.GetValueOr("reload_noise_volume", 0);
+            Skill = data.GetValueOr("skill", default(string));
+            Ammo = data.GetValueOr("ammo", default(string));
+            RangedDamage = data.GetValueOr("ranged_damage", 0);
+            Range = data.GetValueOr("range", 0);
+            Dispersion = data.GetValueOr("dispersion", 0);
+            MagazineSize = data.GetValueOr("magazine_size", 0);
+            ReloadTime = data.GetValueOr("reload_time", 0);
+            Durability = data.GetValueOr("durability", 0);
+        }
     }
 
     public class BaseItemTemplate : BaseTemplate {
-        // All the freaking properties
-        public string ID { get; set; } = null;
+        public Dictionary<Type,BaseItemInfo> Info { get; set; }
 
-        public string Name { get; set; }
-        public string NamePlural { get; set; }
+        public BaseItemTemplate(JObject data, BaseItemTemplate src) : base(data) { }
 
-        public string LooksLike { get; set; }
-        public string SnippetCategory { get; set; }
-        public string Description { get; set; }
-        public string DefaultContainer { get; set; }
-
-        public Dictionary<Quality, int> ToolQualities { get; set; }
-        public Dictionary<string,string> Properties { get; set; }
-
-        public List<Material> Materials { get; set; }
-
-        public Dictionary<string, Action> UseMethods { get; set; }
-
-        public BaseItemTemplate(JObject data, BaseItemTemplate src) : base(data) {
-            
+        public bool HasComponent<T>() where T: BaseItemInfo {
+            return Info.ContainsKey(typeof(T));
         }
-    }
 
-    public class FakeMechanic {
-        public void Process(IEnumerable<Item> items) {
-            foreach (var item in items) {
-                switch (item) {
-                    case AmmoItem ammo:
-                        ammo.GetAmmoDescription();
-                        break;
-                }
+        public T GetComponent<T>() where T: BaseItemInfo {
+            return Info.TryGetValue(typeof(T), out var value)
+                ? value as T
+                : default;
+        }
 
-                if (item is GunItem gun) {
-                    gun.Fire();
-                }
+        public void AddInfo<T>(T info) where T : BaseItemInfo {
+            if (Info.ContainsKey(typeof(T))) {
+                // TODO: Overwrite for now, maybe exception throw?
+                Info[typeof(T)] = info;
+            }
+            else {
+                Info.Add(typeof(T), info);
             }
         }
     }
@@ -275,132 +341,226 @@ namespace OctoGhast {
             Template = template;
         }
 
-        public bool IsActive { get; set; }
+        public Item() {
+            
+        }
 
-        public Material GetPrimaryMaterial() => Template.Materials.FirstOrDefault();
-        public string GetDescription() => Template.Description;
+        public int Damage { get; set; }
+
+        private Dictionary<string, Dictionary<string, string>> Tags { get; } =
+            new Dictionary<string, Dictionary<string, string>>();
+
+        /// <summary>
+        /// Add a tag with no associated data
+        /// </summary>
+        /// <param name="tagName"></param>
+        public void AddTag(string tagName) {
+            if (Tags.ContainsKey(tagName)) {
+                throw new Exception("Duplicate tag added");
+            }
+
+            Tags.Add(tagName, default);
+        }
+
+        /// <summary>
+        /// Add data to a tag, fi the tag does not exist, it will be created and set
+        /// with the initial data.
+        /// </summary>
+        public void AddTagData(string tagName, string dataKey, string dataValue) {
+            if (Tags.ContainsKey(tagName)) {
+                Tags[tagName].Add(dataKey, dataValue);
+            }
+            else {
+                Tags.Add(tagName, new Dictionary<string, string>
+                {
+                    [dataKey] = dataValue
+                });
+            }
+        }
+
+        /// <summary>
+        /// Checks if this Item has the requested tag, regardless of any data within
+        /// </summary>
+        public bool HasTag(string tagName) {
+            return Tags.ContainsKey(tagName);
+        }
+
+        /// <summary>
+        /// Get the data associated with a tag, or null
+        /// </summary>
+        public Dictionary<string, string> GetTagData(string tagName) {
+            return Tags.TryGetValue(tagName, out var value) ? value : null;
+        }
+
+        public bool HasFlag(string flag) {
+            return Template.GetComponent<BaseItemInfo>()?.HasFlag(flag) ?? default;
+        }
 
         public int DamageLevel(int max) {
-            throw new NotImplementedException();
+            if (Damage == 0 || max <= 0) {
+                return 0;
+            }
+            if (ItemData.DamageMax <= 1) {
+                return Damage > 0 ? max : Damage;
+            }
+            if (Damage < 0) {
+                return -((max - 1) * (-Damage - 1) / (ItemData.DamageMax - 1) + 1);
+            }
+
+            return (max - 1) * (Damage - 1) / (ItemData.DamageMax - 1) + 1;
         }
 
-        public virtual void Deactivate(IMobile mob, bool alert) {
-            if (!IsActive) {
-                return;
+        public ItemInfo ItemData => Template.Info.TryGetValue(typeof(ItemInfo), out var value)
+            ? value as ItemInfo
+            : null;
+
+        // Covers GUN
+        public bool IsRanged => Template.Info.ContainsKey(typeof(RangedInfo));
+        public ItemRanged AsRanged() => this as ItemRanged;
+
+        // Covers ARMOR
+        public bool IsArmor => Template.HasComponent<ArmorInfo>();
+        public ItemArmor AsArmor() => this as ItemArmor;
+
+        // Covers GENERIC + item-inbuilt melee data
+        public bool IsMelee => Template.HasComponent<MeleeInfo>();
+
+        // IsTool, IsBook, IsModification, IsComestible, IsContainer, IsEngine, IsWheel, IsFuel, IsBionic
+    }
+
+    public class ItemRanged : Item {
+        public RangedInfo Info => base.Template.Info[typeof(RangedInfo)] as RangedInfo;
+        private ItemRanged() { }
+    }
+
+    public enum ArmorLayer {
+        Underwear,
+        Regular,
+        Waist,
+        Outer,
+        Belted
+    }
+
+    public class ItemArmor : Item {
+        public int Thickness => Info.MaterialThickness;
+        public int Warmth => Info.Warmth;
+        public int Coverage => Info.Coverage;
+
+        public ArmorInfo Info => base.Template.Info[typeof(ArmorInfo)] as ArmorInfo;
+        private ItemArmor() { }
+
+        private int ResistType(DamageType type, bool toSelf) {
+            // HACK: This entire type is a little messy because of Materials + paddin
+            if (toSelf && (type == DamageType.Acid || type == DamageType.Heat))
+                return Int32.MaxValue;
+
+            if (type == DamageType.Acid || type == DamageType.Heat) {
+                float resistSpecial = 0;
+                foreach (var material in ItemData.Materials) {
+                    // TODO: Material[] not String[]
+                    resistSpecial += material.GetResistance(type);
+                }
+                resistSpecial /= ItemData.Materials.Count();
+
+                var env = Info.EnvironmentalProtection;
+                resistSpecial += env / 10.0f;
+                return (int) Math.Round(resistSpecial);
+            }
+
+            int baseThickness = Thickness;
+            float resist = 0;
+            float padding = 0;
+            int effectiveThickness = 1;
+
+            // This should probably be replaced with looking up the Leather & Kevlar Materials
+            // and apply their thickness
+            int leatherBonus = HasTag("leather_padded") ? baseThickness : 0;
+
+            // Replace with the Material system. But basically Kevlar guards more against CUT (bullets deal CUT)
+            var kevlarMult = HasTag("kevlar_padding")
+                ? (type == DamageType.Cut)
+                    ? 2
+                    : 1
+                : 0;
+           
+            int kevlarBonus = baseThickness * kevlarMult;
+            padding += leatherBonus + kevlarBonus;
+
+            // Bash
+            int dmg = DamageLevel(4);
+            int effectiveDamage = toSelf ? Math.Min(dmg, 0) : Math.Max(dmg, 0);
+            effectiveThickness = Math.Max(1, Thickness - effectiveDamage);
+
+            // Apply material bonuses:
+            foreach (var material in ItemData.Materials) {
+                // TODO: Process ItemData.Materials as a Material[] rather than String[]
+                resist += material.GetResistance(type);
+            }
+            resist /= ItemData.Materials.Count();
+
+            var result = (int) Math.Round(resist * effectiveThickness + padding);
+            if (type == DamageType.Stab) {
+                return (int) (0.8f * result);
+            }
+
+            return result;
+        }
+
+        public int DamageResist(DamageType type, bool toSelf) {
+            switch (type) {
+                case DamageType.Debug:
+                case DamageType.Biological:
+                case DamageType.Electric:
+                case DamageType.Cold:
+                    return toSelf ? Int32.MaxValue : 0; // ???
+                case DamageType.Bash:
+                case DamageType.Cut:
+                case DamageType.Acid:
+                case DamageType.Stab:
+                case DamageType.Heat:
+                    return ResistType(type, toSelf);
             }
         }
 
-        public virtual void Activate() {
-            if (IsActive) {
-                return;
+        public virtual int GetWarmth() {
+            int furBonus = 0;
+            int woolBonus = 0;
+
+            int baseWarmth = Warmth;
+            // TODO: var bonus = GetTagData("warmthBonus"); (item.AddTagData("warmthBonus", "furred", "35");)
+            // Mod thing?
+            if (HasTag("furred")) {
+                furBonus = (35 * Coverage) / 100;
             }
-        }
-
-        public virtual void Reload() {
-
-        }
-
-        public virtual void Unload() {
-
-        }
-
-        public virtual void Damage() {
-
-        }
-
-        public virtual IEnumerable<ItemInfo> GetItemInfo(dynamic ItemInfoQuery, int itemCount) {
-            // TODO: This should handle all the 'base' properties on Item
-            throw new NotImplementedException();
-        }
-    }
-
-    public class ItemInfo {
-        public string Type { get; set; }
-        public string Name { get; set; }
-        public string Separator { get; set; }
-        public string Value { get; set; }
-        public bool ValueIsNumber { get; set; }
-        public decimal ValueDecimal { get; set; }
-        public bool NewLine { get; set; }
-        public bool LowerIsBetter { get; set; }
-        public bool DrawName { get; set; }
-
-        /// <inheritdoc />
-        public ItemInfo(string type, string name, string separator = "", string value = "", bool newLine = true, bool lowerIsBetter = false, bool drawName = true) {
-            Type = type;
-            Name = name;
-            Separator = separator;
-            Value = value;
-            NewLine = newLine;
-            LowerIsBetter = lowerIsBetter;
-            DrawName = drawName;
-
-            if (Decimal.TryParse(value, out var res)) {
-                ValueIsNumber = true;
-                ValueDecimal = res;
-            }
-        }
-    }
-
-    public class AmmoItem : Item {
-        public new AmmoItemTemplate Template { get; }
-        public AmmoItem(AmmoItemTemplate template) : base(template) {
-            Template = template;
-        }
-
-        public AmmoType GetAmmoType() => Template.AmmoType;
-        public string GetAmmoDescription() => base.Template.Description + GetAmmoType().ToString();
-
-        /// <inheritdoc />
-        public override IEnumerable<ItemInfo> GetItemInfo(dynamic itemInfoQuery, int itemCount) {
-            foreach (var item in base.GetItemInfo(null, itemCount)) {
-                yield return item;
+            if (HasTag("wooled")) {
+                woolBonus = (20 * Coverage) / 100;
             }
 
-            // Start yielding out our items
+            return baseWarmth + furBonus + woolBonus;
+        }
+
+        public virtual ArmorLayer GetLayer() {
+            // Should this be a mod thing?
+            if (HasFlag("SKINTIGHT")) {
+                return ArmorLayer.Underwear;
+            }
+            if (HasFlag("WAIST")) {
+                return ArmorLayer.Waist;
+            }
+            if (HasFlag("OUTER")) {
+                return ArmorLayer.Outer;
+            }
+            if (HasFlag("BELTED")) {
+                return ArmorLayer.Belted;
+            }
+
+            return ArmorLayer.Regular;
         }
     }
 
-    public class ArmorItem : Item {
-        /// <inheritdoc />
-        public ArmorItem(ArmorTemplate template) : base(template) { }
-    }
+    public class RangedDataTemplate : BaseItemTemplate {
+        public RangedDataTemplate(JObject data, BaseItemTemplate src) : base(data,src) {
 
-    public class AmmoType {
-        public string Type { get; }
-
-        public AmmoType(string type) {
-            Type = type;
-        }
-
-        /// <inheritdoc />
-        public override string ToString() {
-            return Type;
-        }
-    }
-    public class AmmoItemTemplate : BaseItemTemplate {
-        public AmmoType AmmoType { get; set; }
-
-        public AmmoItemTemplate(JObject data, BaseItemTemplate src) : base(data, src) {
-            // Load specific Ammo properties
-        }
-    }
-
-    public class GunItemTemplate : BaseItemTemplate {
-        public GunItemTemplate(JObject data, BaseItemTemplate src) : base(data,src) {
-
-        }
-    }
-
-    public class GunItem : Item {
-        /// <inheritdoc />
-        public GunItem(GunItemTemplate template) : base(template) { }
-
-        public void Fire() {
-            throw new NotImplementedException();
-        }
-
-        public void Reload(AmmoType type, long amount) {
         }
     }
 

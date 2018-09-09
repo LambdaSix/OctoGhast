@@ -60,8 +60,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BodyPart.cs" />
+    <Compile Include="Damage.cs" />
     <Compile Include="Entity\Mobile.cs" />
+    <Compile Include="Factory\AmmoType.cs" />
     <Compile Include="Factory\ItemFactory.cs" />
+    <Compile Include="Extensions\JObjectExtensions.cs" />
     <Compile Include="Factory\WorldFactory.cs" />
     <Compile Include="Framework\Game.cs" />
     <Compile Include="Framework\IGame.cs" />
@@ -99,8 +103,8 @@
       <Project>{955AF4C9-12E7-4447-8E7C-C3ACD38F2DA9}</Project>
       <Name>InfiniMap</Name>
     </ProjectReference>
-    <ProjectReference Include="..\lib\RenderLike\RenderLike.csproj">
-      <Project>{6644B2D9-98DD-4C0A-A51B-C0A0A104A135}</Project>
+    <ProjectReference Include="..\lib\RenderLike\RenderLike\RenderLike.csproj">
+      <Project>{6644b2d9-98dd-4c0a-a51b-c0a0a104a135}</Project>
       <Name>RenderLike</Name>
     </ProjectReference>
     <ProjectReference Include="..\OctoGhast.DataStructures\OctoGhast.DataStructures.csproj">

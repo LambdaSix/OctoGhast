@@ -48,8 +48,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\lib\RenderLike\RenderLike.csproj">
-      <Project>{6644B2D9-98DD-4C0A-A51B-C0A0A104A135}</Project>
+    <ProjectReference Include="..\lib\RenderLike\RenderLike\RenderLike.csproj">
+      <Project>{6644b2d9-98dd-4c0a-a51b-c0a0a104a135}</Project>
       <Name>RenderLike</Name>
     </ProjectReference>
     <ProjectReference Include="..\OctoGhast.DataStructures\OctoGhast.DataStructures.csproj">
