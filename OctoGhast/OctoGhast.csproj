@@ -45,6 +45,9 @@
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="NGettext, Version=0.6.1.0, Culture=neutral, PublicKeyToken=08d3d1c89dfd2985, processorArchitecture=MSIL">
+      <HintPath>..\packages\NGettext.0.6.3\lib\net46\NGettext.dll</HintPath>
+    </Reference>
     <Reference Include="Ninject">
       <HintPath>..\packages\Ninject.3.0.1.10\lib\net45-full\Ninject.dll</HintPath>
     </Reference>
@@ -61,6 +64,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BodyPart.cs" />
+    <Compile Include="Chronology\Calendar.cs" />
+    <Compile Include="Chronology\Time.cs" />
     <Compile Include="Damage.cs" />
     <Compile Include="Entity\Mobile.cs" />
     <Compile Include="Factory\AmmoType.cs" />
@@ -92,6 +97,8 @@
     <Compile Include="SystemManager\SchedulingSystem.cs" />
     <Compile Include="SystemManager\SystemPriority.cs" />
     <Compile Include="SystemMechanic\ChronologySystemMechanic.cs" />
+    <Compile Include="Chronology\TimeDuration.cs" />
+    <Compile Include="Translation\Translation.cs" />
     <Compile Include="World\WorldInstance.cs" />
   </ItemGroup>
   <ItemGroup>
