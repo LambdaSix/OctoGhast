@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 
 namespace OctoGhast.Cataclysm
 {
-    public class AmmoInfo : BaseItemInfo {
+    public class AmmoInfo : GenericItemComponent {
         
     }
 }

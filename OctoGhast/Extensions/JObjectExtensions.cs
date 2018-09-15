@@ -12,6 +12,10 @@ namespace OctoGhast.Extensions {
                 : defaultVal;
         }
 
+        public static IEnumerable<JProperty> Matches(this JObject self, string match) {
+            return self.Properties().Where(s => s.Name.Contains(match));
+        }
+
         public static IEnumerable<T> GetArray<T>(this JObject self, string propertyName) {
             var res = self.TryGetValue(propertyName, out var value);
             if (res) {

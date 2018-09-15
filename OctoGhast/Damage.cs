@@ -224,6 +224,7 @@ namespace OctoGhast {
             ResistValues = new Dictionary<DamageType, int>();
         }
 
+        /*
         public Resistances(Item item, bool toSelf) : this() {
             // Armors protect, but all items can resist
             if (toSelf || item.IsArmor) {
@@ -233,6 +234,7 @@ namespace OctoGhast {
                 }
             }
         }
+        */
 
         public Resistances(IMobile mob) : this() {
             
@@ -243,11 +245,11 @@ namespace OctoGhast {
         }
 
         public float ResistForType(DamageType type) {
-            
+            throw new NotImplementedException();
         }
 
         public float GetEffectiveResist(DamageUnit unit) {
-            
+            throw new NotImplementedException();
         }
 
         public override bool Equals(object obj)
@@ -272,7 +274,7 @@ namespace OctoGhast {
         }
 
         public static Resistances operator +(Resistances self, Resistances other) {
-            return 
+            throw new NotImplementedException(); 
         }
     }
 }

@@ -92,10 +92,10 @@ namespace OctoGhast.MapGeneration.Dungeons
                 int x, y, w, h;
 
                 if (node.IsLeaf) {
-                    w = rand.GetInt(RoomMinSize, Math.Max(node.Rect.Width - 2, RoomMinSize));
-                    h = rand.GetInt(RoomMinSize, Math.Max(node.Rect.Height - 2, RoomMinSize));
-                    x = rand.GetInt(node.Rect.X + 1, node.Rect.X + node.Rect.Width - w - 1);
-                    y = rand.GetInt(node.Rect.Y + 1, Math.Max(node.Rect.Y + node.Rect.Height - h - 1, node.Rect.Y));
+                    w = rand.Next(RoomMinSize, Math.Max(node.Rect.Width - 2, RoomMinSize));
+                    h = rand.Next(RoomMinSize, Math.Max(node.Rect.Height - 2, RoomMinSize));
+                    x = rand.Next(node.Rect.X + 1, node.Rect.X + node.Rect.Width - w - 1);
+                    y = rand.Next(node.Rect.Y + 1, Math.Max(node.Rect.Y + node.Rect.Height - h - 1, node.Rect.Y));
 
                     MakeRoom(roomNumber == 0, x, y, x + w - 1, y + h - 1);
 

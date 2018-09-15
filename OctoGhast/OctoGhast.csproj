@@ -22,7 +22,7 @@
     <DefineConstants>TRACE;DEBUG;WINDOWS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -68,13 +68,30 @@
     <Compile Include="Chronology\Time.cs" />
     <Compile Include="Damage.cs" />
     <Compile Include="Entity\Mobile.cs" />
-    <Compile Include="Factory\AmmoType.cs" />
+    <Compile Include="Entity\Item\Component\GenericItemComponent.cs" />
+    <Compile Include="Factory\Data\AmmoType.cs" />
+    <Compile Include="Entity\Item\Component\ArmorComponent.cs" />
+    <Compile Include="Entity\Item\DataItemTemplate.cs" />
+    <Compile Include="Factory\Data\BurnData.cs" />
+    <Compile Include="Factory\Data\DataTemplate.cs" />
+    <Compile Include="Entity\Item\Item.cs" />
+    <Compile Include="Factory\Data\VitaminInfo.cs" />
+    <Compile Include="Entity\Item\Component\ItemInfoComponent.cs" />
+    <Compile Include="Factory\Loader\BaseLoader.cs" />
+    <Compile Include="Factory\Loader\BurnableLoader.cs" />
+    <Compile Include="Factory\Loader\VitaminLoader.cs" />
+    <Compile Include="Factory\Loader\MaterialLoader.cs" />
     <Compile Include="Factory\ItemFactory.cs" />
     <Compile Include="Extensions\JObjectExtensions.cs" />
+    <Compile Include="Factory\Data\Material.cs" />
+    <Compile Include="Entity\Item\Component\RangedComponent.cs" />
+    <Compile Include="Entity\Item\Component\MeleeComponent.cs" />
+    <Compile Include="Factory\TemplateLoader.cs" />
     <Compile Include="Factory\WorldFactory.cs" />
     <Compile Include="Framework\Game.cs" />
     <Compile Include="Framework\IGame.cs" />
     <Compile Include="Framework\InputManager.cs" />
+    <Compile Include="Game.cs" />
     <Compile Include="GameActions.cs" />
     <Compile Include="Lib\Operator.cs" />
     <Compile Include="Map\Tile.cs" />
@@ -138,6 +155,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
