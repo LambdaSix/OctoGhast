@@ -532,7 +532,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         }
 
         public string GetName(int quantity) {
-            return _P($"{Name}", $"{PluralName}", quantity);
+            return _($"{Name}", $"{PluralName}", quantity);
         }
 
         public string GetId() => ID;

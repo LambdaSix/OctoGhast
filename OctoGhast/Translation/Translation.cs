@@ -25,18 +25,8 @@ namespace OctoGhast.Translation {
             return String.Format(GetTranslation(str.Format), str.GetArguments());
         }
 
-        public static string _P(FormattableString singular, FormattableString plural, int amount) {
+        public static string _(FormattableString singular, FormattableString plural, int amount) {
             return String.Format(GetTranslationPlural(singular.Format, plural.Format, amount, singular.GetArguments()));
-        }
-
-        /// <summary>
-        /// `using static Translation` allows _("String.Format style with {0} {1}", extra, variables);
-        /// </summary>
-        /// <param name="str"></param>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        public static string _(string str, params object[] args) {
-            return String.Format(GetTranslation(str), args);
         }
 
         private static string GetTranslation(string str) {

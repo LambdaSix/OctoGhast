@@ -59,29 +59,29 @@ namespace OctoGhast {
         public override string ToString() {
             // TODO: Pluralising
             if (Turns >= TimeConstants.IndefinitelyLong.Turns)
-                return _("forever");
+                return _($"forever");
 
             if (this < TimeDuration.FromMinutes(1)) {
-                return _P($"{Seconds} second", $"{Seconds} seconds", Seconds);
+                return _($"{Seconds} second", $"{Seconds} seconds", Seconds);
             }
 
             if (this < TimeDuration.FromHours(1)) {
-                return _P($"{Minutes} minute", $"{Minutes} minutes", Minutes);
+                return _($"{Minutes} minute", $"{Minutes} minutes", Minutes);
             }
 
             if (this < TimeDuration.FromDays(1)) {
-                return _P($"{TotalHours} minute", $"{TotalHours} minutes", TotalHours);
+                return _($"{TotalHours} minute", $"{TotalHours} minutes", TotalHours);
             }
 
             if (this < TimeDuration.FromSeasons(1)) {
-                return _P($"{TotalDays / 7} week", $"{TotalDays / 7} weeks", (TotalDays / 7));
+                return _($"{TotalDays / 7} week", $"{TotalDays / 7} weeks", (TotalDays / 7));
             }
 
             if (this < TimeDuration.FromYears(1)) {
-                return _P($"{TotalSeasons} season", $"{TotalSeasons} seasons", TotalSeasons);
+                return _($"{TotalSeasons} season", $"{TotalSeasons} seasons", TotalSeasons);
             }
 
-            return _P($"{TotalYears} year", $"{TotalYears} years", TotalYears);
+            return _($"{TotalYears} year", $"{TotalYears} years", TotalYears);
         }
 
         public static bool operator ==(TimeDuration lhs, TimeDuration rhs) => lhs.Turns == rhs.Turns;
