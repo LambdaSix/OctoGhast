@@ -538,9 +538,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         public string GetId() => ID;
         public bool CountByCharges() => Stackable;
 
-        public int ChargesDefault() {
-            return (int) (Tool?.DefaultCharges ?? Comestible?.DefaultCharges ?? Ammo?.DefaultCharges ?? (Stackable ? 1 : 0));
-        }
+        public int ChargesDefault() => (int) (Tool?.DefaultCharges ?? Comestible?.DefaultCharges ?? Ammo?.DefaultCharges ?? (Stackable ? 1 : 0));
 
         public int ChargesToUse() => Tool?.ChargesPerUse ?? 1;
 
