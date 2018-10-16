@@ -236,10 +236,10 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         public int Durability { get; set; } = 0;
         public int IntegralMagazineSize { get; set; } = 0;
         public TimeDuration ReloadTime { get; set; } = new TimeDuration();
-        public string ReloadNoise { get; set; } = _("click.");
-        public int ReloadNoiseVolume { get; set; } = 0;
+        public string ReloadNoise { get; set; } = _($"click.");
+        public SoundLevel ReloadNoiseVolume { get; set; } = "0dB";
         public int SightDispersion { get; set; } = 30;
-        public int Loudness { get; set; } = default;
+        public SoundLevel Loudness { get; set; } = "0dB";
         public int UPSCharges { get; set; } = default;
         public Volume BarrelLength { get; set; } = "0ml";
         public IEnumerable<string> AmmoEffects { get; set; }
@@ -369,7 +369,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         public bool DropActive { get; set; } = true;
 
         public long DefaultCharges { get; set; } = 1;
-        public int Loudness { get; set; }= -1;
+        public SoundLevel Loudness { get; set; } = "-1dB";
         public int Recoil { get; set; } = -1;
         public bool CooksOff { get; set; } = false;
         public bool SpecialCookOff { get; set; } = false;

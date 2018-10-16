@@ -7,6 +7,7 @@ using MiscUtil;
 namespace OctoGhast.Units {
     public class VolumeInMillilitersTag { }
     public class MassInGramsTag { }
+    public class LoudnessInPascalsTag { }
 
     public class Quantity<TValue, TUnit> : IEquatable<Quantity<TValue, TUnit>> {
         public TValue Value { get; }
@@ -85,6 +86,67 @@ namespace OctoGhast.Units {
         /// <inheritdoc />
         public override int GetHashCode() {
             return EqualityComparer<TValue>.Default.GetHashCode(Value);
+        }
+    }
+
+    public class SoundLevel : Quantity<double, LoudnessInPascalsTag> {
+        /// <summary>
+        ///  Reference sound pressure - 20μPa (2*10^-5 Pa)
+        /// </summary>
+        private const double p0 = 0.00002d;
+
+        public static SoundLevel Min = new SoundLevel(Int32.MinValue);
+        public static SoundLevel Max = new SoundLevel(101325.0d);
+
+        /// <inheritdoc />
+        public SoundLevel(double pascalValue) : base(pascalValue) { }
+
+        public SoundLevel(int decibels) : base(DecibelToPascals(decibels)) { }
+
+        public SoundLevel(string value) : base(((SoundLevel) value).Value) { }
+
+        public double Decibels => PascalsToDecibel(Value);
+        public double Pascals => Value;
+
+        public static SoundLevel FromDecibels(double value) => new SoundLevel(DecibelToPascals(value));
+        public static SoundLevel FromPascals(double value) => new SoundLevel(value);
+
+        private static double PascalsToDecibel(double value) {
+            return 20 * Math.Log10(value / p0);
+        }
+
+        private static double DecibelToPascals(double value) {
+            return p0 * Math.Pow(10, (value / 20.0f));
+        }
+
+        public SoundLevel AtMeters(float distance) {
+            var p0 = Value;
+            var r0 = 1;
+            var r1 = distance;
+            var p1 = (r0 / r1) * p0;
+            return FromPascals(p1);
+        }
+
+        private static Regex _compiledRegex =
+            new Regex(@"([\d.]+)((dB)|(db))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
+
+        public static implicit operator SoundLevel(string value)
+        {
+            var matches = _compiledRegex.Match(value);
+            if (matches.Success)
+            {
+                var (val, unit) = (matches.Groups[1].Value, matches.Groups[2].Value.ToLower());
+                switch (unit) {
+                    case "db":
+                    case "decibels":
+                        return FromDecibels(Double.Parse(val));
+                    case "pa":
+                    case "Pa":
+                        return FromPascals(Double.Parse(val));
+                }
+            }
+
+            throw new ArgumentException("Unable to match value against known quantity", nameof(value));
         }
     }
 
