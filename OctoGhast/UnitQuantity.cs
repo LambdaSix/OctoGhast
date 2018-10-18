@@ -8,6 +8,7 @@ namespace OctoGhast.Units {
     public class VolumeInMillilitersTag { }
     public class MassInGramsTag { }
     public class LoudnessInPascalsTag { }
+    public class PressureInKiloPascalsTag { }
 
     public class Quantity<TValue, TUnit> : IEquatable<Quantity<TValue, TUnit>> {
         public TValue Value { get; }
@@ -86,6 +87,70 @@ namespace OctoGhast.Units {
         /// <inheritdoc />
         public override int GetHashCode() {
             return EqualityComparer<TValue>.Default.GetHashCode(Value);
+        }
+    }
+
+    public class Pressure : Quantity<double, PressureInKiloPascalsTag> {
+        public static Pressure Min = new Pressure(Double.NegativeInfinity);
+        public static Pressure Max = new Pressure(Double.PositiveInfinity);
+
+        public static Pressure Atmosphere = new Pressure(atmConversionFactor * 1000);
+
+        /// <summary>
+        /// 1 Atm -> kPa
+        /// </summary>
+        private static double atmConversionFactor = 101.325;
+
+        /// <summary>
+        /// 1 Psi -> kPa
+        /// </summary>
+        private static double psiConversionFactor = 6.895;
+
+        public Pressure(double kiloPascals) : base(kiloPascals) { }
+
+        public Pressure(string value) : base(((Pressure)value).Value) { }
+
+        public static Pressure FromAtmospheres(double atmospheres) => new Pressure(atmospheres * atmConversionFactor);
+        public static Pressure FromPsi(double psi) => new Pressure(psi * psiConversionFactor);
+
+        public double Pascals => Value * 1000;
+        public double KiloPascals => Value;
+        public double Atmospheres => KiloPascals / atmConversionFactor;
+        public double Psi => KiloPascals / psiConversionFactor;
+
+        // Support:
+        // pa, pascals
+        // kpa, kilopascals
+        // atmospheres, atm
+        // psi
+        private static Regex _compiledRegex =
+            new Regex(@"([\d.]+)((pa)|(kpa)|(pascals)|(kilopascals)|(atmospheres)|(atm)|(psi))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
+
+        public static implicit operator Pressure(string value)
+        {
+            var matches = _compiledRegex.Match(value);
+            if (matches.Success)
+            {
+                var (val, unit) = (matches.Groups[1].Value, matches.Groups[2].Value.ToLower());
+                switch (unit)
+                {
+                    case "pa":
+                    case "pascals":
+                        return new Pressure(Double.Parse(val) / 1000);
+                    case "kpa":
+                    case "kilopascals":
+                        return new Pressure(Double.Parse(val));
+
+                    case "atmospheres":
+                    case "atm":
+                        return Pressure.FromAtmospheres(double.Parse(val));
+
+                    case "psi":
+                        return Pressure.FromPsi(double.Parse(val));
+                }
+            }
+
+            throw new ArgumentException("Unable to match value against known quantity", nameof(value));
         }
     }
 
