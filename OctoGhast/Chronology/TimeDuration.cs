@@ -48,6 +48,7 @@ namespace OctoGhast {
 
         public int TotalYears => (Turns < YearLength) ? 0 : (int) (Turns / YearLength);
 
+        public TimeDuration AddTurns(int turns) => new TimeDuration(Turns + (ulong) turns);
         public TimeDuration AddSeconds(int seconds) => new TimeDuration(Turns + FromSeconds(seconds).Turns);
         public TimeDuration AddMinutes(int minutes) => new TimeDuration(Turns + FromMinutes(minutes).Turns);
         public TimeDuration AddHours(int hours) => new TimeDuration(Turns + FromHours(hours).Turns);
@@ -142,6 +143,7 @@ namespace OctoGhast {
             throw new NotImplementedException();
         }
 
+        public static TimeDuration FromTurns(int turns) => new TimeDuration((ulong) turns * 6);
         public static TimeDuration FromSeconds(int seconds) => new TimeDuration((seconds < 6) ? 0 : (ulong) seconds / 6);
         public static TimeDuration FromMinutes(int minutes) => new TimeDuration((ulong) minutes * 10);
         public static TimeDuration FromHours(int hours) => FromMinutes(60 * hours);
