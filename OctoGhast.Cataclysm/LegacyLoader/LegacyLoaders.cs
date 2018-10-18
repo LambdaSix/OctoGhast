@@ -553,27 +553,48 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
                 ? action
                 : null;
         }
-
-        public long Invoke(Player p, Item it, Vector3 pos) {
-            if (!HasUse())
-                return 0;
-            return Invoke(p, it, pos, UseMethods.First().Key);
-        }
-
-        public long Invoke(Player p, Item it, Vector3 pos, string useName) {
-            var use = GetUse(useName);
-            if (use == null) {
-                Debug.WriteLine($"Tried to invoke {useName} on a {GetName(1)}, which doesn't have this use_function");
-                return 0;
-            }
-
-            var res = use?.Invoke(p, it, false, pos);
-            if (res)
-        }
-        public long Tick(Player p, Item it, Vector3 pos);
     }
 
-    public class ItemCategory { }
+    public class ItemCategory : IComparable<ItemCategory>, IComparable {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public int SortRank { get; set; }
+
+        /// <inheritdoc />
+        public int CompareTo(ItemCategory other) {
+            if (ReferenceEquals(this, other)) return 0;
+            if (ReferenceEquals(null, other)) return 1;
+            var sortRankComparison = SortRank.CompareTo(other.SortRank);
+            if (sortRankComparison != 0) return sortRankComparison;
+            var nameComparison = string.Compare(Name, other.Name, StringComparison.Ordinal);
+            if (nameComparison != 0) return nameComparison;
+            return string.Compare(Id, other.Id, StringComparison.Ordinal);
+        }
+
+        /// <inheritdoc />
+        public int CompareTo(object obj) {
+            if (ReferenceEquals(null, obj)) return 1;
+            if (ReferenceEquals(this, obj)) return 0;
+            return obj is ItemCategory other ? CompareTo(other) : throw new ArgumentException($"Object must be of type {nameof(ItemCategory)}");
+        }
+
+        public static bool operator <(ItemCategory left, ItemCategory right) {
+            return Comparer<ItemCategory>.Default.Compare(left, right) < 0;
+        }
+
+        public static bool operator >(ItemCategory left, ItemCategory right) {
+            return Comparer<ItemCategory>.Default.Compare(left, right) > 0;
+        }
+
+        public static bool operator <=(ItemCategory left, ItemCategory right) {
+            return Comparer<ItemCategory>.Default.Compare(left, right) <= 0;
+        }
+
+        public static bool operator >=(ItemCategory left, ItemCategory right) {
+            return Comparer<ItemCategory>.Default.Compare(left, right) >= 0;
+        }
+    }
+
 
     public class ExplosionData { }
 
