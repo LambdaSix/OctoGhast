@@ -166,8 +166,6 @@ namespace OctoGhast.Units {
         /// <inheritdoc />
         public SoundLevel(double pascalValue) : base(pascalValue) { }
 
-        public SoundLevel(int decibels) : base(DecibelToPascals(decibels)) { }
-
         public SoundLevel(string value) : base(((SoundLevel) value).Value) { }
 
         public double Decibels => PascalsToDecibel(Value);
@@ -193,7 +191,7 @@ namespace OctoGhast.Units {
         }
 
         private static Regex _compiledRegex =
-            new Regex(@"([\d.]+)((dB)|(db))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
+            new Regex(@"([\d.]+)((dB)|(pa)|(decibels)|(pascals))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
 
         public static implicit operator SoundLevel(string value)
         {
@@ -205,8 +203,9 @@ namespace OctoGhast.Units {
                     case "db":
                     case "decibels":
                         return FromDecibels(Double.Parse(val));
+
                     case "pa":
-                    case "Pa":
+                    case "pascals":
                         return FromPascals(Double.Parse(val));
                 }
             }
