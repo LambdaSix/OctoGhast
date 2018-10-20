@@ -8,7 +8,7 @@ namespace OctoGhast.Spatial {
     /// A 2D integer vector class. Similar to Point but not dependent on System.Drawing and much more
     /// feature-rich.
     /// </summary>
-    [Serializable]
+    [Serializable][Obsolete("Consider using MonoGame.Vec2 instead")]
     public struct Vec : IEquatable<Vec> {
         /// <summary>
         /// Gets the zero vector.

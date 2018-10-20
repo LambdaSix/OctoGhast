@@ -103,5 +103,12 @@ namespace OctoGhast {
 
         */
         // IsTool, IsBook, IsModification, IsComestible, IsContainer, IsEngine, IsWheel, IsFuel, IsBionic
+        public NameInfo GetName() {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class NameInfo {
+        public string Translated { get; }
     }
 }

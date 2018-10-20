@@ -22,7 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,6 +31,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -39,6 +40,9 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -47,14 +51,48 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
-    <Compile Include="Item\ItemArmor.cs" />
-    <Compile Include="Item\ItemRanged.cs" />
-    <Compile Include="LegacyLoader\LegacyLoaders.cs" />
-    <Compile Include="LegacyLoader\StringID.cs" />
+    <Compile Include="Explosion.cs" />
+    <Compile Include="LegacyLoader\Enums\AddictionType.cs" />
+    <Compile Include="LegacyLoader\Bionic.cs" />
+    <Compile Include="LegacyLoader\DataContainers\CommonRangedData.cs" />
+    <Compile Include="LegacyLoader\Emit.cs" />
+    <Compile Include="LegacyLoader\DataContainers\ExplosionData.cs" />
+    <Compile Include="LegacyLoader\DataContainers\ExplosiveData.cs" />
+    <Compile Include="LegacyLoader\ExplosiveMaterial.cs" />
+    <Compile Include="LegacyLoader\GunMode.cs" />
+    <Compile Include="LegacyLoader\DataContainers\GunModifierData.cs" />
+    <Compile Include="LegacyLoader\GunModLocation.cs" />
+    <Compile Include="LegacyLoader\GunType.cs" />
+    <Compile Include="LegacyLoader\DataContainers\IncendiaryData.cs" />
+    <Compile Include="LegacyLoader\ItemCategory.cs" />
+    <Compile Include="LegacyLoader\ItemType.cs" />
+    <Compile Include="LegacyLoader\MaterialArtsTechnique.cs" />
+    <Compile Include="LegacyLoader\MonsterGroup.cs" />
+    <Compile Include="LegacyLoader\DataContainers\ShrapnelData.cs" />
+    <Compile Include="LegacyLoader\Skill.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotAmmo.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotArmor.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotBionic.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotBook.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotBrewable.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotComestible.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotContainer.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotEngine.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotFuel.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotGun.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotGunMod.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotMagazine.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotMod.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotSeed.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotTool.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotWheel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\lib\InfiniMap\InfiniMap\InfiniMap.csproj">
+      <Project>{955AF4C9-12E7-4447-8E7C-C3ACD38F2DA9}</Project>
+      <Name>InfiniMap</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OctoGhast.Spatial\OctoGhast.Spatial.csproj">
       <Project>{23DB428F-E97F-4C80-910A-FDD91C548A8C}</Project>
       <Name>OctoGhast.Spatial</Name>
@@ -68,6 +106,8 @@
     <None Include="CONTENTS.md" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Items\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
