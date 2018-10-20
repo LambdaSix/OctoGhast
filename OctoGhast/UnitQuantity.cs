@@ -124,7 +124,7 @@ namespace OctoGhast.Units {
         // atmospheres, atm
         // psi
         private static Regex _compiledRegex =
-            new Regex(@"([\d.]+)((pa)|(kpa)|(pascals)|(kilopascals)|(atmospheres)|(atm)|(psi))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
+            new Regex(@"([-]?[\d.]+)((pa)|(kpa)|(pascals)|(kilopascals)|(atmospheres)|(atm)|(psi))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
 
         public static implicit operator Pressure(string value)
         {
@@ -173,6 +173,7 @@ namespace OctoGhast.Units {
 
         public static SoundLevel FromDecibels(double value) => new SoundLevel(DecibelToPascals(value));
         public static SoundLevel FromPascals(double value) => new SoundLevel(value);
+        public static SoundLevel FromPressure(Pressure value) => new SoundLevel(value.Pascals);
 
         private static double PascalsToDecibel(double value) {
             return 20 * Math.Log10(value / p0);
@@ -191,7 +192,7 @@ namespace OctoGhast.Units {
         }
 
         private static Regex _compiledRegex =
-            new Regex(@"([\d.]+)((dB)|(pa)|(decibels)|(pascals))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
+            new Regex(@"([-]?[\d.]+)((dB)|(pa)|(decibels)|(pascals))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
 
         public static implicit operator SoundLevel(string value)
         {
@@ -260,7 +261,7 @@ namespace OctoGhast.Units {
         }
 
         private static Regex _compiledRegex =
-            new Regex(@"([\d.]+)((ml)|(milliliter)|(L)|(liter)|(KL)|(kiloliter))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
+            new Regex(@"([-]?[\d.]+)((ml)|(milliliter)|(L)|(liter)|(KL)|(kiloliter))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
 
         public static implicit operator Volume(string value)
         {
@@ -324,6 +325,7 @@ namespace OctoGhast.Units {
         }
 
         public Volume Volume() => new Volume(Density(Value)); // 1KG per 1L
+        public Volume Volume(float density) => new Volume(Density(Value));
 
         public override string ToString() {
             if (Tons >= 1) {
@@ -338,7 +340,7 @@ namespace OctoGhast.Units {
         }
 
         private static readonly Regex _compiledRegex =
-            new Regex(@"([\d.]+)((kg)|(kilogram)|[G|K|T]|(gram)|(ton))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
+            new Regex(@"([-]?[\d.]+)((kg)|(kilogram)|[G|K|T]|(gram)|(ton))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
 
         public static implicit operator Mass(string value) {
             var matches = _compiledRegex.Match(value);
