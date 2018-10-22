@@ -94,6 +94,7 @@
     <Compile Include="Framework\InputManager.cs" />
     <Compile Include="Framework\ItemUsage.cs" />
     <Compile Include="Framework\JsonDataLoader.cs" />
+    <Compile Include="Framework\LoaderInfo.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="GameActions.cs" />
     <Compile Include="Lib\Operator.cs" />
