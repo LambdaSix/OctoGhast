@@ -5,7 +5,64 @@ using OctoGhast.Units;
 
 namespace OctoGhast.Core.Tests {
     [TestFixture]
-    public class UnitQuantityTests {
+    public class SoundLevelPressureQuantityTests {
+        [Test]
+        public void SoundLevelComparable() {
+            SoundLevel db1 = "20dB";
+            SoundLevel db2 = "20db";
+
+            Assert.That(db1 == db2);
+            Assert.That(db1 == (SoundLevel) "20dB");
+
+            // Raw addition, not correct.
+            db1 += "4dB";
+
+            Assert.That(db1 != db2);
+            Assert.That(db1 != (SoundLevel)"20dB");
+        }
+
+        [Test]
+        public void PressureComparable() {
+            Pressure p1 = "20kPa";
+            Pressure p2 = "20kpa";
+
+            Assert.That(p1 == p2);
+            Assert.That(p1 == (Pressure) "20kPa");
+
+            
+            p1 += "40kPa";
+
+            Assert.That(p1 != p2);
+            Assert.That(p1 != (Pressure)"20kPa");
+        }
+
+        [Test]
+        public void SoundLevelToPressure() {
+            SoundLevel db1 = "100dB";
+            Pressure p2 = "2kPa";
+
+            Assert.AreEqual(db1.KiloPascals, p2.KiloPascals);
+            Assert.AreEqual(db1, p2.AsDecibels());
+            Assert.AreEqual(db1.Pascals, p2.Pascals);
+            Assert.AreEqual(SoundLevel.FromPressure(p2).KiloPascals, p2.KiloPascals);
+        }
+
+        [Test]
+        public void Constants() {
+            Pressure oneAtmosphere = Pressure.Atmosphere;
+
+            Assert.AreEqual(oneAtmosphere.KiloPascals, ((Pressure)"101.325kPa").KiloPascals);
+            Assert.AreEqual(oneAtmosphere.KiloPascals, Pressure.FromAtmospheres(1).KiloPascals);
+            // Approximate, 1Atm == 14.69psi
+            Assert.AreEqual((int)oneAtmosphere.Psi, 14);
+
+            Assert.AreEqual(oneAtmosphere.Atmospheres, new Pressure("101.325kPa").Atmospheres);
+
+        }
+    }
+
+    [TestFixture]
+    public class MassVolumeQuantityTests {
         [Test]
         public void MassComparable() {
             Mass grams = "100grams";
@@ -56,14 +113,8 @@ namespace OctoGhast.Core.Tests {
 
         [Test]
         public void VolumeHasWeight() {
-            var water = new Material()
-            {
-                Name = "water",
-                Density = 1.0f
-            };
-
             Volume litre = "1L";
-            litre.Material = water; // 1g/cm³
+            litre.Material = CoreMaterials.Water; // 1g/cm³
             Mass weightOfWater = litre.Mass();
 
             Assert.That(litre.Liters == 1);

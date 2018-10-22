@@ -52,7 +52,7 @@
   <ItemGroup>
     <Compile Include="ChronologyTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UnitQuantityTests.cs" />
+    <Compile Include="MassVolumeQuantityTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
