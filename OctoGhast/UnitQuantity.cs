@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using static OctoGhast.Translation.Translation;
 using MiscUtil;
+using OctoGhast.Cataclysm.LegacyLoader;
 
 namespace OctoGhast.Units {
     public class VolumeInMillilitersTag { }
     public class MassInGramsTag { }
-    public class LoudnessInPascalsTag { }
+    public class LoudnessInKilopascalsTag { }
     public class PressureInKiloPascalsTag { }
 
     public class Quantity<TValue, TUnit> : IEquatable<Quantity<TValue, TUnit>> {
@@ -16,10 +17,7 @@ namespace OctoGhast.Units {
         /// <summary>
         /// A material for this Quantity, defaults to water.
         /// </summary>
-        public Material Material = new Material()
-        {
-            Density = 1.0f
-        };
+        public Material Material = CoreMaterials.Water;
 
         public Quantity(TValue value) {
             Value = value;
@@ -54,6 +52,16 @@ namespace OctoGhast.Units {
         }
 
         public static Quantity<TValue, TUnit> operator /(Quantity<TValue, TUnit> lhs, float rhs) {
+            return new Quantity<TValue, TUnit>(Operator.DivideAlternative(lhs.Value, rhs));
+        }
+
+        public static Quantity<TValue, TUnit> operator *(Quantity<TValue, TUnit> lhs, double rhs)
+        {
+            return new Quantity<TValue, TUnit>(Operator.MultiplyAlternative(lhs.Value, rhs));
+        }
+
+        public static Quantity<TValue, TUnit> operator /(Quantity<TValue, TUnit> lhs, double rhs)
+        {
             return new Quantity<TValue, TUnit>(Operator.DivideAlternative(lhs.Value, rhs));
         }
 
@@ -94,7 +102,7 @@ namespace OctoGhast.Units {
         public static Pressure Min = new Pressure(Double.NegativeInfinity);
         public static Pressure Max = new Pressure(Double.PositiveInfinity);
 
-        public static Pressure Atmosphere = new Pressure(atmConversionFactor * 1000);
+        public static Pressure Atmosphere => new Pressure(atmConversionFactor);
 
         /// <summary>
         /// 1 Atm -> kPa
@@ -106,9 +114,11 @@ namespace OctoGhast.Units {
         /// </summary>
         private static double psiConversionFactor = 6.895;
 
-        public Pressure(double kiloPascals) : base(kiloPascals) { }
+        public Pressure(double kiloPascals) : base(kiloPascals) {
+            Material = CoreMaterials.Air;
+        }
 
-        public Pressure(string value) : base(((Pressure)value).Value) { }
+        public Pressure(string value) : this(((Pressure)value).Value) { }
 
         public static Pressure FromAtmospheres(double atmospheres) => new Pressure(atmospheres * atmConversionFactor);
         public static Pressure FromPsi(double psi) => new Pressure(psi * psiConversionFactor);
@@ -117,6 +127,8 @@ namespace OctoGhast.Units {
         public double KiloPascals => Value;
         public double Atmospheres => KiloPascals / atmConversionFactor;
         public double Psi => KiloPascals / psiConversionFactor;
+
+        public SoundLevel AsDecibels() => new SoundLevel(KiloPascals);
 
         // Support:
         // pa, pascals
@@ -154,7 +166,42 @@ namespace OctoGhast.Units {
         }
     }
 
-    public class SoundLevel : Quantity<double, LoudnessInPascalsTag> {
+    /// <summary>
+    /// Core materials required by the system, can be replaced at runtime with alternate definitions.
+    /// </summary>
+    public static class CoreMaterials {
+        private static Dictionary<string, Material> materialMap { get; } = new Dictionary<string, Material>()
+        {
+            ["air"] = new Material()
+            {
+                Name = "Air",
+                Id = "core_air"
+            },
+            ["water"] = new Material()
+            {
+                Name = "Water",
+                Id = "core_air",
+                Density = 1.0f,
+            }
+        };
+
+        public static Material Air { get; } = materialMap["air"];
+
+        public static Material Water { get; } = materialMap["water"];
+
+        public static void Update(params Material[] newDefinitions) {
+            foreach (var material in newDefinitions) {
+                if (material.Name is null)
+                    throw new ArgumentNullException($"Supplied material ({material.Id ?? "unknown"}) has no name");
+
+                if (materialMap.ContainsKey(material.Name)) {
+                    materialMap[material.Name] = material;
+                }
+            }
+        }
+    }
+
+    public class SoundLevel : Quantity<double, LoudnessInKilopascalsTag> {
         /// <summary>
         ///  Reference sound pressure - 20μPa (2*10^-5 Pa)
         /// </summary>
@@ -164,22 +211,26 @@ namespace OctoGhast.Units {
         public static SoundLevel Max = new SoundLevel(101325.0d);
 
         /// <inheritdoc />
-        public SoundLevel(double pascalValue) : base(pascalValue) { }
+        public SoundLevel(double kiloPascalValue) : base(kiloPascalValue) {
+            Material = CoreMaterials.Air;
+        }
 
-        public SoundLevel(string value) : base(((SoundLevel) value).Value) { }
+        public SoundLevel(string value) : this(((SoundLevel) value).Value) { }
 
         public double Decibels => PascalsToDecibel(Value);
-        public double Pascals => Value;
+        public double Pascals => Value * 1000;
+        public double KiloPascals => Value;
 
-        public static SoundLevel FromDecibels(double value) => new SoundLevel(DecibelToPascals(value));
-        public static SoundLevel FromPascals(double value) => new SoundLevel(value);
-        public static SoundLevel FromPressure(Pressure value) => new SoundLevel(value.Pascals);
+        public static SoundLevel FromDecibels(double value) => new SoundLevel(DecibelToKiloPascals(value));
+        public static SoundLevel FromPascals(double value) => new SoundLevel(value * 1000);
+        public static SoundLevel FromKiloPascals(double value) => new SoundLevel(value);
+        public static SoundLevel FromPressure(Pressure value) => new SoundLevel(value.KiloPascals);
 
         private static double PascalsToDecibel(double value) {
             return 20 * Math.Log10(value / p0);
         }
 
-        private static double DecibelToPascals(double value) {
+        private static double DecibelToKiloPascals(double value) {
             return p0 * Math.Pow(10, (value / 20.0f));
         }
 
@@ -192,22 +243,25 @@ namespace OctoGhast.Units {
         }
 
         private static Regex _compiledRegex =
-            new Regex(@"([-]?[\d.]+)((dB)|(pa)|(decibels)|(pascals))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
+            new Regex(@"([-]?[\d.]+)((dB)|(kpa)|(pa)|(pascals)|(decibels)|(kilopascals))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
 
         public static implicit operator SoundLevel(string value)
         {
             var matches = _compiledRegex.Match(value);
-            if (matches.Success)
-            {
+            if (matches.Success) {
                 var (val, unit) = (matches.Groups[1].Value, matches.Groups[2].Value.ToLower());
                 switch (unit) {
                     case "db":
                     case "decibels":
                         return FromDecibels(Double.Parse(val));
 
-                    case "pa":
-                    case "pascals":
-                        return FromPascals(Double.Parse(val));
+                    case "kpa":
+                    case "kilopascals":
+                        return FromKiloPascals(Double.Parse(val));
+
+                    case "pa:":
+                    case "pascals:":
+                        return FromPascals(double.Parse(val));
                 }
             }
 
@@ -261,7 +315,7 @@ namespace OctoGhast.Units {
         }
 
         private static Regex _compiledRegex =
-            new Regex(@"([-]?[\d.]+)((ml)|(milliliter)|(L)|(liter)|(KL)|(kiloliter))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
+            new Regex(@"([-]?[\d.]+)((ml)|(milliliter)|(L)|(liter)|(KL)|(kiloliter)?)", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
 
         public static implicit operator Volume(string value)
         {
@@ -290,6 +344,13 @@ namespace OctoGhast.Units {
                     }
 
                     return FromLiters(Int32.Parse(val) * 1000);
+                }
+
+                // Without a unit we're assuming it's being specified in multiples of 250 milliliters
+                // HACK: Legacy support code, phase out
+                if (String.IsNullOrWhiteSpace(unit)) {
+                    var rawVal = Int32.Parse(val);
+                    return FromMilliliters(rawVal*250);
                 }
             }
 
@@ -340,13 +401,15 @@ namespace OctoGhast.Units {
         }
 
         private static readonly Regex _compiledRegex =
-            new Regex(@"([-]?[\d.]+)((kg)|(kilogram)|[G|K|T]|(gram)|(ton))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
+            new Regex(@"([-]?[\d.]+)((kg)|(kilogram)|[G|K|T]|(gram)|(ton)?)", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
 
         public static implicit operator Mass(string value) {
             var matches = _compiledRegex.Match(value);
             if (matches.Success) {
                 var (val, unit) = (matches.Groups[1].Value, matches.Groups[2].Value.ToLower());
-                if (unit == "g" || unit == "gram") {
+
+                // Match grams, or a unitless value.
+                if (unit == "g" || unit == "gram" || String.IsNullOrWhiteSpace(unit)) {
                     return Mass.FromGrams(Int32.Parse(val));
                 }
 
