@@ -26,6 +26,8 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         public static bool operator ==(StringID<T> lhs, StringID<T> rhs) => String.CompareOrdinal(lhs.Id, rhs.Id) == 0;
         public static bool operator !=(StringID<T> lhs, StringID<T> rhs) => !(lhs == rhs);
 
-        public static explicit operator String(StringID<T> val) => val.AsString();
+        public static implicit operator StringID<T>(string val) => String.IsNullOrWhiteSpace(val) ? NullId : new StringID<T>(val);
+
+        public static implicit operator String(StringID<T> val) => val.AsString();
     }
 }
