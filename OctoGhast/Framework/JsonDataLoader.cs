@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -19,6 +20,7 @@ namespace OctoGhast.Framework {
             new Dictionary<Type, Func<JObject, string, object, Type[], object>>()
             {
                 [typeof(int)] = (jObj, name, val, _) => ReadProperty(jObj, name, (int) val),
+                [typeof(long)] = (jObj, name, val, _) => ReadProperty(jObj, name, (long) val),
                 [typeof(double)] = (jObj, name, val, _) => ReadProperty(jObj, name, (double) val),
                 [typeof(float)] = (jObj, name, val, _) => ReadProperty(jObj, name, (float) val),
                 [typeof(string)] = (jObj, name, val, _) => ReadProperty(jObj, name),
@@ -26,14 +28,14 @@ namespace OctoGhast.Framework {
                 [typeof(Mass)] = (jObj, name, val, _) => ReadProperty<Mass>(jObj, name, val as Mass),
                 [typeof(Dictionary<string, string>)] = (jObj, name, val, _) => ReadDictionary<string, string>(jObj, name),
                 [typeof(Dictionary<string, int>)] = (jObj, name, val, _) => ReadDictionary<string, int>(jObj, name),
-                [typeof(Dictionary<string,IEnumerable<string>>)] = (jObj, name, val, _) => ReadNestedDictionary<string,string>(jObj, name),
-                [typeof(IEnumerable<string>)] = (jObj, name, val, _) => ReadEnumerable(jObj, name, (IEnumerable<string>)val),
+                [typeof(Dictionary<string, IEnumerable<string>>)] = (jObj, name, val, _) => ReadNestedDictionary<string, string>(jObj, name),
+                [typeof(IEnumerable<>)] = (jObj, name, val, types) => ReadEnumerable(jObj, name, val, typeof(IEnumerable<>), types),
                 // Special case, string converts to a given StringID<>, so just make it open to not need a constructed type for every variant.
                 [typeof(StringID<>)] = (jObj, name, val, types) => ReadProperty(jObj, name, val, typeof(StringID<>), types)
             };
 
         public static int ReadProperty(this JObject jObject, string name, int val) {
-            var res = ReadProperty<int?>(jObject, name, val, (v, acc) => (int?)(v + acc), (v, s) => (int?)(v * s));
+            var res = ReadProperty<int?>(jObject, name, val, (v, acc) => (int?) (v + acc), (v, s) => (int?) (v * s));
             return res ?? val;
         }
 
@@ -50,24 +52,50 @@ namespace OctoGhast.Framework {
         }
 
         public static T ReadProperty<T>(this JObject jObject, string name, T val) {
-            (Type type, Type[] arguments) args = typeof(T).IsGenericType && typeof(StringID<>).IsAssignableFrom(typeof(T).GetGenericTypeDefinition())
-                ? (typeof(StringID<>), typeof(T).GetGenericArguments())
-                : (typeof(T), new Type[0]);
+            (Type type, Type[] arguments) args = (null, null);
+
+            foreach (var type in _conversionMap.Keys) {
+                // Exact type matches short circuit. No need to work anything else out.
+                if (type == typeof(T)) {
+                    args = (typeof(T), new Type[0]);
+                    break;
+                }
+
+                var isOpenType = type.IsGenericType && type.IsGenericTypeDefinition;
+
+                if (isOpenType) {
+                    args = (typeof(T).GetGenericTypeDefinition(), typeof(T).GetGenericArguments());
+                    break;
+                }
+            }
+
+            if (args == (null, null))
+                throw new ArgumentException($"Unable to deduce built-in loader for type: '{typeof(T)}");
 
             if (_conversionMap.TryGetValue(args.type, out var func)) {
                 var result = func(jObject, name, val, args.arguments);
 
                 if (!args.type.IsGenericType || args.type.IsConstructedGenericType) {
-                    return (T)result;
+                    return (T) result;
+                }
+
+                // Handle sequences
+                var typeOfT = args.type.MakeGenericType(args.arguments[0]);
+                var isInterface = args.type.IsInterface;
+
+                if (args.type.IsGenericType && result.GetType().IsAssignableFrom(typeOfT)) {
+                    return (T) result;
+                }
+                else if (isInterface && (result.GetType().GetInterface(typeOfT.Name) != null)) {
+                    return (T) result;
                 }
                 else {
                     var newType = args.type.MakeGenericType(args.arguments);
-                    return (T)Convert.ChangeType(result, newType);
-
+                    return (T) Convert.ChangeType(result, newType);
                 }
             }
 
-            throw new ArgumentException($"Unable to deduce built-in loader for type: '{typeof(T)}");
+            return val;
         }
 
         public static Dictionary<TKey, TValue> ReadDictionary<TKey, TValue>(JObject jObj, string name) {
@@ -79,13 +107,14 @@ namespace OctoGhast.Framework {
                 }
             }
             else {
-                dict = jObj.GetValue(name).ToObject<Dictionary<TKey, TValue>>();    
+                dict = jObj.GetValue(name).ToObject<Dictionary<TKey, TValue>>();
             }
 
             return dict;
         }
 
-        public static Dictionary<TKey, IEnumerable<TValue>> ReadNestedDictionary<TKey, TValue>(JObject jObj, string name) {
+        public static Dictionary<TKey, IEnumerable<TValue>> ReadNestedDictionary<TKey, TValue>(JObject jObj,
+            string name) {
             Dictionary<TKey, IEnumerable<TValue>> workingSet = new Dictionary<TKey, IEnumerable<TValue>>();
             var rootObject = jObj.GetValue(name);
             if (rootObject is JArray) {
@@ -104,25 +133,6 @@ namespace OctoGhast.Framework {
             }
 
             return workingSet;
-        }
-
-        public static IEnumerable<T> ReadEnumerable<T>(JObject jObj, string name, IEnumerable<T> existingValue) {
-            // TODO: Extend & Delete
-            if (jObj.TryRetrieveExtends<T>(name, out var extends)) {
-                return existingValue.Concat(extends);
-            }
-
-            if (jObj.TryRetrieveDeletes<T>(name, out var deletes)) {
-                return existingValue.Except(deletes);
-            }
-
-            if (jObj.TryGetValue(name, out var value)) {
-                if (value is JArray arr) {
-                    return arr.Values<T>();
-                }
-            }
-
-            return existingValue;
         }
 
         public static T ReadProperty<T>(this JObject jObject, Expression<Func<T>> expression) {
@@ -158,29 +168,48 @@ namespace OctoGhast.Framework {
             return default;
         }
 
+        public static object ReadEnumerable<T>(this JObject jObject, string name, T existingValue, Type realType, Type[] types) {
+
+
+            var paramTypes = new[] {typeof(JObject), typeof(string), typeof(IEnumerable<>)};
+
+            if (realType.IsGenericTypeDefinition && types.Any()) {
+                // Construct a version of ReadEnumerable<T> : IEnumerable<T> where T == type
+                var method = FindGenericMethod(nameof(ReadEnumerable), paramTypes);
+
+                var genericMethod = method.MakeGenericMethod(types[0]);
+                return genericMethod.Invoke(null, new object[] {jObject, name, existingValue});
+            }
+
+            return default(T);
+        }
+
+        public static IEnumerable<T> ReadEnumerable<T>(JObject jObj, string name, IEnumerable<T> existingValue) {
+            // TODO: Extend & Delete
+            if (jObj.TryRetrieveExtends<T>(name, out var extends)) {
+                return existingValue.Concat(extends);
+            }
+
+            if (jObj.TryRetrieveDeletes<T>(name, out var deletes)) {
+                return existingValue.Except(deletes);
+            }
+
+            if (jObj.TryGetValue(name, out var value)) {
+                if (value is JArray arr) {
+                    return arr.Values<T>().ToList().AsEnumerable();
+                }
+            }
+
+            return existingValue;
+        }
+
         public static object ReadProperty<T>(this JObject jObject, string name, T val, Type realType, Type[] types) {
-            var (type, args) = realType.IsGenericType && typeof(StringID<>).IsAssignableFrom(realType.GetGenericTypeDefinition())
-                ? (typeof(StringID<>), types)
-                : (typeof(T), new System.Type[0]);
+            var paramTypes = new[] {typeof(JObject), typeof(string)};
 
-            if (type.IsGenericTypeDefinition && args.Any()) {
-                // Construct a version of ReadProperty<T> : StringID<T> where T == type
-                var methodInfo = typeof(JsonDataLoader).GetMethods()
-                    .Where(s => s.Name == nameof(ReadProperty))
-                    .Select(m => new
-                    {
-                        Method = m,
-                        Params = m.GetParameters(),
-                        Args = m.GetGenericArguments()
-                    })
-                    .Where(x => x.Params.Length == 2
-                                && x.Args.Length == 1
-                                && x.Params[0].ParameterType == typeof(JObject)
-                                && x.Params[1].ParameterType == typeof(string))
-                    .Select(x => x.Method)
-                    .First();
+            if (realType.IsGenericTypeDefinition && types.Any()) {
+                var method = FindGenericMethod(nameof(ReadProperty), paramTypes);
 
-                var genericMethod = methodInfo.MakeGenericMethod(args[0]);
+                var genericMethod = method.MakeGenericMethod(types[0]);
                 return genericMethod.Invoke(null, new object[] {jObject, name});
             }
 
@@ -196,7 +225,7 @@ namespace OctoGhast.Framework {
             return default;
         }
 
-        public static Volume ReadProperty<T>(this JObject jObject, string name, Volume val) where T:Volume {
+        public static Volume ReadProperty<T>(this JObject jObject, string name, Volume val) where T : Volume {
             return ReadProperty(
                 jObj: jObject,
                 name: name,
@@ -207,7 +236,7 @@ namespace OctoGhast.Framework {
             );
         }
 
-        public static Mass ReadProperty<T>(this JObject jObject, string name, Mass val) where T:Mass{
+        public static Mass ReadProperty<T>(this JObject jObject, string name, Mass val) where T : Mass {
             return ReadProperty(
                 jObj: jObject,
                 name: name,
@@ -249,7 +278,8 @@ namespace OctoGhast.Framework {
          * Core Functions
          */
 
-        private static T ReadProperty<T>(this JObject jObj, string name, T existingValue, Func<T, double, T> relativeFunc, Func<T, double, T> proportionalFunc, bool required = false) {
+        private static T ReadProperty<T>(this JObject jObj, string name, T existingValue,
+            Func<T, double, T> relativeFunc, Func<T, double, T> proportionalFunc, bool required = false) {
             T newValue = default;
 
             if (relativeFunc != null && TryRetrieveRelative(jObj, name, out double relativeValue)) {
@@ -280,7 +310,8 @@ namespace OctoGhast.Framework {
             return newValue;
         }
 
-        private static TValue ReadProperty<T, TValue>(this JObject jObj, string name, T existingValue, Func<string, TValue> mapFunc,
+        private static TValue ReadProperty<T, TValue>(this JObject jObj, string name, T existingValue,
+            Func<string, TValue> mapFunc,
             Func<T, TValue, TValue> relativeFunc, Func<T, double, TValue> proportionalFunc, bool required = false) {
             TValue newValue = default;
 
@@ -289,7 +320,7 @@ namespace OctoGhast.Framework {
                 return newValue;
             }
 
-            if (TryRetrieveProportional<string,double>(jObj, name, out var proportionalValue, double.Parse)) {
+            if (TryRetrieveProportional<string, double>(jObj, name, out var proportionalValue, double.Parse)) {
                 newValue = proportionalFunc(existingValue, proportionalValue);
                 return newValue;
             }
@@ -320,22 +351,25 @@ namespace OctoGhast.Framework {
         }
 
         public static bool TryRetrieveRelative<T>(this JObject jObj, string name, out T value) {
-            return TryRetrieve<T,T>(jObj, name, "relative", out value);
+            return TryRetrieve<T, T>(jObj, name, "relative", out value);
         }
 
-        public static bool TryRetrieveRelative<T, TOut>(this JObject jObj, string name, out TOut value, Func<T, TOut> mapFunc) {
+        public static bool TryRetrieveRelative<T, TOut>(this JObject jObj, string name, out TOut value,
+            Func<T, TOut> mapFunc) {
             return TryRetrieve(jObj, name, "relative", out value, mapFunc);
         }
 
         public static bool TryRetrieveProportional<T>(this JObject jObj, string name, out T value) {
-            return TryRetrieve<T,T>(jObj, name, "proportional", out value);
+            return TryRetrieve<T, T>(jObj, name, "proportional", out value);
         }
 
-        public static bool TryRetrieveProportional<T, TOut>(this JObject jObj, string name, out TOut value, Func<T, TOut> mapFunc) {
+        public static bool TryRetrieveProportional<T, TOut>(this JObject jObj, string name, out TOut value,
+            Func<T, TOut> mapFunc) {
             return TryRetrieve(jObj, name, "proportional", out value, mapFunc);
         }
 
-        private static bool TryRetrieve<T, TOut>(this JObject jObj, string name, string type, out TOut value, Func<T, TOut> mapFunc = null) {
+        private static bool TryRetrieve<T, TOut>(this JObject jObj, string name, string type, out TOut value,
+            Func<T, TOut> mapFunc = null) {
             if (jObj.TryGetValue(type, out var token)) {
                 if (token is JObject obj) {
                     var v = obj.GetValue(name);
@@ -350,7 +384,8 @@ namespace OctoGhast.Framework {
             return false;
         }
 
-        private static bool TryRetrieveEnumerable<T>(this JObject jObj, string name, string type, out IEnumerable<T> values) {
+        private static bool TryRetrieveEnumerable<T>(this JObject jObj, string name, string type,
+            out IEnumerable<T> values) {
             if (jObj.TryGetValue(type, out var token)) {
                 if (token is JObject obj) {
                     var v = obj.GetValue(name);
@@ -363,6 +398,38 @@ namespace OctoGhast.Framework {
 
             values = default;
             return false;
+        }
+
+        private static MethodInfo FindGenericMethod(string name, Type[] paramTypes)
+        {
+            var methodInfos = typeof(JsonDataLoader).GetMethods()
+                .Where(s => s.Name == name)
+                .Select(m => new
+                {
+                    Method = m,
+                    Params = m.GetParameters().Select(s => s.ParameterType),
+                    Args = m.GetGenericArguments()
+                });
+            var methodInfo = methodInfos
+                .Where(x => x.Params.Count() == paramTypes.Length
+                            && x.Args.Length == 1
+                            && x.Params.SequenceEqual(paramTypes, new SimpleTypeComparer())
+                )
+                .Select(x => x.Method);
+            var method = methodInfo.First();
+            return method;
+        }
+    }
+
+    internal class SimpleTypeComparer : IEqualityComparer<Type> {
+        /// <inheritdoc />
+        public bool Equals(Type x, Type y) {
+            return x?.Name == y?.Name;
+        }
+
+        /// <inheritdoc />
+        public int GetHashCode(Type obj) {
+            return obj.GetHashCode();
         }
     }
 
