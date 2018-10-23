@@ -45,17 +45,4 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
             return Load(data, existing as SlotTool);
         }
     }
-
-    public class VitaminLoader : ITypeLoader<VitaminInfo>
-    {
-        /// <inheritdoc />
-        public VitaminInfo Load(JObject jObj, VitaminInfo existing = default(VitaminInfo)) {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
-        public object Load(JObject data, object existing) {
-            throw new NotImplementedException();
-        }
-    }
 }

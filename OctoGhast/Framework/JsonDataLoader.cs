@@ -102,8 +102,15 @@ namespace OctoGhast.Framework {
             var dict = new Dictionary<TKey, TValue>();
 
             if (jObj.GetValue(name) is JArray rootObject) {
-                foreach (var array in rootObject.Children().Children()) {
-                    dict.Add(array[0].Value<TKey>(), array[1].Value<TValue>());
+                foreach (var array in rootObject.Children()) {
+                    if (array.First is JArray) {
+                        foreach (var subArray in array) {
+                            dict.Add(subArray[0].Value<TKey>(), subArray[1].Value<TValue>());
+                        }
+                    }
+                    else {
+                        dict.Add(array[0].Value<TKey>(), array[1].Value<TValue>());
+                    }
                 }
             }
             else {

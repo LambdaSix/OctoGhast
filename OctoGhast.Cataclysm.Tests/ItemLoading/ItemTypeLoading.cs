@@ -44,6 +44,9 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
 
         [LoaderInfo("tools", false, null)]
         public Dictionary<string,int> Tools { get; set; }
+
+        [LoaderInfo("vitamins")]
+        public Dictionary<string,int> Vitamins { get; set; }
     }
 
     [TestFixture]
@@ -102,9 +105,8 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
                 // Where the 'LIST' element tells the recipe processor 'I gave you a requirement, not a direct item'
                 // And that would be a Dictionary<string,object[]> really, but we can deal with the fine details
                 // in recipe loading directly I guess.
-                ""tools"": [
-                [ [""soldering_iron"", 10], [ ""toolset"", 10] ]
-                ],
+                ""tools"": [ [ [""soldering_iron"", 10], [ ""toolset"", 10] ] ],
+                ""vitamins"": [ [ ""calcium"", 1 ], [ ""iron"", 20 ], [ ""vitB"", 10 ] ],
             }";
 
             var itype = new BasicItemType();
@@ -115,6 +117,7 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
             itype.Flags = jObj.ReadProperty(() => itype.Flags);
             itype.Magazines = jObj.ReadProperty(() => itype.Magazines);
             itype.Tools = jObj.ReadProperty(() => itype.Tools);
+            itype.Vitamins = jObj.ReadProperty(() => itype.Vitamins);
 
             Assert.That(itype.Properties, Is.Not.Null);
             Assert.That(itype.Properties, Is.Not.Empty);
