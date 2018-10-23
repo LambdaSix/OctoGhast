@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO.MemoryMappedFiles;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using MiscUtil;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
-using Ninject.Infrastructure.Language;
-using OctoGhast.Extensions;
+using OctoGhast.Entity;
 using OctoGhast.Units;
-using OctoGhast.UserInterface.Controls;
 
 namespace OctoGhast.Framework {
     public interface ITypeLoader {
@@ -20,19 +15,21 @@ namespace OctoGhast.Framework {
     }
 
     public static class JsonDataLoader {
-        private static readonly Dictionary<Type, Func<JObject, string, object, object>> _conversionMap =
-            new Dictionary<Type, Func<JObject, string, object, object>>()
+        private static readonly Dictionary<Type, Func<JObject, string, object, Type[], object>> _conversionMap =
+            new Dictionary<Type, Func<JObject, string, object, Type[], object>>()
             {
-                [typeof(int)] = (jObj, name, val) => ReadProperty(jObj, name, (int) val),
-                [typeof(double)] = (jObj, name, val) => ReadProperty(jObj, name, (double) val),
-                [typeof(float)] = (jObj, name, val) => ReadProperty(jObj, name, (float) val),
-                [typeof(string)] = (jObj, name, val) => ReadProperty(jObj, name),
-                [typeof(Volume)] = (jObj, name, val) => ReadProperty<Volume>(jObj, name, val as Volume),
-                [typeof(Mass)] = (jObj, name, val) => ReadProperty<Mass>(jObj, name, val as Mass),
-                [typeof(Dictionary<string, string>)] = (jObj, name, val) => ReadDictionary<string, string>(jObj, name),
-                [typeof(Dictionary<string, int>)] = (jObj, name, val) => ReadDictionary<string, int>(jObj, name),
-                [typeof(Dictionary<string,IEnumerable<string>>)] = (jObj, name, val) => ReadNestedDictionary<string,string>(jObj, name),
-                [typeof(IEnumerable<string>)] = (jObj, name, val) => ReadEnumerable<string>(jObj, name),
+                [typeof(int)] = (jObj, name, val, _) => ReadProperty(jObj, name, (int) val),
+                [typeof(double)] = (jObj, name, val, _) => ReadProperty(jObj, name, (double) val),
+                [typeof(float)] = (jObj, name, val, _) => ReadProperty(jObj, name, (float) val),
+                [typeof(string)] = (jObj, name, val, _) => ReadProperty(jObj, name),
+                [typeof(Volume)] = (jObj, name, val, _) => ReadProperty<Volume>(jObj, name, val as Volume),
+                [typeof(Mass)] = (jObj, name, val, _) => ReadProperty<Mass>(jObj, name, val as Mass),
+                [typeof(Dictionary<string, string>)] = (jObj, name, val, _) => ReadDictionary<string, string>(jObj, name),
+                [typeof(Dictionary<string, int>)] = (jObj, name, val, _) => ReadDictionary<string, int>(jObj, name),
+                [typeof(Dictionary<string,IEnumerable<string>>)] = (jObj, name, val, _) => ReadNestedDictionary<string,string>(jObj, name),
+                [typeof(IEnumerable<string>)] = (jObj, name, val, _) => ReadEnumerable(jObj, name, (IEnumerable<string>)val),
+                // Special case, string converts to a given StringID<>, so just make it open to not need a constructed type for every variant.
+                [typeof(StringID<>)] = (jObj, name, val, types) => ReadProperty(jObj, name, val, typeof(StringID<>), types)
             };
 
         public static int ReadProperty(this JObject jObject, string name, int val) {
@@ -53,8 +50,21 @@ namespace OctoGhast.Framework {
         }
 
         public static T ReadProperty<T>(this JObject jObject, string name, T val) {
-            if (_conversionMap.TryGetValue(typeof(T), out var func)) {
-                return (T) func(jObject, name, val);
+            (Type type, Type[] arguments) args = typeof(T).IsGenericType && typeof(StringID<>).IsAssignableFrom(typeof(T).GetGenericTypeDefinition())
+                ? (typeof(StringID<>), typeof(T).GetGenericArguments())
+                : (typeof(T), new Type[0]);
+
+            if (_conversionMap.TryGetValue(args.type, out var func)) {
+                var result = func(jObject, name, val, args.arguments);
+
+                if (!args.type.IsGenericType || args.type.IsConstructedGenericType) {
+                    return (T)result;
+                }
+                else {
+                    var newType = args.type.MakeGenericType(args.arguments);
+                    return (T)Convert.ChangeType(result, newType);
+
+                }
             }
 
             throw new ArgumentException($"Unable to deduce built-in loader for type: '{typeof(T)}");
@@ -96,13 +106,23 @@ namespace OctoGhast.Framework {
             return workingSet;
         }
 
-        public static IEnumerable<T> ReadEnumerable<T>(JObject jObj, string name) {
+        public static IEnumerable<T> ReadEnumerable<T>(JObject jObj, string name, IEnumerable<T> existingValue) {
+            // TODO: Extend & Delete
+            if (jObj.TryRetrieveExtends<T>(name, out var extends)) {
+                return existingValue.Concat(extends);
+            }
+
+            if (jObj.TryRetrieveDeletes<T>(name, out var deletes)) {
+                return existingValue.Except(deletes);
+            }
+
             if (jObj.TryGetValue(name, out var value)) {
                 if (value is JArray arr) {
                     return arr.Values<T>();
                 }
             }
-            return default;
+
+            return existingValue;
         }
 
         public static T ReadProperty<T>(this JObject jObject, Expression<Func<T>> expression) {
@@ -138,14 +158,52 @@ namespace OctoGhast.Framework {
             return default;
         }
 
+        public static object ReadProperty<T>(this JObject jObject, string name, T val, Type realType, Type[] types) {
+            var (type, args) = realType.IsGenericType && typeof(StringID<>).IsAssignableFrom(realType.GetGenericTypeDefinition())
+                ? (typeof(StringID<>), types)
+                : (typeof(T), new System.Type[0]);
+
+            if (type.IsGenericTypeDefinition && args.Any()) {
+                // Construct a version of ReadProperty<T> : StringID<T> where T == type
+                var methodInfo = typeof(JsonDataLoader).GetMethods()
+                    .Where(s => s.Name == nameof(ReadProperty))
+                    .Select(m => new
+                    {
+                        Method = m,
+                        Params = m.GetParameters(),
+                        Args = m.GetGenericArguments()
+                    })
+                    .Where(x => x.Params.Length == 2
+                                && x.Args.Length == 1
+                                && x.Params[0].ParameterType == typeof(JObject)
+                                && x.Params[1].ParameterType == typeof(string))
+                    .Select(x => x.Method)
+                    .First();
+
+                var genericMethod = methodInfo.MakeGenericMethod(args[0]);
+                return genericMethod.Invoke(null, new object[] {jObject, name});
+            }
+
+            return default(T);
+        }
+
+        public static StringID<T> ReadProperty<T>(this JObject jObject, string name) {
+            // No relative/proportional for strings.
+            if (jObject.TryGetValue(name, out var value)) {
+                return new StringID<T>(value.Value<string>());
+            }
+
+            return default;
+        }
+
         public static Volume ReadProperty<T>(this JObject jObject, string name, Volume val) where T:Volume {
             return ReadProperty(
                 jObj: jObject,
                 name: name,
                 existingValue: val,
                 mapFunc: s => new Volume(s),
-                relativeFunc: (v, acc) => (v + acc) as T,
-                proportionalFunc: (v, acc) => (v * acc) as T
+                relativeFunc: (v, acc) => new Volume(v + acc),
+                proportionalFunc: (v, acc) => new Volume(v * acc)
             );
         }
 
@@ -155,8 +213,8 @@ namespace OctoGhast.Framework {
                 name: name,
                 existingValue: val,
                 mapFunc: s => new Mass(s),
-                relativeFunc: (v, acc) => (v + acc) as T,
-                proportionalFunc: (v, acc) => (v * acc) as T
+                relativeFunc: (v, acc) => new Mass((v + acc)),
+                proportionalFunc: (v, acc) => new Mass(v * acc)
             );
         }
 
@@ -171,8 +229,8 @@ namespace OctoGhast.Framework {
                 name: name,
                 existingValue: val,
                 mapFunc: s => new SoundLevel(s),
-                relativeFunc: (v, acc) => (v + acc) as SoundLevel,
-                proportionalFunc: (v, acc) => (v * acc) as SoundLevel
+                relativeFunc: (v, acc) => new SoundLevel(v + acc),
+                proportionalFunc: (v, acc) => new SoundLevel(v * acc)
             );
         }
 
@@ -227,11 +285,13 @@ namespace OctoGhast.Framework {
             TValue newValue = default;
 
             if (TryRetrieveRelative(jObj, name, out var relativeValue, mapFunc)) {
-                return relativeFunc(existingValue, relativeValue);
+                newValue = relativeFunc(existingValue, relativeValue);
+                return newValue;
             }
 
             if (TryRetrieveProportional<string,double>(jObj, name, out var proportionalValue, double.Parse)) {
-                return proportionalFunc(existingValue, proportionalValue);
+                newValue = proportionalFunc(existingValue, proportionalValue);
+                return newValue;
             }
 
             // When there are no Proportional/Relative tags, just load the property normally.
@@ -251,44 +311,38 @@ namespace OctoGhast.Framework {
             return newValue;
         }
 
-        public static bool TryRetrieveRelative<T>(this JObject jObj, string name, out T value) {
-            /*
-             * Looking for:
-             * "relative": { "weight": 10, "volume": 2" },
-             */
-            if (jObj.TryGetValue("relative", out var token)) {
-                if (token is JObject obj) {
-                    value = obj.GetValue(name).Value<T>();
-                    return true;
-                }
-            }
+        public static bool TryRetrieveExtends<T>(this JObject jObj, string name, out IEnumerable<T> values) {
+            return TryRetrieveEnumerable(jObj, name, "extend", out values);
+        }
 
-            value = default;
-            return false;
+        public static bool TryRetrieveDeletes<T>(this JObject jObj, string name, out IEnumerable<T> values) {
+            return TryRetrieveEnumerable(jObj, name, "delete", out values);
+        }
+
+        public static bool TryRetrieveRelative<T>(this JObject jObj, string name, out T value) {
+            return TryRetrieve<T,T>(jObj, name, "relative", out value);
         }
 
         public static bool TryRetrieveRelative<T, TOut>(this JObject jObj, string name, out TOut value, Func<T, TOut> mapFunc) {
-            /*
-             * Looking for:
-             * "proportional": { "weight": 2.0, "volume": 1.5 },
-             */
-            if (jObj.TryGetValue("relative", out var token)) {
-                if (token is JObject obj) {
-                    var v = obj.GetValue(name).Value<T>();
-                    value = mapFunc(v);
-                    return true;
-                }
-            }
-
-            value = default;
-            return false;
+            return TryRetrieve(jObj, name, "relative", out value, mapFunc);
         }
 
         public static bool TryRetrieveProportional<T>(this JObject jObj, string name, out T value) {
-            if (jObj.TryGetValue("proportional", out var token)) {
+            return TryRetrieve<T,T>(jObj, name, "proportional", out value);
+        }
+
+        public static bool TryRetrieveProportional<T, TOut>(this JObject jObj, string name, out TOut value, Func<T, TOut> mapFunc) {
+            return TryRetrieve(jObj, name, "proportional", out value, mapFunc);
+        }
+
+        private static bool TryRetrieve<T, TOut>(this JObject jObj, string name, string type, out TOut value, Func<T, TOut> mapFunc = null) {
+            if (jObj.TryGetValue(type, out var token)) {
                 if (token is JObject obj) {
-                    value = obj.GetValue(name).Value<T>();
-                    return true;
+                    var v = obj.GetValue(name);
+                    if (v != null) {
+                        value = mapFunc != null ? mapFunc(v.Value<T>()) : v.Value<TOut>();
+                        return true;
+                    }
                 }
             }
 
@@ -296,16 +350,18 @@ namespace OctoGhast.Framework {
             return false;
         }
 
-        public static bool TryRetrieveProportional<T, TOut>(this JObject jObj, string name, out TOut value, Func<T, TOut> mapFunc) {
-            if (jObj.TryGetValue("proportional", out var token)) {
+        private static bool TryRetrieveEnumerable<T>(this JObject jObj, string name, string type, out IEnumerable<T> values) {
+            if (jObj.TryGetValue(type, out var token)) {
                 if (token is JObject obj) {
-                    var v = obj.GetValue(name).Value<T>();
-                    value = mapFunc(v);
-                    return true;
+                    var v = obj.GetValue(name);
+                    if (v != null) {
+                        values = v.Values<T>();
+                        return true;
+                    }
                 }
             }
 
-            value = default;
+            values = default;
             return false;
         }
     }
