@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using static OctoGhast.Translation.Translation;
 using MiscUtil;
-using OctoGhast.Cataclysm.LegacyLoader;
 
 namespace OctoGhast.Units {
     public class VolumeInMillilitersTag { }
@@ -48,21 +47,31 @@ namespace OctoGhast.Units {
         }
 
         public static Quantity<TValue, TUnit> operator *(Quantity<TValue, TUnit> lhs, float rhs) {
-            return new Quantity<TValue, TUnit>(Operator.MultiplyAlternative(lhs.Value, rhs));
+            var res = new Quantity<TValue, TUnit>(Operator.Convert<float, TValue>(
+                Operator.MultiplyAlternative(Operator.Convert<TValue, float>(lhs.Value), rhs)
+            ));
+            return res;
         }
 
         public static Quantity<TValue, TUnit> operator /(Quantity<TValue, TUnit> lhs, float rhs) {
-            return new Quantity<TValue, TUnit>(Operator.DivideAlternative(lhs.Value, rhs));
+            var res = new Quantity<TValue, TUnit>(Operator.Convert<double, TValue>(
+                Operator.DivideAlternative(Operator.Convert<TValue, double>(lhs.Value), rhs)
+            ));
+            return res;
         }
 
-        public static Quantity<TValue, TUnit> operator *(Quantity<TValue, TUnit> lhs, double rhs)
-        {
-            return new Quantity<TValue, TUnit>(Operator.MultiplyAlternative(lhs.Value, rhs));
+        public static Quantity<TValue, TUnit> operator *(Quantity<TValue, TUnit> lhs, double rhs) {
+            var res = new Quantity<TValue, TUnit>(Operator.Convert<double, TValue>(
+                Operator.MultiplyAlternative(Operator.Convert<TValue, double>(lhs.Value), rhs)
+            ));
+            return res;
         }
 
-        public static Quantity<TValue, TUnit> operator /(Quantity<TValue, TUnit> lhs, double rhs)
-        {
-            return new Quantity<TValue, TUnit>(Operator.DivideAlternative(lhs.Value, rhs));
+        public static Quantity<TValue, TUnit> operator /(Quantity<TValue, TUnit> lhs, double rhs) {
+            var res = new Quantity<TValue, TUnit>(Operator.Convert<double, TValue>(
+                Operator.DivideAlternative(Operator.Convert<TValue, double>(lhs.Value), rhs)
+            ));
+            return res;
         }
 
         public static bool operator >(Quantity<TValue, TUnit> lhs, Quantity<TValue, TUnit> rhs) {
@@ -119,6 +128,7 @@ namespace OctoGhast.Units {
         }
 
         public Pressure(string value) : this(((Pressure)value).Value) { }
+        public Pressure(Quantity<double, PressureInKiloPascalsTag> val) : this(val.Value) { }
 
         public static Pressure FromAtmospheres(double atmospheres) => new Pressure(atmospheres * atmConversionFactor);
         public static Pressure FromPsi(double psi) => new Pressure(psi * psiConversionFactor);
@@ -180,7 +190,7 @@ namespace OctoGhast.Units {
             ["water"] = new Material()
             {
                 Name = "Water",
-                Id = "core_air",
+                Id = "core_water",
                 Density = 1.0f,
             }
         };
@@ -216,6 +226,7 @@ namespace OctoGhast.Units {
         }
 
         public SoundLevel(string value) : this(((SoundLevel) value).Value) { }
+        public SoundLevel(Quantity<double, LoudnessInKilopascalsTag> val) : this(val.Value) { }
 
         public double Decibels => PascalsToDecibel(Value);
         public double Pascals => Value * 1000;
@@ -276,6 +287,7 @@ namespace OctoGhast.Units {
         public Volume(int value) : base(value) { }
 
         public Volume(string value) : base(((Volume) value).Value) { }
+        public Volume(Quantity<int, VolumeInMillilitersTag> val) : this(val.Value) { }
 
         /// <summary>
         /// Density of the contained volume in g/cm³
@@ -363,6 +375,8 @@ namespace OctoGhast.Units {
         public static Mass Max = new Mass(Int32.MaxValue);
 
         public Mass(int value) : base(value) { }
+
+        public Mass(Quantity<int, MassInGramsTag> value) : this(value.Value) { }
 
         public Mass(string value) : base(((Mass) value).Value) { }
 
