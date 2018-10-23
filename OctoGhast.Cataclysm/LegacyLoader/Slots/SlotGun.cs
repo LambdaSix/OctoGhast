@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using OctoGhast.Entity;
 using OctoGhast.Units;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {

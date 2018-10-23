@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using OctoGhast.Cataclysm.LegacyLoader;
+using OctoGhast.Entity;
 using OctoGhast.Framework;
 using OctoGhast.Units;
 
@@ -19,6 +20,9 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
 
         [LoaderInfo("volume", true, 0.0)]
         public double Volume { get; set; }
+
+        [LoaderInfo("material", false, null)]
+        public StringID<Material> Material { get; set; }
 
         [LoaderInfo("volume_real", false, "0.0L")]
         public Volume RealVolume { get; set; }
@@ -75,15 +79,29 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
         [Test]
         public void LoadGenericContainers()
         {
+            // Cataclysm has some weird JSON storage semantics, so check we can load all the more complicated ones.
             var itemString = @"{
+                // Standard dictionary, this is fine. (string:string)
                 ""properties"": {
                     ""keyA"": ""value""
                 },
+
+                // Also a standard dictionary (string:int)
                 ""qualities"": {
                     ""CUTTING"": ""1""
                 },
+
+                // Standard enumerable/list of string, so this is ok.
                 ""flags"": [""FLAMMABLE"", ""IGNITABLE""],
+
+                // Not sure what this is meant to be, but we can decompose it into a Dictionary<string,IEnumerable<string>>
                 ""magazines"": [ ""300"", [ ""lw223mag"" ], ""50"", [ ""bigMag50"", ""alternativeLittleMag"" ] ],
+
+                // Basically Dictionary<string,int> but stored as an array of arrays.
+                // There's an alternative version of this with three elements ([""toolset"",10,""LIST""]
+                // Where the 'LIST' element tells the recipe processor 'I gave you a requirement, not a direct item'
+                // And that would be a Dictionary<string,object[]> really, but we can deal with the fine details
+                // in recipe loading directly I guess.
                 ""tools"": [
                 [ [""soldering_iron"", 10], [ ""toolset"", 10] ]
                 ],
@@ -110,6 +128,9 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
             Assert.That(itype.Magazines, Is.Not.Null);
             Assert.That(itype.Magazines, Is.Not.Empty);
 
+            Assert.That(itype.Tools, Is.Not.Null);
+            Assert.That(itype.Tools, Is.Not.Empty);
+
             Assert.That(itype.Properties.ContainsKey("keyA"));
             Assert.That(itype.Properties["keyA"], Is.EqualTo("value"));
 
@@ -120,13 +141,17 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
 
             Assert.That(itype.Magazines["300"], Contains.Item("lw223mag"));
             Assert.That(itype.Magazines["50"], Contains.Item("bigMag50").And.Contains("alternativeLittleMag"));
+
+            Assert.That(itype.Tools["soldering_iron"], Is.EqualTo(10));
+            Assert.That(itype.Tools["toolset"], Is.EqualTo(10));
         }
 
         [Test]
         public void LoadComplexItem() {
             var itemString = @"{
                 ""volume_real"": ""20L"",
-                ""mass_real"": ""20KG""
+                ""mass_real"": ""20KG"",
+                ""material"": ""core_water""
             }";
 
             var itype = new BasicItemType();
@@ -134,12 +159,51 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
 
             itype.RealVolume = jObj.ReadProperty(() => itype.RealVolume);
             itype.RealMass = jObj.ReadProperty(() => itype.RealMass);
+            itype.Material = jObj.ReadProperty(() => itype.Material);
 
             Assert.That(itype.RealVolume, Is.Not.Null);
             Assert.That(itype.RealMass, Is.Not.Null);
+            Assert.That(itype.Material, Is.Not.Null);
 
             Assert.That(itype.RealMass, Is.EqualTo((Mass) "20KG"));
             Assert.That(itype.RealVolume, Is.EqualTo((Volume) "20L"));
+
+            Assert.That(itype.Material, Is.EqualTo(new StringID<Material>("core_water")));
+            Assert.That(itype.Material == "core_water");
+            Assert.That(itype.Material == (StringID<Material>) "core_water");
+            Assert.That(itype.Material == CoreMaterials.Water.Id);
+
+            Assert.That(itype.Material.Type() == typeof(Material));
+        }
+
+        [Test]
+        public void LoadInheritedItem() {
+            var itemString = @"{
+                ""relative"": { ""mass_real"": ""10KG"" },
+                ""proportional"": { ""volume_real"": ""1.5"" },
+                // add 'recycled' and remove 'flammable'
+                ""extend"": { ""flags"": [""RECYCLED""] },
+                ""delete"": { ""flags"": [""FLAMMABLE""] }
+            }";
+
+            Mass inheritedMass = "20KG";
+            Volume inheritedVolume = "20L";
+            IEnumerable<string> inheritedFlags = new[] {"FLAMMABLE"};
+
+            var itype = new BasicItemType();
+            var jObj = JObject.Parse(itemString);
+
+            itype.RealMass = inheritedMass;
+            itype.RealVolume = inheritedVolume;
+            itype.Flags = inheritedFlags;
+
+            itype.RealMass = jObj.ReadProperty(() => itype.RealMass);
+            itype.RealVolume = jObj.ReadProperty(() => itype.RealVolume);
+            itype.Flags = jObj.ReadProperty(() => itype.Flags);
+
+            Assert.That(itype.RealMass == (Mass) "30KG");
+            Assert.That(itype.RealVolume == (Volume) "30L");
+            Assert.That(itype.Flags, Contains.Item("RECYCLED"));
         }
 
         [Test]

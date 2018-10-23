@@ -1,4 +1,6 @@
-﻿namespace OctoGhast.Cataclysm.LegacyLoader {
+﻿using OctoGhast.Entity;
+
+namespace OctoGhast.Cataclysm.LegacyLoader {
     public class SlotMagazine {
         public StringID<AmmoType> Type { get; set; } = StringID<AmmoType>.NullId;
         public int Capacity { get; set; } = 0;

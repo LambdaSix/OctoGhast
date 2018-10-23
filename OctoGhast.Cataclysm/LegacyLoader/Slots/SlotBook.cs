@@ -1,4 +1,6 @@
-﻿namespace OctoGhast.Cataclysm.LegacyLoader {
+﻿using OctoGhast.Entity;
+
+namespace OctoGhast.Cataclysm.LegacyLoader {
     public class SlotBook {
         public StringID<Skill> Skill = StringID<Skill>.NullId;
         public int Level { get; set; } = default;

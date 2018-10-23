@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using OctoGhast.Entity;
 
 namespace OctoGhast {
 
@@ -14,7 +15,7 @@ namespace OctoGhast {
 
     public class Material : DataTemplate {
         public string Name { get; set; }
-        public string Id { get; set; }
+        public StringID<Material> Id { get; set; }
         public int BashResist { get; set; }
         public int CutResist { get; set; }
         public int AcidResist { get; set; }

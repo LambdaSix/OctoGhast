@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using OctoGhast.Entity;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {
     public class SlotTool {
