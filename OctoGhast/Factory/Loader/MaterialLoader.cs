@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using OctoGhast.Entity;
 using OctoGhast.Extensions;
 
 namespace OctoGhast {
@@ -10,7 +11,7 @@ namespace OctoGhast {
             {
                 Type = data.GetValueOr("type", default(string)),
                 Name = data.GetValueOr("name", default(string)),
-                Id = data.GetValueOr("ident", default(string)),
+                Id = data.GetValueOr("ident", default(StringID<Material>)),
 
                 BashResist = data.GetValueOr("bash_resist", 0),
                 CutResist = data.GetValueOr("cut_resist", 0),
