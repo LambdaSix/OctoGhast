@@ -1,16 +1,34 @@
 ﻿using System.Collections.Generic;
 using OctoGhast.Entity;
+using OctoGhast.Framework;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {
     public class SlotTool {
-        public StringID<AmmoType> AmmoId { get; set; } = StringID<AmmoType>.NullId;
-        public StringID<ItemType> RevertsTo { get; set; } = StringID<ItemType>.NullId;
+        [LoaderInfo("ammo")]
+        public StringID<AmmoType> AmmoId { get; set; }
+
+        [LoaderInfo("revert_to")]
+        public StringID<ItemType> RevertsTo { get; set; }
+
+        [LoaderInfo("revert_msg")]
         public string RevertMessage { get; set; }
+
+        [LoaderInfo("sub")]
         public string SubType { get; set; }
-        public long MaxCharges { get; set; } = default;
-        public long DefaultCharges { get; set; } = default;
+
+        [LoaderInfo("max_charges")]
+        public long MaxCharges { get; set; }
+
+        [LoaderInfo("initial_charges")]
+        public long DefaultCharges { get; set; }
+
+        [LoaderInfo("rand_charges")]
         public IEnumerable<long> RandomCharges { get; set; }
-        public int ChargesPerUse { get; set; } = default;
-        public int TurnsPerCharge { get; set; } = default;
+
+        [LoaderInfo("charges_per_use")]
+        public int ChargesPerUse { get; set; }
+
+        [LoaderInfo("turns_per_charge")]
+        public int TurnsPerCharge { get; set; }
     }
 }

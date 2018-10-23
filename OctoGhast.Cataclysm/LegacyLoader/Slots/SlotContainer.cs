@@ -17,6 +17,6 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         public bool Preserves { get; set; }
 
         [LoaderInfo("unseals_into", false, null)]
-        public StringID<ItemType> UnsealsInto { get; set; } = StringID<ItemType>.NullId;
+        public StringID<ItemType> UnsealsInto { get; set; }
     }
 }
