@@ -86,6 +86,7 @@
     <Compile Include="LegacyLoader\Slots\SlotSeed.cs" />
     <Compile Include="LegacyLoader\Slots\SlotTool.cs" />
     <Compile Include="LegacyLoader\Slots\SlotWheel.cs" />
+    <Compile Include="LegacyLoader\TypeLoaders.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
