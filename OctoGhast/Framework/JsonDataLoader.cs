@@ -26,9 +26,10 @@ namespace OctoGhast.Framework {
                 [typeof(string)] = (jObj, name, val, _) => ReadProperty(jObj, name),
                 [typeof(Volume)] = (jObj, name, val, _) => ReadProperty<Volume>(jObj, name, val as Volume),
                 [typeof(Mass)] = (jObj, name, val, _) => ReadProperty<Mass>(jObj, name, val as Mass),
-                [typeof(Dictionary<string, string>)] = (jObj, name, val, _) => ReadDictionary<string, string>(jObj, name),
-                [typeof(Dictionary<string, int>)] = (jObj, name, val, _) => ReadDictionary<string, int>(jObj, name),
                 [typeof(Dictionary<string, IEnumerable<string>>)] = (jObj, name, val, _) => ReadNestedDictionary<string, string>(jObj, name),
+                // Defined as an open type to handle most 'pure' dictionarys, string:string, string:int, etc.
+                [typeof(Dictionary<,>)] = (jObj, name, val, types) => ReadDictionary(jObj, name, val, typeof(Dictionary<,>), types),
+                // Just handle all kinds of IEnumerable with an open type.
                 [typeof(IEnumerable<>)] = (jObj, name, val, types) => ReadEnumerable(jObj, name, val, typeof(IEnumerable<>), types),
                 // Special case, string converts to a given StringID<>, so just make it open to not need a constructed type for every variant.
                 [typeof(StringID<>)] = (jObj, name, val, types) => ReadProperty(jObj, name, val, typeof(StringID<>), types)
@@ -80,7 +81,7 @@ namespace OctoGhast.Framework {
                 }
 
                 // Handle sequences
-                var typeOfT = args.type.MakeGenericType(args.arguments[0]);
+                var typeOfT = args.type.MakeGenericType(args.arguments);
                 var isInterface = args.type.IsInterface;
 
                 if (args.type.IsGenericType && result.GetType().IsAssignableFrom(typeOfT)) {
@@ -98,23 +99,102 @@ namespace OctoGhast.Framework {
             return val;
         }
 
-        public static Dictionary<TKey, TValue> ReadDictionary<TKey, TValue>(JObject jObj, string name) {
-            var dict = new Dictionary<TKey, TValue>();
+        public static object ReadDictionary<T>(this JObject jObject, string name, T existingValue, Type realType, Type[] types) {
+            var paramTypes = new[] {typeof(JObject), typeof(string), typeof(Dictionary<,>)};
 
-            if (jObj.GetValue(name) is JArray rootObject) {
-                foreach (var array in rootObject.Children()) {
-                    if (array.First is JArray) {
-                        foreach (var subArray in array) {
-                            dict.Add(subArray[0].Value<TKey>(), subArray[1].Value<TValue>());
+            if (realType.IsGenericTypeDefinition && types.Any())
+            {
+                // Construct a version of ReadEnumerable<T> : IEnumerable<T> where T == type
+                var method = FindGenericMethod(nameof(ReadDictionary), paramTypes, genericArgs: 2);
+
+                var genericMethod = method.MakeGenericMethod(types);
+                return genericMethod.Invoke(null, new object[] { jObject, name, existingValue });
+            }
+
+            return default;
+        }
+
+        public static Dictionary<TKey, TValue> ReadDictionary<TKey, TValue>(JObject jObj, string name, Dictionary<TKey,TValue> existingValue) {
+            Dictionary<TInnerKey, TInnerValue> RetrieveDictionary<TInnerKey,TInnerValue>(JContainer input) {
+                IEnumerable<(TInnerKey key,TInnerValue value)> ExtractPairs(JToken jToken) {
+                    if (jToken.First is JArray) {
+                        foreach (var subArray in jToken) {
+                            switch (subArray.Count()) {
+                                case 2:
+                                    yield return (subArray[0].Value<TInnerKey>(), subArray[1].Value<TInnerValue>());
+                                    break;
+                                case 1:
+                                    yield return (subArray[0].Value<TInnerKey>(), default);
+                                    break;
+                            }
                         }
                     }
                     else {
-                        dict.Add(array[0].Value<TKey>(), array[1].Value<TValue>());
+                        yield return (jToken.ElementAtOrDefault(0).Value<TInnerKey>(), jToken.ElementAtOrDefault(1).Value<TInnerValue>());
+                    }
+                }
+
+                var res = Enumerable.Empty<(TInnerKey key, TInnerValue value)>();
+
+                switch (input) {
+                    case JProperty rootProperty:
+                    {
+                        res = rootProperty.Children().Children().SelectMany(ExtractPairs);
+                        break;
+                    }
+                    case JArray rootObject:
+                    {
+                        res = rootObject.Children().SelectMany(ExtractPairs);
+                        break;
+                    }
+                }
+
+                return res.ToDictionary(pair => pair.key, pair => pair.value);
+            }
+
+            Dictionary<TKey,TValue> dict = null;
+
+            if (jObj.TryGetValue(name, out var token) && token.Type != JTokenType.Array)
+                dict = jObj.GetValue(name).ToObject<Dictionary<TKey, TValue>>();
+
+            dict = existingValue ?? dict ?? RetrieveDictionary<TKey,TValue>(jObj.GetValue(name).Parent);
+
+            if (TryRetrieveDeletesObject(jObj, name, out var deletionSeq, RetrieveDictionary<TKey, TValue>)) {
+                foreach (var (key, value) in deletionSeq.Select(s => (s.Key, s.Value))) {
+                    if (!dict.ContainsKey(key))
+                        throw new Exception($"Attempted to delete value {key} from {name} but was not present");
+
+                    if (dict.ContainsKey(key)) {
+                        dict.Remove(key);
                     }
                 }
             }
-            else {
-                dict = jObj.GetValue(name).ToObject<Dictionary<TKey, TValue>>();
+
+            if (TryRetrieveExtendsObject(jObj, name, out var extendSeq, RetrieveDictionary<TKey, TValue>)) {
+                foreach (var (key, value) in extendSeq.Select(s => (s.Key, s.Value))) {
+                    if (dict.ContainsKey(key))
+                        throw new Exception($"Attempted to 'extend' dictionary object that already contains value");
+
+                    if (!dict.ContainsKey(key))
+                        dict.Add(key, value);
+                }
+            }
+
+            if (TryRetrieveRelativeObject(jObj, name, out var relativeValues, RetrieveDictionary<TKey,TValue>)) {
+                foreach (var (key,value) in relativeValues.Select(s => (s.Key,s.Value))) {
+                    if (dict.ContainsKey(key)) {
+                        dict[key] = Operator.Add(dict[key], value);
+                    }
+                }
+            }
+
+            if (TryRetrieveProportionalObject(jObj, name, out var proportionalValues, RetrieveDictionary<TKey,double>)) {
+                foreach (var (key, value) in proportionalValues.Select(s => (s.Key, s.Value))) {
+                    if (dict.ContainsKey(key)) {
+                        var scaledValue = Operator.MultiplyAlternative(Operator.Convert<TValue,double>(dict[key]), value);
+                        dict[key] = Operator.Convert<double, TValue>(scaledValue);
+                    }
+                }
             }
 
             return dict;
@@ -152,7 +232,12 @@ namespace OctoGhast.Framework {
                 defaultValue = Operator.Convert<string, T>(str);
             }
             else {
-                defaultValue = (T) attr.DefaultValue;
+                if (attr.DefaultValue != null) {
+                    defaultValue = (T) attr?.DefaultValue;
+                }
+                else {
+                    defaultValue = default(T);
+                }
             }
 
             var value = expression.Compile().GetValue(defaultValue);
@@ -176,8 +261,6 @@ namespace OctoGhast.Framework {
         }
 
         public static object ReadEnumerable<T>(this JObject jObject, string name, T existingValue, Type realType, Type[] types) {
-
-
             var paramTypes = new[] {typeof(JObject), typeof(string), typeof(IEnumerable<>)};
 
             if (realType.IsGenericTypeDefinition && types.Any()) {
@@ -357,6 +440,23 @@ namespace OctoGhast.Framework {
             return TryRetrieveEnumerable(jObj, name, "delete", out values);
         }
 
+        public static bool TryRetrieveRelativeObject<TOut>(this JObject jObj, string name, out TOut value, Func<JContainer, TOut> objectFunc) {
+            return TryRetrieveObject(jObj, name, "relative", out value, objectFunc);
+        }
+
+        public static bool TryRetrieveProportionalObject<TOut>(this JObject jObj, string name, out TOut value, Func<JContainer, TOut> objectFunc) {
+            return TryRetrieveObject(jObj, name, "proportional", out value, objectFunc);
+        }
+
+        public static bool TryRetrieveExtendsObject<TOut>(this JObject jObj, string name, out TOut value, Func<JContainer, TOut> objectFunc) {
+            return TryRetrieveObject(jObj, name, "extend", out value, objectFunc);
+        }
+
+        public static bool TryRetrieveDeletesObject<TOut>(this JObject jObj, string name, out TOut value, Func<JContainer, TOut> objectFunc)
+        {
+            return TryRetrieveObject(jObj, name, "delete", out value, objectFunc);
+        }
+
         public static bool TryRetrieveRelative<T>(this JObject jObj, string name, out T value) {
             return TryRetrieve<T, T>(jObj, name, "relative", out value);
         }
@@ -373,6 +473,21 @@ namespace OctoGhast.Framework {
         public static bool TryRetrieveProportional<T, TOut>(this JObject jObj, string name, out TOut value,
             Func<T, TOut> mapFunc) {
             return TryRetrieve(jObj, name, "proportional", out value, mapFunc);
+        }
+
+        private static bool TryRetrieveObject<TOut>(this JObject jObj, string name, string type, out TOut value, Func<JContainer, TOut> objectFunc) {
+            if (jObj.TryGetValue(type, out var token)) {
+                if (token is JObject obj) {
+                    var v = obj.GetValue(name);
+                    if (v != null) {
+                        value = objectFunc(v.Parent);
+                        return true;
+                    }
+                }
+            }
+
+            value = default;
+            return false;
         }
 
         private static bool TryRetrieve<T, TOut>(this JObject jObj, string name, string type, out TOut value,
@@ -407,7 +522,7 @@ namespace OctoGhast.Framework {
             return false;
         }
 
-        private static MethodInfo FindGenericMethod(string name, Type[] paramTypes)
+        private static MethodInfo FindGenericMethod(string name, Type[] paramTypes, int genericArgs = 1)
         {
             var methodInfos = typeof(JsonDataLoader).GetMethods()
                 .Where(s => s.Name == name)
@@ -419,7 +534,7 @@ namespace OctoGhast.Framework {
                 });
             var methodInfo = methodInfos
                 .Where(x => x.Params.Count() == paramTypes.Length
-                            && x.Args.Length == 1
+                            && x.Args.Length == genericArgs
                             && x.Params.SequenceEqual(paramTypes, new SimpleTypeComparer())
                 )
                 .Select(x => x.Method);

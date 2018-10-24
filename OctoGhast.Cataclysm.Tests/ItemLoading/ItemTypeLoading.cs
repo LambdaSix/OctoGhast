@@ -15,13 +15,16 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
         [LoaderInfo("id", true)]
         public string Id { get; set; }
 
+        [LoaderInfo("fun")]
+        public int Fun { get; set; }
+
         [LoaderInfo("mass", true, 0)]
         public int Mass { get; set; }
 
         [LoaderInfo("volume", true, 0.0)]
         public double Volume { get; set; }
 
-        [LoaderInfo("material", false, null)]
+        [LoaderInfo("material")]
         public StringID<Material> Material { get; set; }
 
         [LoaderInfo("volume_real", false, "0.0L")]
@@ -30,23 +33,23 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
         [LoaderInfo("mass_real", false, "0.0KG")]
         public Mass RealMass { get; set; }
 
-        [LoaderInfo("properties", false, null)]
+        [LoaderInfo("properties")]
         public Dictionary<string,string> Properties { get; set; }
 
-        [LoaderInfo("qualities", false, null)]
+        [LoaderInfo("qualities")]
         public Dictionary<string,int> Qualities { get; set; }
 
-        [LoaderInfo("flags", false, null)]
+        [LoaderInfo("flags")]
         public IEnumerable<string> Flags { get; set; }
 
-        [LoaderInfo("magazines", false, null)]
+        [LoaderInfo("magazines")]
         public Dictionary<string,IEnumerable<string>> Magazines { get; set; }
 
-        [LoaderInfo("tools", false, null)]
+        [LoaderInfo("tools")]
         public Dictionary<string,int> Tools { get; set; }
 
         [LoaderInfo("vitamins")]
-        public Dictionary<string,int> Vitamins { get; set; }
+        public Dictionary<string,double> Vitamins { get; set; }
     }
 
     [TestFixture]
@@ -106,7 +109,7 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
                 // And that would be a Dictionary<string,object[]> really, but we can deal with the fine details
                 // in recipe loading directly I guess.
                 ""tools"": [ [ [""soldering_iron"", 10], [ ""toolset"", 10] ] ],
-                ""vitamins"": [ [ ""calcium"", 1 ], [ ""iron"", 20 ], [ ""vitB"", 10 ] ],
+                ""vitamins"": [ [ ""calcium"", 0.5 ], [ ""iron"", 20 ], [ ""vitB"", 10 ] ],
             }";
 
             var itype = new BasicItemType();
@@ -182,31 +185,83 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
         [Test]
         public void LoadInheritedItem() {
             var itemString = @"{
-                ""relative"": { ""mass_real"": ""10KG"" },
-                ""proportional"": { ""volume_real"": ""1.5"" },
-                // add 'recycled' and remove 'flammable'
-                ""extend"": { ""flags"": [""RECYCLED""] },
-                ""delete"": { ""flags"": [""FLAMMABLE""] }
+                // Multiply the volume by 1.5
+                // Also scale the tools requirements by 0.5 and 1.5
+                ""proportional"": { 
+                     ""volume_real"": ""1.5"",
+                     ""tools"": [ [ [""soldering_iron"", 0.5], [""toolset"", 1.5] ] ]
+                },
+                // add 'RECYCLED' flag
+                // Also add to the 'tools' dictionary
+                ""extend"": { 
+                     ""flags"": [""RECYCLED""],
+                     ""tools"": [ [ [""screwdriver"", 1 ] ] ]
+                },
+                // Remove the 'FLAMMABLE' flag
+                // Also remove the Hammer tool from the tools list
+                ""delete"": { 
+                     ""flags"": [""FLAMMABLE""],
+                     ""tools"": [ [ [""hammer"" ] ] ]
+                },
+                // Add 10KG to the mass
+                // Add 5 and 4 to the vitA and Iron values
+                // Remove 5 from the Fun value
+                // Add more tool requirements.
+                ""relative"": { 
+                      ""mass_real"": ""10KG"", 
+                      ""vitamins"": [ [ ""vitA"", 5 ], [ ""iron"", 4 ] ], 
+                      ""fun"": -5,
+                      ""tools"": [ [ [""soldering_iron"", 5], [ ""toolset"", 20] ] ]  }
             }";
 
             Mass inheritedMass = "20KG";
             Volume inheritedVolume = "20L";
             IEnumerable<string> inheritedFlags = new[] {"FLAMMABLE"};
+            var inheritedVitamins = new Dictionary<string, double>()
+            {
+                ["vitA"] = 0.5,
+                ["iron"] = 4,
+            };
+
+            var inheritedTools = new Dictionary<string, int>()
+            {
+                ["soldering_iron"] = 5,
+                ["toolset"] = 10,
+                //["screwdriver"] = 1,
+                ["hammer"] = 5,
+            };
 
             var itype = new BasicItemType();
             var jObj = JObject.Parse(itemString);
 
+            itype.Fun = 0;
             itype.RealMass = inheritedMass;
             itype.RealVolume = inheritedVolume;
             itype.Flags = inheritedFlags;
+            itype.Vitamins = inheritedVitamins;
+            itype.Tools = inheritedTools;
 
+            itype.Fun = jObj.ReadProperty(() => itype.Fun);
             itype.RealMass = jObj.ReadProperty(() => itype.RealMass);
             itype.RealVolume = jObj.ReadProperty(() => itype.RealVolume);
             itype.Flags = jObj.ReadProperty(() => itype.Flags);
+            itype.Vitamins = jObj.ReadProperty(() => itype.Vitamins);
+            itype.Tools = jObj.ReadProperty(() => itype.Tools);
 
+            Assert.That(itype.Fun, Is.EqualTo(-5));
             Assert.That(itype.RealMass == (Mass) "30KG");
             Assert.That(itype.RealVolume == (Volume) "30L");
             Assert.That(itype.Flags, Contains.Item("RECYCLED"));
+
+            Assert.That(itype.Vitamins["vitA"], Is.EqualTo(5.5));
+            Assert.That(itype.Vitamins["iron"], Is.EqualTo(8));
+
+            // Order of operations: Delete, Extends, Relative, Proportional
+            Assert.That(itype.Tools["soldering_iron"], Is.EqualTo(5));
+            Assert.That(itype.Tools["toolset"], Is.EqualTo(45));
+            Assert.That(itype.Tools["screwdriver"], Is.Not.Null);
+            Assert.That(itype.Tools["screwdriver"], Is.EqualTo(1));
+            Assert.That(itype.Tools.ContainsKey("hammer"), Is.False);
         }
 
         [Test]
