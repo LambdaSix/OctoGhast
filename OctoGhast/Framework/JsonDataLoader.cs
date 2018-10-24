@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -9,6 +7,7 @@ using MiscUtil;
 using Newtonsoft.Json.Linq;
 using OctoGhast.Entity;
 using OctoGhast.Units;
+using OctoGhast.UserInterface.Controls;
 
 namespace OctoGhast.Framework {
     public interface ITypeLoader {
@@ -23,9 +22,11 @@ namespace OctoGhast.Framework {
                 [typeof(long)] = (jObj, name, val, _) => ReadProperty(jObj, name, (long) val),
                 [typeof(double)] = (jObj, name, val, _) => ReadProperty(jObj, name, (double) val),
                 [typeof(float)] = (jObj, name, val, _) => ReadProperty(jObj, name, (float) val),
+                [typeof(bool)] = (jObj, name, val, _) => ReadProperty(jObj, name, (bool) val),
                 [typeof(string)] = (jObj, name, val, _) => ReadProperty(jObj, name),
                 [typeof(Volume)] = (jObj, name, val, _) => ReadProperty<Volume>(jObj, name, val as Volume),
                 [typeof(Mass)] = (jObj, name, val, _) => ReadProperty<Mass>(jObj, name, val as Mass),
+                [typeof(TimeDuration)] = (jObj, name, val, _) => ReadProperty<TimeDuration>(jObj, name, val as TimeDuration),
                 // Just handle all kinds of IEnumerable with an open type.
                 [typeof(IEnumerable<>)] = (jObj, name, val, types) => ReadEnumerable(jObj, name, val, typeof(IEnumerable<>), types),
                 [typeof(Dictionary<object, IEnumerable<object>>)] = (jObj, name, val, types) => ReadNestedDictionary(jObj, name, val, typeof(Dictionary<,>), types),
@@ -56,6 +57,11 @@ namespace OctoGhast.Framework {
 
         public static double ReadProperty(this JObject jObject, string name, double val) {
             var res = ReadProperty<double?>(jObject, name, val, (v, acc) => v + acc, (v, s) => v * s);
+            return res ?? val;
+        }
+
+        public static long ReadProperty(this JObject jObject, string name, long val) {
+            var res = ReadProperty<long?>(jObject, name, val, (v, acc) => (int?) (v + acc), (v, s) => (int?) (v * s));
             return res ?? val;
         }
 
@@ -300,7 +306,9 @@ namespace OctoGhast.Framework {
                 }
             }
 
-            var value = expression.Compile().GetValue(defaultValue);
+            var value = expression.GetRootObject() != null
+                ? expression.Compile().GetValue(defaultValue)
+                : defaultValue;
 
             if (attr.TypeLoader != null) {
                 var loader = Activator.CreateInstance(attr.TypeLoader) as ITypeLoader;
@@ -312,7 +320,7 @@ namespace OctoGhast.Framework {
         }
 
         public static string ReadProperty(this JObject jObject, string name) {
-            // No relative/proportional for strings.
+            // No relative/proportional for strings. (?)
             if (jObject.TryGetValue(name, out var value)) {
                 return value.Value<string>();
             }
@@ -334,7 +342,12 @@ namespace OctoGhast.Framework {
             return default(T);
         }
 
-        public static IEnumerable<T> ReadEnumerable<T>(JObject jObj, string name, IEnumerable<T> existingValue) {
+        public static IEnumerable<T> ReadEnumerable<T>(this JObject jObj, string name, IEnumerable<T> existingValue)
+        {
+            return ReadEnumerable(jObj, name, existingValue, null);
+        }
+
+        public static IEnumerable<T> ReadEnumerable<T>(this JObject jObj, string name, IEnumerable<T> existingValue, Func<JToken,T> mapFunc) {
             // TODO: Extend & Delete
             if (jObj.TryRetrieveExtends<T>(name, out var extends)) {
                 return existingValue.Concat(extends);
@@ -346,7 +359,9 @@ namespace OctoGhast.Framework {
 
             if (jObj.TryGetValue(name, out var value)) {
                 if (value is JArray arr) {
-                    return arr.Values<T>().ToList().AsEnumerable();
+                    return mapFunc != null
+                        ? arr.Select(mapFunc)
+                        : arr.Values<T>().ToList().AsEnumerable();
                 }
             }
 
@@ -375,6 +390,10 @@ namespace OctoGhast.Framework {
             return default;
         }
 
+        /*
+         * The following methods define a unused generic type then constrain it so the compiler knows how to redirect
+         * the invocations from the generic ReadProperty<T>(jObject,string,T) properly rather than going into an infinite loop on itself.
+         */
         public static Volume ReadProperty<T>(this JObject jObject, string name, Volume val) where T : Volume {
             return ReadProperty(
                 jObj: jObject,
@@ -397,7 +416,7 @@ namespace OctoGhast.Framework {
             );
         }
 
-        public static SoundLevel ReadProperty(this JObject jObject, string name, SoundLevel val) {
+        public static SoundLevel ReadProperty<T>(this JObject jObject, string name, SoundLevel val) where T:SoundLevel{
             /*
              * Naive implementation of the Relative/Proportional tags here.
              * 6dB + 6dB == 9dB, not 12dB because decibels are a logarithmic scale.
@@ -413,7 +432,7 @@ namespace OctoGhast.Framework {
             );
         }
 
-        public static TimeDuration ReadProperty(this JObject jObject, string name, TimeDuration val) {
+        public static TimeDuration ReadProperty<T>(this JObject jObject, string name, TimeDuration val) where T:TimeDuration{
             return ReadProperty(
                 jObj: jObject,
                 name: name,
@@ -447,7 +466,7 @@ namespace OctoGhast.Framework {
             if (!jObj.TryGetValue(name, out var normalValue) && required) {
                 throw new Exception($"No property {name} found on {jObj}");
             }
-            else {
+            else if (jObj.ContainsKey(name)) {
                 try {
                     newValue = normalValue.Value<T>();
                 }
