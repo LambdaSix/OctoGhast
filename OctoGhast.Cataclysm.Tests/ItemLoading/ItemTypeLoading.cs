@@ -43,7 +43,7 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
         public IEnumerable<string> Flags { get; set; }
 
         [LoaderInfo("magazines")]
-        public Dictionary<string,IEnumerable<string>> Magazines { get; set; }
+        public Dictionary<StringID<AmmoType>,IEnumerable<StringID<ItemType>>> Magazines { get; set; }
 
         [LoaderInfo("tools")]
         public Dictionary<string,int> Tools { get; set; }
@@ -145,8 +145,9 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
 
             Assert.That(itype.Flags, Contains.Item("FLAMMABLE").And.Contain("IGNITABLE"));
 
-            Assert.That(itype.Magazines["300"], Contains.Item("lw223mag"));
-            Assert.That(itype.Magazines["50"], Contains.Item("bigMag50").And.Contains("alternativeLittleMag"));
+            Assert.That(itype.Magazines["300"], Contains.Item(new StringID<ItemType>("lw223mag")));
+            Assert.That(itype.Magazines["50"], Contains.Item(new StringID<ItemType>("bigMag50")));
+            Assert.That(itype.Magazines["50"], Contains.Item(new StringID<ItemType>("alternativeLittleMag")));
 
             Assert.That(itype.Tools["soldering_iron"], Is.EqualTo(10));
             Assert.That(itype.Tools["toolset"], Is.EqualTo(10));

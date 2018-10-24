@@ -26,14 +26,28 @@ namespace OctoGhast.Framework {
                 [typeof(string)] = (jObj, name, val, _) => ReadProperty(jObj, name),
                 [typeof(Volume)] = (jObj, name, val, _) => ReadProperty<Volume>(jObj, name, val as Volume),
                 [typeof(Mass)] = (jObj, name, val, _) => ReadProperty<Mass>(jObj, name, val as Mass),
-                [typeof(Dictionary<string, IEnumerable<string>>)] = (jObj, name, val, _) => ReadNestedDictionary<string, string>(jObj, name),
-                // Defined as an open type to handle most 'pure' dictionarys, string:string, string:int, etc.
-                [typeof(Dictionary<,>)] = (jObj, name, val, types) => ReadDictionary(jObj, name, val, typeof(Dictionary<,>), types),
                 // Just handle all kinds of IEnumerable with an open type.
                 [typeof(IEnumerable<>)] = (jObj, name, val, types) => ReadEnumerable(jObj, name, val, typeof(IEnumerable<>), types),
+                [typeof(Dictionary<object, IEnumerable<object>>)] = (jObj, name, val, types) => ReadNestedDictionary(jObj, name, val, typeof(Dictionary<,>), types),
+                // Defined as an open type to handle most 'pure' dictionarys, string:string, string:int, etc.
+                [typeof(Dictionary<,>)] = (jObj, name, val, types) => ReadDictionary(jObj, name, val, typeof(Dictionary<,>), types),
                 // Special case, string converts to a given StringID<>, so just make it open to not need a constructed type for every variant.
                 [typeof(StringID<>)] = (jObj, name, val, types) => ReadProperty(jObj, name, val, typeof(StringID<>), types)
             };
+
+        private static readonly Dictionary<(Type from, Type to),Func<object, Type, object>> _castingMap = new Dictionary<(Type from, Type to), Func<object, Type, object>>()
+        {
+            [(typeof(String), typeof(StringID<>))] = ConvertStringID
+        };
+
+        private static object ConvertStringID(object input, Type type) {
+            if (input is string str && type.GetGenericTypeDefinition().IsAssignableFrom(typeof(StringID<>))) {
+                var ctor = type.GetConstructor(new Type[] {typeof(string)});
+                return Convert.ChangeType(ctor.Invoke(new object[] {str}), type);
+            }
+
+            return input;
+        }
 
         public static int ReadProperty(this JObject jObject, string name, int val) {
             var res = ReadProperty<int?>(jObject, name, val, (v, acc) => (int?) (v + acc), (v, s) => (int?) (v * s));
@@ -53,50 +67,65 @@ namespace OctoGhast.Framework {
         }
 
         public static T ReadProperty<T>(this JObject jObject, string name, T val) {
-            (Type type, Type[] arguments) args = (null, null);
+            (Func<JObject, string, object, Type[], object> func, Type type, Type[] arguments) args = (null, null, null);
 
-            foreach (var type in _conversionMap.Keys) {
-                // Exact type matches short circuit. No need to work anything else out.
-                if (type == typeof(T)) {
-                    args = (typeof(T), new Type[0]);
-                    break;
-                }
+            var tType = typeof(T);
+            var isGeneric = tType.IsGenericType;
+            var isSequenceType = isGeneric && tType.GetGenericTypeDefinition().IsAssignableFrom(typeof(IEnumerable<>));
+            var isDictionary = isGeneric && tType.GetGenericTypeDefinition().IsAssignableFrom(typeof(Dictionary<,>));
+            var genericArgs = isGeneric ? tType.GetGenericArguments() : new Type[0];
 
-                var isOpenType = type.IsGenericType && type.IsGenericTypeDefinition;
+            var isNestedSequenceType = isGeneric && genericArgs.Length == 2
+                                       && genericArgs[1].IsGenericType
+                                       && genericArgs[1].GetGenericTypeDefinition().IsAssignableFrom(typeof(IEnumerable<>));
 
-                if (isOpenType) {
-                    args = (typeof(T).GetGenericTypeDefinition(), typeof(T).GetGenericArguments());
-                    break;
+            // Special case IEnumerable<>, Dictionary<,>, and Dictionary<,IEnumerable<>>
+            if (isSequenceType) {
+                args = (_conversionMap[typeof(IEnumerable<>)], tType, tType.GetGenericArguments());
+            } else if (isDictionary && !isNestedSequenceType) {
+                args = (_conversionMap[typeof(Dictionary<,>)], tType, tType.GetGenericArguments());
+            }
+            else if (isDictionary && isNestedSequenceType) {
+                args =(_conversionMap[typeof(Dictionary<object,IEnumerable<object>>)], tType, tType.GetGenericArguments());
+            }
+            else {
+                foreach (var (type, value) in _conversionMap.Select(s => (s.Key, s.Value))) {
+                    // Exact type matches short circuit. No need to work anything else out.
+                    if (type == tType) {
+                        args = (value, tType, new Type[0]);
+                        break;
+                    }
+
+                    if (isGeneric && tType.GetGenericTypeDefinition().IsAssignableFrom(type)) {
+                        args = (value, tType, tType.GetGenericArguments());
+                        break;
+                    }
                 }
             }
 
-            if (args == (null, null))
-                throw new ArgumentException($"Unable to deduce built-in loader for type: '{typeof(T)}");
+            if (args == (null, null, null))
+                throw new ArgumentException($"Unable to deduce built-in loader for type: '{tType}");
 
-            if (_conversionMap.TryGetValue(args.type, out var func)) {
-                var result = func(jObject, name, val, args.arguments);
+            var result = args.func(jObject, name, val, args.arguments);
 
-                if (!args.type.IsGenericType || args.type.IsConstructedGenericType) {
-                    return (T) result;
-                }
-
-                // Handle sequences
-                var typeOfT = args.type.MakeGenericType(args.arguments);
-                var isInterface = args.type.IsInterface;
-
-                if (args.type.IsGenericType && result.GetType().IsAssignableFrom(typeOfT)) {
-                    return (T) result;
-                }
-                else if (isInterface && (result.GetType().GetInterface(typeOfT.Name) != null)) {
-                    return (T) result;
-                }
-                else {
-                    var newType = args.type.MakeGenericType(args.arguments);
-                    return (T) Convert.ChangeType(result, newType);
-                }
+            if (!args.type.IsGenericType) {
+                return (T) result;
             }
 
-            return val;
+            // Handle sequences
+            var typeOfT = args.type.GetGenericTypeDefinition().MakeGenericType(args.arguments);
+            var isInterface = args.type.IsInterface;
+
+            if (args.type.IsGenericType && result.GetType().IsAssignableFrom(typeOfT)) {
+                return (T) result;
+            }
+            else if (isInterface && (result.GetType().GetInterface(typeOfT.Name) != null)) {
+                return (T) result;
+            }
+            else {
+                var newType = typeOfT;
+                return (T) Convert.ChangeType(result, newType);
+            }
         }
 
         public static object ReadDictionary<T>(this JObject jObject, string name, T existingValue, Type realType, Type[] types) {
@@ -200,22 +229,53 @@ namespace OctoGhast.Framework {
             return dict;
         }
 
-        public static Dictionary<TKey, IEnumerable<TValue>> ReadNestedDictionary<TKey, TValue>(JObject jObj,
-            string name) {
+        public static object ReadNestedDictionary<T>(this JObject jObject, string name, T existingValue, Type realType, Type[] types) {
+            var paramTypes = new[] {typeof(JObject), typeof(string)};
+
+            if (realType.IsGenericTypeDefinition && types.Any()) {
+                var method = FindGenericMethod(nameof(ReadNestedDictionary), paramTypes, 2);
+                var innerTypes = new[]
+                {
+                    types[0],
+                    types[1].GenericTypeArguments[0]
+                };
+
+                var genericMethod = method.MakeGenericMethod(innerTypes);
+                return genericMethod.Invoke(null, new object[] {jObject, name});
+            }
+
+            return default;
+        }
+
+        public static Dictionary<TKey, IEnumerable<TValue>> ReadNestedDictionary<TKey, TValue>(JObject jObj, string name) {
             Dictionary<TKey, IEnumerable<TValue>> workingSet = new Dictionary<TKey, IEnumerable<TValue>>();
+            Func<object,Type,object> keyConverter;
+            Func<object,Type,object> valueConverter;
+
+            if (!_castingMap.TryGetValue((typeof(string), typeof(TKey).GetGenericTypeDefinition()), out keyConverter))
+                throw new Exception($"Unable to find key converter from {typeof(string)} to {typeof(TKey).GetGenericTypeDefinition()}");
+            if (!_castingMap.TryGetValue((typeof(string), typeof(TValue).GetGenericTypeDefinition()), out valueConverter)) {
+                throw new Exception($"Unable to find value converter from {typeof(string)} to {typeof(TValue).GetGenericTypeDefinition()}");
+            }
+            
+
             var rootObject = jObj.GetValue(name);
             if (rootObject is JArray) {
                 var pairs = rootObject.Zip(rootObject.Skip(1), Tuple.Create);
 
-                foreach (var (key, value) in pairs.Where(s => s.Item1.Type != JTokenType.Array)) {
-                    var values = value;
-                    IEnumerable<TValue> set = Enumerable.Empty<TValue>();
+                foreach (var (jKey, jValue) in pairs.Where(s => s.Item1.Type != JTokenType.Array)) {
+                    var values = jValue;
+                    var set = Enumerable.Empty<TValue>();
 
                     if (values is JArray subArray) {
-                        set = subArray.Values<TValue>();
+                        var tempSet = subArray.Values<string>();
+                        set = tempSet.Select(s => (TValue) keyConverter(s, typeof(TValue)));
                     }
 
-                    workingSet.Add(key.Value<TKey>(), set.ToList());
+                    var key = (TKey)keyConverter(jKey.Value<string>(), typeof(TKey));
+
+
+                    workingSet.Add(key, set.ToList());
                 }
             }
 

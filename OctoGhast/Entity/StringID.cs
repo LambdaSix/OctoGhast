@@ -4,12 +4,8 @@ namespace OctoGhast.Entity {
     public class StringID<T> : IComparable<StringID<T>>, IComparable, IEquatable<StringID<T>> {
         private string Id { get; }
 
-        public StringID(string id, int cid = -1) {            
+        public StringID(string id) {            
             Id = id;
-        }
-
-        public StringID() : this("") {
-
         }
 
         public static StringID<T> NullId = new StringID<T>(null);
