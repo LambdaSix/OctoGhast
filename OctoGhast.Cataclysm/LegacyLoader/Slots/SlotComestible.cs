@@ -45,8 +45,8 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         [LoaderInfo("parasites")]
         public int ParasiteFactor { get; set; }
 
-        [LoaderInfo("vitamins", false, null, TypeLoader = typeof(VitaminLoader))]
-        public Dictionary<VitaminInfo, int> Vitamins { get; set; }
+        [LoaderInfo("vitamins", false, null)]
+        public Dictionary<string, float> Vitamins { get; set; }
 
         [LoaderInfo("rot_spawn", false, null)]
         public StringID<MonsterGroup> RotSpawn { get; set; }

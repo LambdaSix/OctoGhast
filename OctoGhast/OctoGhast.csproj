@@ -80,7 +80,6 @@
     <Compile Include="Entity\Item\Component\ItemInfoComponent.cs" />
     <Compile Include="Factory\Loader\BaseLoader.cs" />
     <Compile Include="Factory\Loader\BurnableLoader.cs" />
-    <Compile Include="Factory\Loader\VitaminLoader.cs" />
     <Compile Include="Factory\Loader\MaterialLoader.cs" />
     <Compile Include="Factory\ItemFactory.cs" />
     <Compile Include="Extensions\JObjectExtensions.cs" />
