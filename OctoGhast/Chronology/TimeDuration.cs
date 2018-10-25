@@ -143,7 +143,7 @@ namespace OctoGhast {
             throw new NotImplementedException();
         }
 
-        public static TimeDuration FromTurns(int turns) => new TimeDuration((ulong) turns * 6);
+        public static TimeDuration FromTurns(int turns) => new TimeDuration((ulong) turns);
         public static TimeDuration FromSeconds(int seconds) => new TimeDuration((seconds < 6) ? 0 : (ulong) seconds / 6);
         public static TimeDuration FromMinutes(int minutes) => new TimeDuration((ulong) minutes * 10);
         public static TimeDuration FromHours(int hours) => FromMinutes(60 * hours);
