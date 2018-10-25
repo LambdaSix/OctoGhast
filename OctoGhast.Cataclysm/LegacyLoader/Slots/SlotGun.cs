@@ -1,56 +1,94 @@
 ﻿using System.Collections.Generic;
 using OctoGhast.Entity;
+using OctoGhast.Framework;
 using OctoGhast.Units;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {
+    public class GunMod {
+
+    }
+
     public class SlotGun : CommonRangedData {
-        public StringID<Skill> SkillUsed { get; set; } = StringID<Skill>.NullId;
-        public StringID<AmmoType> Ammo { get; set; } = StringID<AmmoType>.NullId;
-        public int Durability { get; set; } = 0;
-        public int IntegralMagazineSize { get; set; } = 0;
-        public TimeDuration ReloadTime { get; set; } = new TimeDuration();
+        [LoaderInfo("skill")]
+        public StringID<Skill> SkillUsed { get; set; }
+
+        [LoaderInfo("ammo")]
+        public StringID<AmmoType> Ammo { get; set; }
+
+        [LoaderInfo("durability")]
+        public int Durability { get; set; }
+
+        [LoaderInfo("integral_magazine_volume")]
+        public Volume IntegralMagazineSize { get; set; }
+
+        [LoaderInfo("reload")]
+        public TimeDuration ReloadTime { get; set; }
+
+        [LoaderInfo("reload_noise")]
         public string ReloadNoise { get; set; } = Translation.Translation._($"click.");
-        public SoundLevel ReloadNoiseVolume { get; set; } = "0dB";
-        public int SightDispersion { get; set; } = 30;
-        public SoundLevel Loudness { get; set; } = "0dB";
-        public int UPSCharges { get; set; } = default;
-        public Volume BarrelLength { get; set; } = "0ml";
+
+        [LoaderInfo("reload_noise_volume")]
+        public SoundLevel ReloadNoiseVolume { get; set; }
+
+        [LoaderInfo("sight_dispersion", false, 30)]
+        public int SightDispersion { get; set; }
+
+        [LoaderInfo("loudness", false, "0dB")]
+        public SoundLevel Loudness { get; set; }
+
+        [LoaderInfo("ups_charges")]
+        public int UPSCharges { get; set; }
+
+        [LoaderInfo("barrel_length", false, "0L")]
+        public Volume BarrelLength { get; set; }
+
+        [LoaderInfo("ammo_effects")]
         public IEnumerable<string> AmmoEffects { get; set; }
 
         /// <summary>
         /// Key is the (untranslated) location, value is the number of mods can have installed there.
         /// </summary>
-        public Dictionary<GunModLocation, int> ValidModLocations { get; set; }
+        [LoaderInfo("valid_mod_locations")]
+        public Dictionary<StringID<GunMod>, int> ValidModLocations { get; set; }
 
         /// <summary>
         /// Built in mods, these mods cannot be removed (IRREMOVABLE)
         /// </summary>
+        [LoaderInfo("built_in_mods")]
         public IEnumerable<StringID<ItemType>> IntegralModifications { get; set; }
 
         /// <summary>
         /// Default mods, these are removable.
         /// </summary>
+        [LoaderInfo("default_mods")]
         public IEnumerable<StringID<ItemType>> DefaultMods { get; set; }
 
+        /*
+         * "modes": [ [ "DEFAULT", "auto", 8 ], [ "SEMI", "semi-auto", 1 ] ],
+         */
         /// <summary>
         /// Firing modes supported by the weapon, should always have at least DEFAULT mode
         /// </summary>
-        public Dictionary<StringID<GunMode>, GunModifierData> ModeModifier { get; set; }
+        [LoaderInfo("modes")]
+        public Dictionary<string, GunModifierData> ModeModifier { get; set; }
 
         /// <summary>
         /// Burst size for AUTO mode, legacy field for items not migrated to specify modes
         /// </summary>
-        public int Burst { get; set; } = 0;
+        [LoaderInfo("burst")]
+        public int Burst { get; set; }
 
         /// <summary>
         /// How easy is the weapon to control (weight, recoil, etc). If unset, value derived from weapon type.
         /// </summary>
-        public int Handling { get; set; } = -1;
+        [LoaderInfo("handling", false, -1)]
+        public int Handling { get; set; }
 
         /// <summary>
         /// Additional recoil applied per shot, before effects of handling are considered.
         /// Useful for adding recoil effect to weapons that otherwise consume no ammunition.
         /// </summary>
+        [LoaderInfo("recoil")]
         public int Recoil { get; set; }
     }
 }

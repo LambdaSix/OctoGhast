@@ -1,13 +1,17 @@
-﻿namespace OctoGhast.Cataclysm.LegacyLoader {
+﻿using OctoGhast.Framework;
+
+namespace OctoGhast.Cataclysm.LegacyLoader {
     public class SlotWheel {
         /// <summary>
         /// Diameter of wheel in inches
         /// </summary>
-        public int Diameter { get; set; } = 0;
+        [LoaderInfo("diameter")]
+        public int Diameter { get; set; }
 
         /// <summary>
         /// Width of wheel in inches
         /// </summary>
-        public int Width { get; set; } = 0;
+        [LoaderInfo("width")]
+        public int Width { get; set; }
     }
 }

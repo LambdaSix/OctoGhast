@@ -5,6 +5,54 @@ using OctoGhast.Units;
 
 namespace OctoGhast.Core.Tests {
     [TestFixture]
+    public class EnergyQuantityTests {
+        [Test]
+        public void EnergyComparable() {
+            Energy e1 = "100W";
+            Energy e2 = "100W";
+
+            Assert.That(e1 == e2);
+            Assert.That(e1, Is.EqualTo(e2));
+            Assert.AreEqual(e1, e2);
+
+            var e3 = e1 + (Energy) "100W";
+
+            Assert.That(e1 != e3);
+            Assert.That(e3 != (Energy) "100W");
+        }
+
+        [Test]
+        public void UnitConversions() {
+            Energy e1 = "1W";
+
+            Assert.AreEqual(e1,Energy.FromJoules(1));
+            Assert.AreEqual(e1, Energy.FromKilojoules(0.001));
+            Assert.AreEqual(Energy.FromMegajoules(1), Energy.FromJoules(1_000_000));
+
+            Assert.AreEqual(Energy.FromCalories(1), Energy.FromJoules(4.1868));
+            Assert.AreEqual(Energy.FromKilocalories(1), Energy.FromCalories(1000));
+
+            Assert.AreEqual(Energy.FromWatts(1), e1);
+            Assert.AreEqual(Energy.FromKilowatts(1), Energy.FromWatts(1000));
+
+            Assert.AreEqual(Energy.FromWattHours(1), Energy.FromWatts(3600));
+            Assert.AreEqual(Energy.FromKilowattHours(1), Energy.FromWattHours(1000));
+
+            Assert.AreEqual(Energy.FromHorsepower(1), Energy.FromWatts(745));        
+        }
+
+        [Test]
+        public void EnergyDensity() {
+            var e1 = Energy.FromMaterial("1L", 38.6); // 1 Litre of Diesel
+            var e2 = Energy.FromMaterial("60L", 38.6); // 60 Litres of Diesel
+
+            Assert.That(e1, Is.EqualTo((Energy) "38.6MJ"));
+            Assert.That(e2, Is.EqualTo((Energy) "2316MJ"));
+            Assert.That(e1.KilowattHours, Is.EqualTo(((Energy)"10.722222222222221kWh").KilowattHours));
+        }
+    }
+
+    [TestFixture]
     public class SoundLevelPressureQuantityTests {
         [Test]
         public void SoundLevelComparable() {
@@ -71,16 +119,16 @@ namespace OctoGhast.Core.Tests {
             Assert.That(grams == grams2);
             Assert.That(grams == (Mass) "100g");
 
-            var g3 = (grams2 * 1.5);
+            grams2 += "100g";
 
-            Assert.That(grams != g3);
+            Assert.That(grams != grams2);
             Assert.That(grams != (Mass) "500g");
 
-            Assert.That(grams, Is.Not.EqualTo(g3));
+            Assert.That(grams, Is.Not.EqualTo(grams2));
             Assert.That(grams, Is.Not.EqualTo((Mass)"500g"));
 
-            Assert.That(grams < g3);
-            Assert.That(g3 > grams);
+            Assert.That(grams < grams2);
+            Assert.That(grams2 > grams);
         }
 
         [Test]

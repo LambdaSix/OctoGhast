@@ -66,6 +66,7 @@
     <Compile Include="BodyPart.cs" />
     <Compile Include="Chronology\Calendar.cs" />
     <Compile Include="Chronology\Time.cs" />
+    <Compile Include="CoreMaterials.cs" />
     <Compile Include="Damage.cs" />
     <Compile Include="Entity\Mobile.cs" />
     <Compile Include="Entity\Item\Component\GenericItemComponent.cs" />

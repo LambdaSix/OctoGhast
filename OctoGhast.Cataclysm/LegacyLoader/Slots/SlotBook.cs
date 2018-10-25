@@ -1,19 +1,31 @@
 ﻿using OctoGhast.Entity;
+using OctoGhast.Framework;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {
     public class SlotBook {
-        public StringID<Skill> Skill = StringID<Skill>.NullId;
-        public int Level { get; set; } = default;
-        public int Req { get; set; } = default;
-        public int Fun { get; set; } = default;
-        public int Intel { get; set; } = default;
+        [LoaderInfo("skill")]
+        public StringID<Skill> Skill { get; set; }
+
+        [LoaderInfo("max_level")]
+        public int MaxLevel { get; set; }
+
+        [LoaderInfo("required_level")]
+        public int RequiredLevel { get; set; }
+
+        [LoaderInfo("fun")]
+        public int Fun { get; set; }
+
+        [LoaderInfo("intelligence")]
+        public int Intel { get; set; }
 
         /// <summary>
         /// How long in in minutes (10 turns) it takes to read.
         /// 'to read' means getting 1 skill-point.
         /// </summary>
-        public int Time { get; set; } = 0;
+        [LoaderInfo("time")]
+        public TimeDuration Time { get; set; }
 
-        public int Chapters { get; set; } = 0;
+        [LoaderInfo("chapters")]
+        public int Chapters { get; set; }
     }
 }

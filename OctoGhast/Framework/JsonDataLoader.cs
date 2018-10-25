@@ -15,7 +15,7 @@ namespace OctoGhast.Framework {
     }
 
     public static class JsonDataLoader {
-        private static readonly Dictionary<Type, Func<JObject, string, object, Type[], object>> _conversionMap =
+        private static Dictionary<Type, Func<JObject, string, object, Type[], object>> _conversionMap =
             new Dictionary<Type, Func<JObject, string, object, Type[], object>>()
             {
                 [typeof(int)] = (jObj, name, val, _) => ReadProperty(jObj, name, (int) val),
@@ -26,6 +26,8 @@ namespace OctoGhast.Framework {
                 [typeof(string)] = (jObj, name, val, _) => ReadProperty(jObj, name),
                 [typeof(Volume)] = (jObj, name, val, _) => ReadProperty<Volume>(jObj, name, val as Volume),
                 [typeof(Mass)] = (jObj, name, val, _) => ReadProperty<Mass>(jObj, name, val as Mass),
+                [typeof(Energy)] = (jObj, name, val, _) => ReadProperty<Energy>(jObj, name, val as Energy),
+                [typeof(SoundLevel)] = (jObj, name, val, _) => ReadProperty<SoundLevel>(jObj, name, val as SoundLevel),
                 [typeof(TimeDuration)] = (jObj, name, val, _) => ReadProperty<TimeDuration>(jObj, name, val as TimeDuration),
                 // Just handle all kinds of IEnumerable with an open type.
                 [typeof(IEnumerable<>)] = (jObj, name, val, types) => ReadEnumerable(jObj, name, val, typeof(IEnumerable<>), types),
@@ -36,13 +38,25 @@ namespace OctoGhast.Framework {
                 [typeof(StringID<>)] = (jObj, name, val, types) => ReadProperty(jObj, name, val, typeof(StringID<>), types)
             };
 
-        private static readonly Dictionary<(Type from, Type to),Func<object, Type, object>> _castingMap = new Dictionary<(Type from, Type to), Func<object, Type, object>>()
+        private static Dictionary<Type,Func<JToken, Type, object>> _castingMap = new Dictionary<Type, Func<JToken, Type, object>>()
         {
-            [(typeof(String), typeof(StringID<>))] = ConvertStringID
+            [typeof(StringID<>)] = ConvertStringID
         };
 
-        private static object ConvertStringID(object input, Type type) {
-            if (input is string str && type.GetGenericTypeDefinition().IsAssignableFrom(typeof(StringID<>))) {
+        public static void RegisterTypeLoader(Type typeDef, Func<JObject, string, object, Type[], object> func) {
+            if (_conversionMap.ContainsKey(typeDef))
+                throw new ArgumentException($"Type Loader already contains loader for {typeDef.Name}");
+            _conversionMap.Add(typeDef, func);
+        }
+
+        public static void RegisterConverter(Type typeDef, Func<JToken, Type, object> func) {
+            if (_castingMap.ContainsKey(typeDef))
+                throw new ArgumentException($"Converter already contains conversion for {typeof(JToken)} -> {typeDef}");
+            _castingMap.Add(typeDef, func);
+        }
+
+        private static object ConvertStringID(JToken input, Type type) {
+            if (input.Value<string>() is string str && type.GetGenericTypeDefinition().IsAssignableFrom(typeof(StringID<>))) {
                 var ctor = type.GetConstructor(new Type[] {typeof(string)});
                 return Convert.ChangeType(ctor.Invoke(new object[] {str}), type);
             }
@@ -151,7 +165,9 @@ namespace OctoGhast.Framework {
 
         public static Dictionary<TKey, TValue> ReadDictionary<TKey, TValue>(JObject jObj, string name, Dictionary<TKey,TValue> existingValue) {
             Dictionary<TInnerKey, TInnerValue> RetrieveDictionary<TInnerKey,TInnerValue>(JContainer input) {
-                IEnumerable<(TInnerKey key,TInnerValue value)> ExtractPairs(JToken jToken) {
+                IEnumerable<(TInnerKey key,TInnerValue value)> ExtractPairs(JToken jToken, Func<JToken,TInnerKey> keyMap = null,
+                    Func<JToken, TInnerValue> valueMap = null) {
+
                     if (jToken.First is JArray) {
                         foreach (var subArray in jToken) {
                             switch (subArray.Count()) {
@@ -165,21 +181,37 @@ namespace OctoGhast.Framework {
                         }
                     }
                     else {
-                        yield return (jToken.ElementAtOrDefault(0).Value<TInnerKey>(), jToken.ElementAtOrDefault(1).Value<TInnerValue>());
+                        yield return (
+                            keyMap != null
+                                ? keyMap(jToken.ElementAtOrDefault(0))
+                                : jToken.ElementAtOrDefault(0).Value<TInnerKey>(),
+                            valueMap != null
+                                ? valueMap(jToken)
+                                : jToken.ElementAtOrDefault(1).Value<TInnerValue>()
+                        );
                     }
                 }
 
                 var res = Enumerable.Empty<(TInnerKey key, TInnerValue value)>();
 
+                Func<JToken, TInnerKey> keyConverter = null;
+                Func<JToken, TInnerValue> valueConverter = null;
+
+                if (_castingMap.TryGetValue(OpenType<TInnerKey>(), out var keyFunc))
+                    keyConverter = t => (TInnerKey) keyFunc(t, typeof(TInnerKey));
+                if (_castingMap.TryGetValue(OpenType<TInnerValue>(), out var valueFunc))
+                    valueConverter = t => (TInnerValue) valueFunc(t, typeof(TInnerValue));
+                    
+
                 switch (input) {
                     case JProperty rootProperty:
                     {
-                        res = rootProperty.Children().Children().SelectMany(ExtractPairs);
+                        res = rootProperty.Children().Children().SelectMany(t => ExtractPairs(t, keyConverter, valueConverter));
                         break;
                     }
                     case JArray rootObject:
                     {
-                        res = rootObject.Children().SelectMany(ExtractPairs);
+                        res = rootObject.Children().SelectMany(t => ExtractPairs(t, keyConverter, valueConverter));
                         break;
                     }
                 }
@@ -255,12 +287,12 @@ namespace OctoGhast.Framework {
 
         public static Dictionary<TKey, IEnumerable<TValue>> ReadNestedDictionary<TKey, TValue>(JObject jObj, string name) {
             Dictionary<TKey, IEnumerable<TValue>> workingSet = new Dictionary<TKey, IEnumerable<TValue>>();
-            Func<object,Type,object> keyConverter;
-            Func<object,Type,object> valueConverter;
+            Func<JToken,Type,object> keyConverter;
+            Func<JToken,Type,object> valueConverter;
 
-            if (!_castingMap.TryGetValue((typeof(string), typeof(TKey).GetGenericTypeDefinition()), out keyConverter))
+            if (!_castingMap.TryGetValue(typeof(TKey).GetGenericTypeDefinition(), out keyConverter))
                 throw new Exception($"Unable to find key converter from {typeof(string)} to {typeof(TKey).GetGenericTypeDefinition()}");
-            if (!_castingMap.TryGetValue((typeof(string), typeof(TValue).GetGenericTypeDefinition()), out valueConverter)) {
+            if (!_castingMap.TryGetValue(typeof(TValue).GetGenericTypeDefinition(), out valueConverter)) {
                 throw new Exception($"Unable to find value converter from {typeof(string)} to {typeof(TValue).GetGenericTypeDefinition()}");
             }
             
@@ -344,10 +376,16 @@ namespace OctoGhast.Framework {
 
         public static IEnumerable<T> ReadEnumerable<T>(this JObject jObj, string name, IEnumerable<T> existingValue) {
             Func<JToken, T> mapFunc = default;
-            if (typeof(T).IsGenericType && _castingMap.TryGetValue((typeof(string), typeof(T).GetGenericTypeDefinition()), out var func)) {
+
+            if (_castingMap.TryGetValue(OpenType<T>(), out var func)) {
                 mapFunc = (token) => (T) func(token.Value<string>(), typeof(T));
             }
             return ReadEnumerable(jObj, name, existingValue, mapFunc);
+        }
+
+        private static Type OpenType<T>() {
+            var openTypeOfT = typeof(T).IsGenericType ? typeof(T).GetGenericTypeDefinition() : typeof(T);
+            return openTypeOfT;
         }
 
         public static IEnumerable<T> ReadEnumerable<T>(this JObject jObj, string name, IEnumerable<T> existingValue, Func<JToken,T> mapFunc) {
@@ -419,6 +457,18 @@ namespace OctoGhast.Framework {
             );
         }
 
+        public static Energy ReadProperty<T>(this JObject jObject, string name, Energy val) where T : Energy
+        {
+            return ReadProperty(
+                jObj: jObject,
+                name: name,
+                existingValue: val,
+                mapFunc: s => new Energy(s),
+                relativeFunc: (v, acc) => new Energy((v + acc)),
+                proportionalFunc: (v, acc) => new Energy(v * acc)
+            );
+        }
+
         public static SoundLevel ReadProperty<T>(this JObject jObject, string name, SoundLevel val) where T:SoundLevel{
             /*
              * Naive implementation of the Relative/Proportional tags here.
@@ -469,7 +519,7 @@ namespace OctoGhast.Framework {
             if (!jObj.TryGetValue(name, out var normalValue) && required) {
                 throw new Exception($"No property {name} found on {jObj}");
             }
-            else if (jObj.ContainsKey(name)) {
+            else if (jObj.ContainsKey(name) && normalValue.Type != JTokenType.Array && normalValue.Type != JTokenType.Object) {
                 try {
                     newValue = normalValue.Value<T>();
                 }

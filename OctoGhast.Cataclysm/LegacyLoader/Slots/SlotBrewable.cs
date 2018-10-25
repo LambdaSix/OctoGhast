@@ -1,9 +1,13 @@
 ﻿using System.Collections.Generic;
 using OctoGhast.Entity;
+using OctoGhast.Framework;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {
     public class SlotBrewable {
+        [LoaderInfo("results")]
         public IEnumerable<StringID<ItemType>> Results { get; set; }
-        private TimeDuration Time { get; set; } = new TimeDuration(0);
+
+        [LoaderInfo("time")]
+        public TimeDuration Time { get; set; } = new TimeDuration(0);
     }
 }

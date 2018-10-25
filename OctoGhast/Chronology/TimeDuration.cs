@@ -18,6 +18,10 @@ namespace OctoGhast {
             Turns = 0;
         }
 
+        /*
+         * TODO: Implement TimeDuration(string) to decompose something like "5M 22d 14h 12m" into 5 months, 22 days, 14 hours and 12 minutes.
+         */
+
         public int TotalSeconds => (int) (Turns * 6);
         public int Seconds => (TotalSeconds % 60);
 
@@ -74,7 +78,12 @@ namespace OctoGhast {
                 return _($"{TotalHours} minute", $"{TotalHours} minutes", TotalHours);
             }
 
-            if (this < TimeDuration.FromSeasons(1)) {
+            if (this < TimeDuration.FromWeeks(1)) {
+                return _($"{TotalDays} days", $"{TotalDays} days", (TotalDays));
+            }
+
+            if (this < TimeDuration.FromSeasons(1))
+            {
                 return _($"{TotalDays / 7} week", $"{TotalDays / 7} weeks", (TotalDays / 7));
             }
 

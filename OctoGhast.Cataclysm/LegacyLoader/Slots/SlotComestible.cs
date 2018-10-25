@@ -11,7 +11,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         [LoaderInfo("tool")]
         public StringID<ItemType> Tool { get; set; }
 
-        [LoaderInfo("charges", false, 1)]
+        [LoaderInfo("charges", false, 1L)]
         public long DefaultCharges { get; set; }
 
         [LoaderInfo("quench")]
@@ -24,7 +24,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         [LoaderInfo("calories")]
         public int Calories { get; set; }
 
-        [LoaderInfo("spoils_in", false, 0)]
+        [LoaderInfo("spoils_in")]
         public TimeDuration SpoilsIn { get; set; }
 
         [LoaderInfo("addiction_potential")]

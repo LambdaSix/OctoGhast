@@ -9,6 +9,7 @@ namespace OctoGhast.Units {
     public class MassInGramsTag { }
     public class LoudnessInKilopascalsTag { }
     public class PressureInKiloPascalsTag { }
+    public class EnergyInJoulesTag { }
 
     public class Quantity<TValue, TUnit> : IEquatable<Quantity<TValue, TUnit>> {
         public TValue Value { get; }
@@ -176,41 +177,6 @@ namespace OctoGhast.Units {
         }
     }
 
-    /// <summary>
-    /// Core materials required by the system, can be replaced at runtime with alternate definitions.
-    /// </summary>
-    public static class CoreMaterials {
-        private static Dictionary<string, Material> materialMap { get; } = new Dictionary<string, Material>()
-        {
-            ["air"] = new Material()
-            {
-                Name = "Air",
-                Id = "core_air"
-            },
-            ["water"] = new Material()
-            {
-                Name = "Water",
-                Id = "core_water",
-                Density = 1.0f,
-            }
-        };
-
-        public static Material Air { get; } = materialMap["air"];
-
-        public static Material Water { get; } = materialMap["water"];
-
-        public static void Update(params Material[] newDefinitions) {
-            foreach (var material in newDefinitions) {
-                if (material.Name is null)
-                    throw new ArgumentNullException($"Supplied material ({material.Id ?? "unknown"}) has no name");
-
-                if (materialMap.ContainsKey(material.Name)) {
-                    materialMap[material.Name] = material;
-                }
-            }
-        }
-    }
-
     public class SoundLevel : Quantity<double, LoudnessInKilopascalsTag> {
         /// <summary>
         ///  Reference sound pressure - 20μPa (2*10^-5 Pa)
@@ -305,7 +271,7 @@ namespace OctoGhast.Units {
         public float Liters => Value / 1000.0f;
 
         public static Volume FromMilliliters(int value) => new Volume(value);
-        public static Volume FromLiters(float value) => FromMilliliters((int) (value * 1000.0f));
+        public static Volume FromLiters(double value) => FromMilliliters((int) (value * 1000.0f));
 
         /// <summary>
         /// Legacy conversion for old volume values.
@@ -327,35 +293,26 @@ namespace OctoGhast.Units {
         }
 
         private static Regex _compiledRegex =
-            new Regex(@"([-]?[\d.]+)((ml)|(milliliter)|(L)|(liter)|(KL)|(kiloliter)?)", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
+            new Regex(@"([-]?[\d.]+)((ml)|(milliliter)|(L)|(liter)|(KL)|(kiloliter)|(cc)?)", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
 
         public static implicit operator Volume(string value)
         {
             var matches = _compiledRegex.Match(value);
             if (matches.Success) {
                 var (val, unit) = (matches.Groups[1].Value, matches.Groups[2].Value.ToLower());
-                if (unit == "ml" || unit == "milliliter") {
-                    return Volume.FromMilliliters(Int32.Parse(val));
-                }
-
-                if (unit == "l" || unit == "liter") {
-                    if (val.Contains(".")) {
-                        // If there's a decimal point and it's a liter:
-                        var rawVal = Single.Parse(val);
-                        return FromLiters(rawVal);
+                switch (unit) {
+                    case "ml":
+                    case "milliliter":
+                    case "cc":
+                        return Volume.FromMilliliters(Int32.Parse(val));
+                    case "l":
+                    case "liter": {
+                        return FromLiters(Double.Parse(val));
                     }
-
-                    return FromLiters(Int32.Parse(val));
-                }
-
-                if (unit == "kl" || unit == "kiloliter") {
-                    if (val.Contains(".")) {
-                        // If there's a decimal point and it's a kiloliter:
-                        var rawVal = Double.Parse(val);
-                        return FromLiters((int) (rawVal * 1000));
+                    case "kl":
+                    case "kiloliter": {
+                        return FromLiters(Double.Parse(val) * 1000);
                     }
-
-                    return FromLiters(Int32.Parse(val) * 1000);
                 }
 
                 // Without a unit we're assuming it's being specified in multiples of 250 milliliters
@@ -376,9 +333,9 @@ namespace OctoGhast.Units {
 
         public Mass(int value) : base(value) { }
 
-        public Mass(Quantity<int, MassInGramsTag> value) : this(value.Value) { }
+        public Mass(string value) : base(((Mass)value).Value) { }
 
-        public Mass(string value) : base(((Mass) value).Value) { }
+        public Mass(Quantity<int, MassInGramsTag> value) : this(value.Value) { }
 
         public int Grams => Value;
         public float Kilograms => Value / 1000.0f;
@@ -445,6 +402,129 @@ namespace OctoGhast.Units {
                     }
 
                     return FromKilograms(Int32.Parse(val) * 1000.0f);
+                }
+            }
+
+            throw new ArgumentException("Unable to match value against known quantity", nameof(value));
+        }
+    }
+
+    public class Energy : Quantity<double, EnergyInJoulesTag> {
+        private static double CalorieConversionFactor = 4.1868;
+        private static double HorsepowerConversionFactor = 745;
+
+        /// <inheritdoc />
+        public Energy(double joules) : base(joules) { }
+
+        public Energy(string value) : base(((Energy)value).Value) { }
+
+        public double Joules => Value;
+        public double Kilojoules => Value / 1000;
+        public double Megajoules => Value / 1_000_000;
+
+        /// <summary>
+        /// Energy in Watt-Seconds
+        /// </summary>
+        public double Watts => Value;
+
+        /// <summary>
+        /// Energy in Kilowatt-Seconds
+        /// </summary>
+        public double Kilowatts => Watts / 1000;
+
+        public double WattHours => Value / 3600;
+        public double KilowattHours => Value / 3_600_000;
+
+        public double Calories => Value / CalorieConversionFactor;
+        public double Kilocalories => Calories / 1000;
+        public double Horsepower => Value / HorsepowerConversionFactor;
+
+        public static Energy FromJoules(double joules) => new Energy(joules);
+        public static Energy FromKilojoules(double kJoules) => new Energy(kJoules * 1000);
+        public static Energy FromMegajoules(double mJoules) => new Energy(mJoules * 1_000_000);
+        public static Energy FromWatts(double watts) => new Energy(watts);
+        public static Energy FromKilowatts(double kWatts) => new Energy(kWatts * 1000);
+        public static Energy FromWattHours(double wattHours) => new Energy(wattHours * 3600);
+        public static Energy FromKilowattHours(double kWattHours) => new Energy(kWattHours * 3_600_000);
+        public static Energy FromCalories(double calories) => new Energy(calories * CalorieConversionFactor);
+        public static Energy FromKilocalories(double kiloCalories) => new Energy((kiloCalories * 1000) * CalorieConversionFactor);
+        public static Energy FromHorsepower(double horsepower) => new Energy(horsepower * HorsepowerConversionFactor);
+
+        public override string ToString()
+        {
+            if (Value >= 1_000_000)
+            {
+                return _($"{Megajoules}MJ");
+            }
+
+            if (Kilojoules >= 1)
+            {
+                return _($"{Kilojoules}kJ");
+            }
+
+            return _($"{Value}j");
+        }
+
+        /// <summary>
+        /// Return the peak amount of energy in a volume of material with a given energy density (MJ/L).
+        /// </summary>
+        public static Energy FromMaterial(Volume volume, double energyDensity) {
+            return Energy.FromMegajoules(energyDensity * volume.Liters);
+        }
+
+        /* Support (case-insensitive):
+             J - Joules
+             kJ - Kilojoules (1000J)
+             MJ - Megajoules (1,000,000J / 1000kJ)
+             W - Watt Seconds (1J)
+             kW - Kilowatt Seconds (1000W)
+             Wh - Watt Hours (3600W)
+             kWh - Kilowatt hours (1000 Wh / 3,600,000W)
+             Cal - Calories (4.1868J)
+             KCal - Kilocalories (1000Cal)
+             HP - Horsepower (746W / 746J)
+         */
+        private static readonly Regex _compiledRegex =
+            new Regex(@"([-]?[\d.]+)((wh)|(kwh)|(j)|(joules)|(kJ)|(kilojoules)|(mj)|(megajoules)|(w)|(watts)|(kw)|(kilowatts)|(cal)|(kcal)|(hp)?)", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
+
+        public Energy(Quantity<double, EnergyInJoulesTag> value) : base(value.Value) {
+        }
+
+        public static implicit operator Energy(string value)
+        {
+            var matches = _compiledRegex.Match(value);
+            if (matches.Success)
+            {
+                var (val, unit) = (matches.Groups[1].Value, matches.Groups[2].Value.ToLower());
+
+                // Match grams, or a unitless value.
+                if (unit == "j" || unit == "joules" || String.IsNullOrWhiteSpace(unit)) {
+                    return Energy.FromJoules(double.Parse(val));
+                }
+
+                switch (unit) {
+                    case "kj":
+                    case "kilojoules":
+                        return FromKilojoules(double.Parse(val));
+                    case "mj":
+                    case "megajoules":
+                        return FromMegajoules(double.Parse(val));
+                    case "w":
+                    case "watts":
+                        return FromWatts(double.Parse(val));
+                    case "kw":
+                    case "kilowatts":
+                        return FromKilowatts(double.Parse(val));
+                    case "wh":
+                        return FromWattHours(double.Parse(val));
+                    case "kwh":
+                        return FromKilowattHours(double.Parse(val));
+                    case "cal":
+                        return FromCalories(double.Parse(val));
+                    case "kcal":
+                        return FromKilocalories(double.Parse(val));
+                    case "hp":
+                        return FromHorsepower(double.Parse(val));
                 }
             }
 

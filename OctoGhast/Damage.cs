@@ -103,6 +103,26 @@ namespace OctoGhast {
                    DamageMultiplier == other.DamageMultiplier;
         }
 
+        private static Dictionary<string, DamageType> _damageMap;
+        public static DamageType FromString(string value) {
+            _damageMap = _damageMap ?? RetrieveDamageMap();
+
+            if (_damageMap.TryGetValue(value.ToLowerInvariant(), out var enumMember))
+                return enumMember;
+            throw new Exception($"Unknown damage type {value}");
+        }
+
+        private static Dictionary<string, DamageType> RetrieveDamageMap() {
+            var map = new Dictionary<string, DamageType>();
+            foreach (var entry in Enum.GetNames(typeof(DamageType))) {
+                if (Enum.TryParse(entry,out DamageType enumValue)) {
+                    map.Add(entry.ToLowerInvariant(), enumValue);
+                }
+            }
+
+            return map;
+        }
+
         public static bool operator ==(DamageUnit unit1, DamageUnit unit2) {
             return EqualityComparer<DamageUnit>.Default.Equals(unit1, unit2);
         }
