@@ -342,9 +342,12 @@ namespace OctoGhast.Framework {
             return default(T);
         }
 
-        public static IEnumerable<T> ReadEnumerable<T>(this JObject jObj, string name, IEnumerable<T> existingValue)
-        {
-            return ReadEnumerable(jObj, name, existingValue, null);
+        public static IEnumerable<T> ReadEnumerable<T>(this JObject jObj, string name, IEnumerable<T> existingValue) {
+            Func<JToken, T> mapFunc = default;
+            if (typeof(T).IsGenericType && _castingMap.TryGetValue((typeof(string), typeof(T).GetGenericTypeDefinition()), out var func)) {
+                mapFunc = (token) => (T) func(token.Value<string>(), typeof(T));
+            }
+            return ReadEnumerable(jObj, name, existingValue, mapFunc);
         }
 
         public static IEnumerable<T> ReadEnumerable<T>(this JObject jObj, string name, IEnumerable<T> existingValue, Func<JToken,T> mapFunc) {
