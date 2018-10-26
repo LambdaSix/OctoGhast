@@ -75,6 +75,12 @@ namespace OctoGhast.Framework {
             return res ?? val;
         }
 
+        public static double ReadProperty(this JObject jObject, string name, float val)
+        {
+            var res = ReadProperty<double?>(jObject, name, val, (v, acc) => v + acc, (v, s) => v * s);
+            return res ?? val;
+        }
+
         public static long ReadProperty(this JObject jObject, string name, long val) {
             var res = ReadProperty<long?>(jObject, name, val, (v, acc) => (int?) (v + acc), (v, s) => (int?) (v * s));
             return res ?? val;
@@ -135,6 +141,9 @@ namespace OctoGhast.Framework {
                 throw new ArgumentException($"Unable to deduce built-in loader for type: '{tType}");
 
             var result = args.func(jObject, name, val, args.arguments);
+
+            if (result == null)
+                return default;
 
             if (!args.type.IsGenericType) {
                 return (T) result;
@@ -440,6 +449,12 @@ namespace OctoGhast.Framework {
                         ? arr.Select(mapFunc)
                         : arr.Values<T>().ToList().AsEnumerable();
                 }
+
+                if (value.Type != JTokenType.Array && value.Type != JTokenType.Object) {
+                    return mapFunc != null
+                        ? new[] {mapFunc(value)}
+                        : new[] {value.Value<T>()};
+                }
             }
 
             return existingValue;
@@ -460,7 +475,7 @@ namespace OctoGhast.Framework {
 
         public static StringID<T> ReadProperty<T>(this JObject jObject, string name) {
             // No relative/proportional for strings.
-            if (jObject.TryGetValue(name, out var value)) {
+            if (jObject.TryGetValue(name, out var value) && (value.Type != JTokenType.Array && value.Type != JTokenType.Object)) {
                 return new StringID<T>(value.Value<string>());
             }
 
@@ -589,7 +604,8 @@ namespace OctoGhast.Framework {
             }
             else {
                 try {
-                    newValue = mapFunc(normalValue.Value<string>());
+                    if (normalValue != null)
+                        newValue = mapFunc(normalValue.Value<string>());
                 }
                 catch (FormatException ex) {
                     throw new FormatException(

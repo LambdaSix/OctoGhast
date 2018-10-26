@@ -1,14 +1,16 @@
 ﻿using System.Collections.Generic;
+using OctoGhast.Entity;
 using OctoGhast.Framework;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {
     public class SlotGunMod : SlotGun {
-        
+        // TODO: Clean this and SlotGun up because GunMod piggybacks on a lot of unused data.
+
         [LoaderInfo("location")]
         public GunModLocation Location { get; set; }
 
         [LoaderInfo("mod_targets")]
-        public IEnumerable<GunType> ModTargets { get; set; }
+        public IEnumerable<StringID<GunType>> ModTargets { get; set; }
 
         /// <summary>
         /// If this value is set, this gunmod functions as a sight.
@@ -40,12 +42,12 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         /// Firing modes added to or replacing those of the base gun.
         /// </summary>
         [LoaderInfo("mode_modifier")]
-        public new Dictionary<GunMode, GunModifierData> ModeModifier { get; set; }
+        public new Dictionary<string, GunModifierData> ModeModifier { get; set; }
 
         [LoaderInfo("ammo_effects")]
         public IEnumerable<string> AmmoEffects { get; set; }
 
         [LoaderInfo("handling_modifier")]
-        public new int Handling { get; set; } = 0;
+        public new int HandlingModifier { get; set; } = 0;
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using OctoGhast.Entity;
 using OctoGhast.Framework;
 using OctoGhast.Units;
@@ -9,7 +10,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         /// The type of ammo that fits into this.
         /// </summary>
         [LoaderInfo("ammo_type")]
-        public IEnumerable<StringID<AmmoType>> Type { get;set; }
+        public StringID<AmmoType> AmmoType { get;set; }
         
         [LoaderInfo("casing")]
         public StringID<ItemType> Casing { get; set; } = StringID<ItemType>.NullId;
@@ -18,10 +19,10 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         /// Type of item, if any, dropped at ranged target.
         /// </summary>
         [LoaderInfo("drop")]
-        public StringID<ItemType> Drops { get; set; } = StringID<ItemType>.NullId;
+        public IEnumerable<StringID<ItemType>> Drops { get; set; }
 
         [LoaderInfo("drop_chance")]
-        public float DropChance { get; set; } = 1.0f;
+        public double DropChance { get; set; } = 1.0f;
 
         [LoaderInfo("drop_active")]
         public bool DropActive { get; set; } = true;
@@ -43,5 +44,8 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
 
         [LoaderInfo("effects")]
         public IEnumerable<string> AmmoEffects { get; set; }
+
+        [LoaderInfo("damage")][Obsolete]
+        public int? LegacyDamage { get; set; }
     }
 }

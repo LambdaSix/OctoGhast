@@ -250,7 +250,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
                 IntegralMagazineSize = jObj.ReadProperty(() => existing.IntegralMagazineSize),
                 IntegralModifications = jObj.ReadProperty(() => existing.IntegralModifications),
                 LegacyDamage = !jObj.HasObject("ranged_damage") ? jObj.ReadProperty(() => existing.LegacyDamage) : null,
-                LegacyPierce = !jObj.HasObject("ranged_damage") ? jObj.ReadProperty(() => existing.LegacyPierce) : null,
+                LegacyPierce = !jObj.HasObject("pierce") ? jObj.ReadProperty(() => existing.LegacyPierce) : null,
                 Loudness = jObj.ReadProperty(() => existing.Loudness),
                 ModeModifier = jObj.ReadProperty(() => existing.ModeModifier),
                 Recoil = jObj.ReadProperty(() => existing.Recoil),
@@ -273,60 +273,130 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
     public class GunModTypeLoader : ITypeLoader<SlotGunMod> {
         /// <inheritdoc />
         public SlotGunMod Load(JObject jObj, SlotGunMod existing = default(SlotGunMod)) {
-            throw new NotImplementedException();
+            return new SlotGunMod()
+            {
+                Ammo = jObj.ReadProperty(() => existing.Ammo),
+                Damage = jObj.HasObject("ranged_damage") ? jObj.ReadProperty(() => existing.Damage) : null,
+                Burst = jObj.ReadProperty(() => existing.Burst),
+                Range = jObj.ReadProperty(() => existing.Range),
+                Dispersion = jObj.ReadProperty(() => existing.Dispersion),
+                ModeModifier = jObj.ReadProperty(() => existing.ModeModifier),
+                LegacyDamage = !jObj.HasObject("ranged_damage") ? jObj.ReadProperty(() => existing.LegacyDamage) : null,
+                LegacyPierce = !jObj.HasObject("pierce") ? jObj.ReadProperty(() => existing.LegacyPierce) : null,
+                SkillUsed = jObj.ReadProperty(() => existing.SkillUsed),
+                ValidModLocations = jObj.ReadProperty(() => existing.ValidModLocations),
+                ReloadNoise = jObj.ReadProperty(() => existing.ReloadNoise),
+                SightDispersion = jObj.ReadProperty(() => existing.SightDispersion),
+                UPSCharges = jObj.ReadProperty(() => existing.UPSCharges),
+                Loudness = jObj.ReadProperty(() => existing.Loudness),
+                HandlingModifier = jObj.ReadProperty(() => existing.HandlingModifier),
+                AmmoEffects = jObj.ReadProperty(() => existing.AmmoEffects),
+                Recoil = jObj.ReadProperty(() => existing.Recoil),
+                Durability = jObj.ReadProperty(() => existing.Durability),
+                DefaultMods = jObj.ReadProperty(() => existing.DefaultMods),
+                IntegralMagazineSize = jObj.ReadProperty(() => existing.IntegralMagazineSize),
+                ReloadTime = jObj.ReadProperty(() => existing.ReloadTime),
+                BarrelLength = jObj.ReadProperty(() => existing.BarrelLength),
+                ReloadNoiseVolume = jObj.ReadProperty(() => existing.ReloadNoiseVolume),
+                IntegralModifications = jObj.ReadProperty(() => existing.IntegralModifications),
+                AimSpeed = jObj.ReadProperty(() => existing.AimSpeed),
+                InstallationTime = jObj.ReadProperty(() => existing.InstallationTime),
+                Location = jObj.ReadProperty(() => existing.Location),
+                ModTargets = jObj.ReadProperty(() => existing.ModTargets),
+            };
         }
 
         /// <inheritdoc />
         public object Load(JObject data, object existing) {
-            throw new NotImplementedException();
+            return Load(data, existing as SlotGunMod);
         }
     }
 
     public class MagazineTypeLoader : ITypeLoader<SlotMagazine> {
         /// <inheritdoc />
         public SlotMagazine Load(JObject jObj, SlotMagazine existing = default(SlotMagazine)) {
-            throw new NotImplementedException();
+            return new SlotMagazine()
+            {
+                AmmoType = jObj.ReadProperty(() => existing.AmmoType),
+                ReloadTime = jObj.ReadProperty(() => existing.ReloadTime),
+                Capacity = jObj.ReadProperty(() => existing.Capacity),
+                DefaultAmmo = jObj.ReadProperty(() => existing.DefaultAmmo),
+                DefaultCount = jObj.ReadProperty(() => existing.DefaultCount),
+                Linkage = jObj.ReadProperty(() => existing.Linkage),
+                Reliability = jObj.ReadProperty(() => existing.Reliability)
+            };
         }
 
         /// <inheritdoc />
         public object Load(JObject data, object existing) {
-             throw new NotImplementedException();
+             return Load(data, existing as SlotMagazine);
         }
     }
 
     public class BionicTypeLoader : ITypeLoader<SlotBionic> {
         /// <inheritdoc />
         public SlotBionic Load(JObject jObj, SlotBionic existing = default(SlotBionic)) {
-            throw new NotImplementedException();
+            return new SlotBionic()
+            {
+                Id = jObj.ReadProperty(() => existing.Id),
+                BionicId = jObj.ReadProperty(() => existing.BionicId),
+                InstallationDifficulty = jObj.ReadProperty(() => existing.InstallationDifficulty)
+            };
         }
 
         /// <inheritdoc />
         public object Load(JObject data, object existing) {
-            throw new NotImplementedException();
+            return Load(data, existing as SlotBionic);
         }
     }
 
     public class AmmoTypeLoader : ITypeLoader<SlotAmmo> {
         /// <inheritdoc />
         public SlotAmmo Load(JObject jObj, SlotAmmo existing = default(SlotAmmo)) {
-            throw new NotImplementedException();
+            return new SlotAmmo()
+            {
+                AmmoType = jObj.ReadProperty(() => existing.AmmoType),
+                DefaultCharges = jObj.ReadProperty(() => existing.DefaultCharges),
+                Range = jObj.ReadProperty(() => existing.Range),
+                Damage = jObj.HasObject("damage") ? jObj.ReadProperty(() => existing.Damage) : null,
+                Dispersion = jObj.ReadProperty(() => existing.Dispersion),
+                LegacyDamage = !jObj.HasObject("damage") ? jObj.ReadProperty(() => existing.LegacyDamage) : null,
+                LegacyPierce = !jObj.HasObject("pierce") ? jObj.ReadProperty(() => existing.LegacyPierce) : null,
+                Loudness = jObj.ReadProperty(() => existing.Loudness),
+                Recoil = jObj.ReadProperty(() => existing.Recoil),
+                AmmoEffects = jObj.ReadProperty(() => existing.AmmoEffects),
+                Casing = jObj.ReadProperty(() => existing.Casing),
+                CooksOff = jObj.ReadProperty(() => existing.CooksOff),
+                DropActive = jObj.ReadProperty(() => existing.CooksOff),
+                DropChance = jObj.ReadProperty(() => existing.DropChance),
+                Drops = jObj.ReadProperty(() => existing.Drops),
+                SpecialCookOff = jObj.ReadProperty(() => existing.SpecialCookOff)
+            };
         }
 
         /// <inheritdoc />
         public object Load(JObject data, object existing) {
-            throw new NotImplementedException();
+            return Load(data, existing as SlotAmmo);
         }
     }
 
     public class SeedTypeLoader : ITypeLoader<SlotSeed> {
         /// <inheritdoc />
         public SlotSeed Load(JObject jObj, SlotSeed existing = default(SlotSeed)) {
-            throw new NotImplementedException();
+            return new SlotSeed()
+            {
+                ByProducts = jObj.ReadProperty(() => existing.ByProducts),
+                Fruit = jObj.ReadProperty(() => existing.Fruit),
+                FruitDivisor = jObj.ReadProperty(() => existing.FruitDivisor),
+                GrowthTime = jObj.ReadProperty(() => existing.GrowthTime),
+                PlantName = jObj.ReadProperty(() => existing.PlantName),
+                SpawnSeeds = jObj.ReadProperty(() => existing.SpawnSeeds)
+            };
         }
 
         /// <inheritdoc />
         public object Load(JObject data, object existing) {
-            throw new NotImplementedException();
+            return Load(data, existing as SlotSeed);
         }
     }
 }

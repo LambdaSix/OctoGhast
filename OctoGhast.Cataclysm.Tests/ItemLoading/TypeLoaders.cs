@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -11,6 +10,18 @@ using OctoGhast.Units;
 namespace OctoGhast.Cataclysm.Tests.ItemLoading {
     [TestFixture]
     public class TypeLoaders {
+        [OneTimeSetUp]
+        public void Setup() {
+            JsonDataLoader.RegisterConverter(typeof(GunModifierData),
+                (token, type) => token.Count() == 4
+                    ? new GunModifierData(token[1].Value<string>(), token[2].Value<int>(), token[3].Value<IEnumerable<string>>())
+                    : new GunModifierData(token[1].Value<string>(), token[2].Value<int>(), Enumerable.Empty<string>()));
+            JsonDataLoader.RegisterConverter(typeof(GunType), (token, t) => new GunType(token.Value<string>()));
+
+            JsonDataLoader.RegisterTypeLoader(typeof(GunModLocation), (token, t, v, _) => new GunModLocation(token.GetValue("location").Value<string>()));
+
+        }
+
         [Test]
         public void DamageInfoTypeLoader() {
             var json = "{ 'thrown_damage': [ { 'damage_type': 'bash', 'amount': 5 }, { 'damage_type': 'stab', 'amount': 17 } ] }";
@@ -229,11 +240,6 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
 
         [Test]
         public void GunTypeLoader() {
-            JsonDataLoader.RegisterConverter(typeof(GunModifierData),
-                (token, type) => token.Count() == 4
-                    ? new GunModifierData(token[1].Value<string>(), token[2].Value<int>(), token[3].Value<IEnumerable<string>>())
-                    : new GunModifierData(token[1].Value<string>(), token[2].Value<int>(), Enumerable.Empty<string>()));
-
             var json =
                 "{ " +
                 " 'ranged_damage': [ { 'damage_type': 'bash', 'amount': 5 }, { 'damage_type': 'stab', 'amount': 17 } ], " +
@@ -273,7 +279,7 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
 
             Assert.That(res.Range, Is.EqualTo(5));
             Assert.That(res.Dispersion, Is.EqualTo(5));
-            Assert.That(res.LegacyPierce, Is.EqualTo(null));
+            Assert.That(res.LegacyPierce, Is.EqualTo(5));
             Assert.That(res.LegacyDamage, Is.EqualTo(null));
             Assert.That(res.SkillUsed, Is.EqualTo((StringID<Skill>) "archery"));
             Assert.That(res.Ammo, Is.EqualTo((StringID<AmmoType>) "arrow"));
@@ -303,26 +309,203 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
 
         [Test]
         public void GunModTypeLoader() {
+            var json =
+                "{ " +
+                " 'ranged_damage': [ { 'damage_type': 'bash', 'amount': 5 }, { 'damage_type': 'stab', 'amount': 17 } ], " +
+                " 'range': 5," +
+                " 'dispersion': 5," +
+                " 'pierce': 5," + // -> legacy_pierce
+              //" 'ranged_damage': 5," + // -> legacy_damage
+                " 'skill': 'archery'," +
+                " 'ammo': 'arrow'," +
+                " 'durability': 5," +
+                " 'integral_magazine_volume': '500ML'," +
+                " 'reload': 10," +
+                " 'reload_noise': 'click'," +
+                " 'reload_noise_volume': '5dB'," +
+                " 'sight_dispersion': 50," +
+                " 'loudness': '1dB'," +
+                " 'ups_charges': 50," +
+                " 'barrel_length': '45ml'," +
+                " 'ammo_effects': [ 'FIRE', 'FLECHETTE' ]," +
+                " 'valid_mod_locations': [ [ 'grip', 1 ] ]," +
+                " 'built_in_mods': [ 'SUPPRESSOR' ]," +
+                " 'default_mods': [ 'BOW_SIGHT' ]," +
+                " 'modes': [ [ 'DEFAULT', 'auto', 8 ], [ 'SEMI', 'semi-auto', 1 ] ], " +
+                " 'burst': 5, " +
+                " 'handling': 10, " +
+                " 'recoil': 10," +
+                // GunMod specific
+                " 'location': 'grip'," +
+                " 'mod_targets': [ 'rifle', 'smg', 'crossbow' ]," +
+                " 'sight_dispersion': -4," +
+                " 'aim_speed': -5," +
+                " 'mode_modifier': [ [ 'AUTO', 'full-auto', 16 ] ], " +
+                " 'handling_modifier': 10," +
+                " 'loudness_modifier': -10," +
+                " 'install_time': 100" +
+                " }";
+            json = json.Replace('\'', '\"');
+
+            var jsonStr = JObject.Parse(json);
+
+            var loader = new GunModTypeLoader();
+            var res = loader.Load(jsonStr, null);
+
+            Assert.That(res.Damage.DamageForType(DamageType.Bash), Is.EqualTo(5));
+            Assert.That(res.Damage.DamageForType(DamageType.Stab), Is.EqualTo(17));
+
+            Assert.That(res.Range, Is.EqualTo(5));
+            Assert.That(res.Dispersion, Is.EqualTo(5));
+            Assert.That(res.LegacyPierce, Is.EqualTo(5));
+            Assert.That(res.LegacyDamage, Is.EqualTo(null));
+            Assert.That(res.SkillUsed, Is.EqualTo((StringID<Skill>)"archery"));
+            Assert.That(res.Ammo, Is.EqualTo((StringID<AmmoType>)"arrow"));
+            Assert.That(res.Durability, Is.EqualTo(5));
+            Assert.That(res.IntegralMagazineSize, Is.EqualTo((Volume)"500ML"));
+            Assert.That(res.ReloadTime, Is.EqualTo(TimeDuration.FromTurns(10)));
+            Assert.That(res.ReloadNoise, Is.EqualTo("click"));
+            Assert.That(res.ReloadNoiseVolume, Is.EqualTo((SoundLevel)"5dB"));
+            //Assert.That(res.SightDispersion, Is.EqualTo(50));
+            //Assert.That(res.Loudness, Is.EqualTo((SoundLevel)"1dB"));
+            Assert.That(res.UPSCharges, Is.EqualTo(50));
+            Assert.That(res.BarrelLength, Is.EqualTo((Volume)"45ml"));
+            Assert.That(res.AmmoEffects, Is.EquivalentTo(new[] { "FIRE", "FLECHETTE" }));
+            Assert.That(res.ValidModLocations["grip"], Is.EqualTo(1));
+            Assert.That(res.IntegralModifications, Is.EquivalentTo(new StringID<ItemType>[] { "SUPPRESSOR" }));
+            Assert.That(res.DefaultMods, Is.EquivalentTo(new StringID<ItemType>[] { "BOW_SIGHT" }));
+
+            /*
+            Assert.That(res.ModeModifier["DEFAULT"].Name, Is.EqualTo("auto"));
+            Assert.That(res.ModeModifier["DEFAULT"].Quantity, Is.EqualTo(8));
+            Assert.That(res.ModeModifier["SEMI"].Name, Is.EqualTo("semi-auto"));
+            Assert.That(res.ModeModifier["SEMI"].Quantity, Is.EqualTo(1));
+            */
+
+            Assert.That(res.Burst, Is.EqualTo(5));
+            Assert.That(res.HandlingModifier, Is.EqualTo(10));
+            Assert.That(res.Recoil, Is.EqualTo(10));
+
+            Assert.That(res.Location.Id, Is.EqualTo("grip"));
+            Assert.That(res.ModTargets,
+                Is.EquivalentTo(new StringID<GunType>[] {"rifle", "smg", "crossbow"}));
+
+            Assert.That(res.ModeModifier["AUTO"].Name, Is.EqualTo("full-auto"));
+            Assert.That(res.ModeModifier["AUTO"].Quantity, Is.EqualTo(16));
+
+            Assert.That(res.SightDispersion, Is.EqualTo(-4));
+            Assert.That(res.AimSpeed, Is.EqualTo(-5));
+            Assert.That(res.Loudness, Is.EqualTo(-10));
+            Assert.That(res.InstallationTime, Is.EqualTo(TimeDuration.FromTurns(100)));
         }
 
         [Test]
         public void MagazineTypeLoader() {
+            var json = "{" +
+                       " 'ammo_type': '9mm'," +
+                       " 'capacity': 30," +
+                       " 'count': 30," +
+                       " 'default_ammo': '9mm'," +
+                       " 'reliability': 10," +
+                       " 'reload_time': '100'," +
+                       "} ";
 
+            json = json.Replace('\'', '\"');
+
+            var jsonStr = JObject.Parse(json);
+
+            var loader = new MagazineTypeLoader();
+            var res = loader.Load(jsonStr, null);
+
+            Assert.That(res.AmmoType, Is.EqualTo((StringID<AmmoType>) "9mm"));
+            Assert.That(res.Capacity, Is.EqualTo(30));
+            Assert.That(res.DefaultCount, Is.EqualTo(30));
+            Assert.That(res.DefaultAmmo, Is.EqualTo((StringID<ItemType>) "9mm"));
+            Assert.That(res.Reliability, Is.EqualTo(10));
+            Assert.That(res.ReloadTime, Is.EqualTo(TimeDuration.FromTurns(100)));
         }
 
         [Test]
         public void BionicTypeLoader() {
+            var json = "{" +
+                       " 'id': 'bionic_test'," +
+                       " 'bionic_id': 'bionic_adv_test', " +
+                       " 'difficulty': 10" +
+                       "} ";
 
+            json = json.Replace('\'', '\"');
+
+            var jsonStr = JObject.Parse(json);
+
+            var loader = new BionicTypeLoader();
+            var res = loader.Load(jsonStr, null);
+
+            Assert.That(res.InstallationDifficulty, Is.EqualTo(10));
+            Assert.That(res.Id, Is.EqualTo((StringID<Bionic>) "bionic_test"));
+            Assert.That(res.BionicId, Is.EqualTo((StringID<Bionic>)"bionic_adv_test"));
         }
 
         [Test]
         public void AmmoTypeLoader() {
+            var json = @"{
+                'count': 50,
+                'ammo_type': '357sig',
+                'casing': '357sig_casing',
+                'range': 16,
+                'damage': 28,
+                'pierce': 4,
+                'dispersion': 30,
+                'recoil': 600,
+                'effects': [ 'COOKOFF' ],
+                'cooks_off': true,
+                'special_cook_off': true,
+                'loudness': '10dB',
+                'drop_active': true,
+                'drop_chance': 0.5,
+                'drop': 'scrap_metal'
+            }";
 
+            json = json.Replace('\'', '\"');
+
+            var jsonStr = JObject.Parse(json);
+
+            var loader = new AmmoTypeLoader();
+            var res = loader.Load(jsonStr, null);
+
+            Assert.That(res.DefaultCharges, Is.EqualTo(50));
+            Assert.That(res.AmmoType == "357sig");
+            Assert.That(res.Casing == "357sig_casing");
+            Assert.That(res.Range, Is.EqualTo(16));
+            Assert.That(res.LegacyDamage, Is.EqualTo(28));
+            Assert.That(res.LegacyPierce, Is.EqualTo(4));
+            Assert.That(res.Dispersion, Is.EqualTo(30));
+            Assert.That(res.Recoil, Is.EqualTo(600));
+            Assert.That(res.AmmoEffects, Is.EquivalentTo(new[] {"COOKOFF"}));
+            Assert.That(res.CooksOff, Is.True);
+            Assert.That(res.SpecialCookOff, Is.True);
+            Assert.That(res.Loudness == (SoundLevel) "10dB");
+            Assert.That(res.DropActive, Is.True); 
+            Assert.That(res.DropChance, Is.EqualTo(0.5));
+            Assert.That(res.Drops, Is.EquivalentTo(new StringID<ItemType>[] {"scrap_metal"}));
         }
 
         [Test]
         public void SeedTypeLoader() {
+            var json = @"
+                        {
+	                        'grow': 10,
+	                        'fruit_div': 1,
+	                        'plant_name': 'strawberry',
+	                        'fruit': 'strawberry',
+	                        'seeds': true,
+	                        'byproducts': [ 'withered_plant' ],
+                        }";
+            json = json.Replace('\'', '\"');
 
+            var jsonStr = JObject.Parse(json);
+
+            var loader = new SeedTypeLoader();
+            var res = loader.Load(jsonStr, null);
         }
     }
 }

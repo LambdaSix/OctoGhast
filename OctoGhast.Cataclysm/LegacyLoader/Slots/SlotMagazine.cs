@@ -1,27 +1,39 @@
 ﻿using OctoGhast.Entity;
+using OctoGhast.Framework;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {
     public class SlotMagazine {
-        public StringID<AmmoType> Type { get; set; } = StringID<AmmoType>.NullId;
-        public int Capacity { get; set; } = 0;
+        [LoaderInfo("ammo_type")]
+        public StringID<AmmoType> AmmoType { get; set; }
+
+        [LoaderInfo("capacity")]
+        public int Capacity { get; set; }
+
+        [LoaderInfo("count")]
         public int DefaultCount { get; set; }
-        public StringID<ItemType> DefaultAmmo { get; set; } = StringID<ItemType>.NullId;
+
+        [LoaderInfo("default_ammo")]
+        public StringID<ItemType> DefaultAmmo { get; set; }
+
+        [LoaderInfo("reliability")]
         public int Reliability { get; set; } = 0;
 
         /// <summary>
         /// How long it takes to load each unit of ammunition into the magazine.
         /// Defaults to 36 seconds (6 turns)
         /// </summary>
+        [LoaderInfo("reload_time")]
         public TimeDuration ReloadTime { get; set; } = TimeDuration.FromSeconds(36);
 
         /// <summary>
         /// For ammo-belts, one linkage of given type is dropped for each unit of ammunition consumed
         /// </summary>
-        public StringID<ItemType> Linkage { get; set; } = StringID<ItemType>.NullId;
+        [LoaderInfo("linkage")]
+        public StringID<ItemType> Linkage { get; set; }
 
         /// <summary>
         /// Will the magazine protect any contents if affected by fire?
         /// </summary>
-        public bool ProtectContents { get; set; } = false;
+        public bool ProtectContents { get; set; }
     }
 }
