@@ -53,7 +53,7 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
     }
 
     [TestFixture]
-    public class ItemTypeLoading {
+    public class JsonDataLoaderTests {
         [Test]
         public void LoadSimpleItem() {
             var itemString = @"{
