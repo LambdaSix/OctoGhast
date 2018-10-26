@@ -119,16 +119,16 @@ namespace OctoGhast.Core.Tests {
             Assert.That(grams == grams2);
             Assert.That(grams == (Mass) "100g");
 
-            grams2 += "100g";
+            var g3 = (grams2 + (Mass)"100g");
 
-            Assert.That(grams != grams2);
+            Assert.That(grams != g3);
             Assert.That(grams != (Mass) "500g");
 
-            Assert.That(grams, Is.Not.EqualTo(grams2));
+            Assert.That(grams, Is.Not.EqualTo(g3));
             Assert.That(grams, Is.Not.EqualTo((Mass)"500g"));
 
-            Assert.That(grams < grams2);
-            Assert.That(grams2 > grams);
+            Assert.That(grams < g3);
+            Assert.That(g3 > grams);
         }
 
         [Test]
