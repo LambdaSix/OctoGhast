@@ -87,6 +87,11 @@ namespace OctoGhast.Framework {
                 : val;
         }
 
+        public static bool HasObject(this JObject jObject, string name) {
+            // Sometimes in cata data files, arrays are secretly objects.. basically we want something that isn't a value-type here.
+            return jObject.TryGetValue(name, out var value) && (value.Type == JTokenType.Object || value.Type == JTokenType.Array);
+        }
+
         public static T ReadProperty<T>(this JObject jObject, string name, T val) {
             (Func<JObject, string, object, Type[], object> func, Type type, Type[] arguments) args = (null, null, null);
 

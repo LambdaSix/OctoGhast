@@ -273,8 +273,8 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
 
             Assert.That(res.Range, Is.EqualTo(5));
             Assert.That(res.Dispersion, Is.EqualTo(5));
-            Assert.That(res.LegacyPierce, Is.EqualTo(5));
-            Assert.That(res.LegacyDamage, Is.EqualTo(0));
+            Assert.That(res.LegacyPierce, Is.EqualTo(null));
+            Assert.That(res.LegacyDamage, Is.EqualTo(null));
             Assert.That(res.SkillUsed, Is.EqualTo((StringID<Skill>) "archery"));
             Assert.That(res.Ammo, Is.EqualTo((StringID<AmmoType>) "arrow"));
             Assert.That(res.Durability, Is.EqualTo(5));

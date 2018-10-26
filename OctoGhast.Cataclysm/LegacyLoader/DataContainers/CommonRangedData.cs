@@ -14,10 +14,10 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
 
         [Obsolete]
         [LoaderInfo("pierce")]
-        public int LegacyPierce { get; set; }
+        public int? LegacyPierce { get; set; }
 
         [Obsolete]
         [LoaderInfo("ranged_damage")]
-        public int LegacyDamage { get; set; }
+        public int? LegacyDamage { get; set; }
     }
 }
