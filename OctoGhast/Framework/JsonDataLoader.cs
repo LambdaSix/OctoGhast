@@ -29,6 +29,7 @@ namespace OctoGhast.Framework {
                 [typeof(Energy)] = (jObj, name, val, _) => ReadProperty<Energy>(jObj, name, val as Energy),
                 [typeof(SoundLevel)] = (jObj, name, val, _) => ReadProperty<SoundLevel>(jObj, name, val as SoundLevel),
                 [typeof(TimeDuration)] = (jObj, name, val, _) => ReadProperty<TimeDuration>(jObj, name, val as TimeDuration),
+                [typeof(Nullable<>)] = (jObj, name, val, types) => ReadNullable(jObj, name, val, typeof(Nullable<>), types),
                 // Just handle all kinds of IEnumerable with an open type.
                 [typeof(IEnumerable<>)] = (jObj, name, val, types) => ReadEnumerable(jObj, name, val, typeof(IEnumerable<>), types),
                 [typeof(Dictionary<object, IEnumerable<object>>)] = (jObj, name, val, types) => ReadNestedDictionary(jObj, name, val, typeof(Dictionary<,>), types),
@@ -93,6 +94,8 @@ namespace OctoGhast.Framework {
             var isGeneric = tType.IsGenericType;
             var isSequenceType = isGeneric && tType.GetGenericTypeDefinition().IsAssignableFrom(typeof(IEnumerable<>));
             var isDictionary = isGeneric && tType.GetGenericTypeDefinition().IsAssignableFrom(typeof(Dictionary<,>));
+            var isNullable = isGeneric && tType.GetGenericTypeDefinition().IsAssignableFrom(typeof(Nullable<>));
+
             var genericArgs = isGeneric ? tType.GetGenericArguments() : new Type[0];
 
             var isNestedSequenceType = isGeneric && genericArgs.Length == 2
@@ -142,10 +145,38 @@ namespace OctoGhast.Framework {
             else if (isInterface && (result.GetType().GetInterface(typeOfT.Name) != null)) {
                 return (T) result;
             }
+            else if (isNullable && result.GetType().IsValueType) {
+                return (T) result;
+            }
             else {
                 var newType = typeOfT;
                 return (T) Convert.ChangeType(result, newType);
             }
+        }
+
+        public static T ReadNullable<T>(this JObject jObject, string name, T existingValue, Type realType, Type[] types) {
+            var paramTypes = new[] {typeof(JObject), typeof(string), typeof(Nullable<>)};
+
+            if (realType.IsGenericType && types.Any()) {
+                var method = FindGenericMethod(nameof(ReadNullable), paramTypes);
+                var genericMethod = method.MakeGenericMethod(types);
+                return (T) genericMethod.Invoke(null, new object[] {jObject, name, existingValue});
+            }
+
+            return default;
+        }
+
+        public static T? ReadNullable<T>(this JObject jObj, string name, T? existingValue) where T:struct {
+            var innerTypes = typeof(T).GenericTypeArguments;
+            if (innerTypes.Length > 1)
+                throw new Exception($"Invalid number of generic arguments to Nullable<T>: {String.Join(",", innerTypes.AsEnumerable())}");
+
+            // Find one the regular ReadProperty(JObject, string, [int,string,bool,...] methods
+            var paramTypes = new[] {typeof(JObject), typeof(string), typeof(T)};
+            var method = FindMethod(nameof(ReadProperty), paramTypes);
+
+            // Then lift the regular type to the nullable type.
+            return (T?) method.Invoke(null, new object[] {jObj, name, existingValue});
         }
 
         public static object ReadDictionary<T>(this JObject jObject, string name, T existingValue, Type realType, Type[] types) {
@@ -667,6 +698,23 @@ namespace OctoGhast.Framework {
             var methodInfo = methodInfos
                 .Where(x => x.Params.Count() == paramTypes.Length
                             && x.Args.Length == genericArgs
+                            && x.Params.SequenceEqual(paramTypes, new SimpleTypeComparer())
+                )
+                .Select(x => x.Method);
+            var method = methodInfo.First();
+            return method;
+        }
+
+        private static MethodInfo FindMethod(string name, Type[] paramTypes) {
+            var methodInfos = typeof(JsonDataLoader).GetMethods()
+                .Where(s => s.Name == name)
+                .Select(m => new
+                {
+                    Method = m,
+                    Params = m.GetParameters().Select(s => s.ParameterType)
+                });
+            var methodInfo = methodInfos
+                .Where(x => x.Params.Count() == paramTypes.Length
                             && x.Params.SequenceEqual(paramTypes, new SimpleTypeComparer())
                 )
                 .Select(x => x.Method);
