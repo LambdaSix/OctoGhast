@@ -75,10 +75,10 @@ namespace OctoGhast.Framework {
             return res ?? val;
         }
 
-        public static double ReadProperty(this JObject jObject, string name, float val)
+        public static float ReadProperty(this JObject jObject, string name, float val)
         {
             var res = ReadProperty<double?>(jObject, name, val, (v, acc) => v + acc, (v, s) => v * s);
-            return res ?? val;
+            return (float) (res ?? val);
         }
 
         public static long ReadProperty(this JObject jObject, string name, long val) {
@@ -332,15 +332,15 @@ namespace OctoGhast.Framework {
 
         public static Dictionary<TKey, IEnumerable<TValue>> ReadNestedDictionary<TKey, TValue>(JObject jObj, string name) {
             Dictionary<TKey, IEnumerable<TValue>> workingSet = new Dictionary<TKey, IEnumerable<TValue>>();
-            Func<JToken,Type,object> keyConverter;
-            Func<JToken,Type,object> valueConverter;
+            Func<JToken, Type, object> keyConverter = null;
+            Func<JToken, Type, object> valueConverter = null;
 
-            if (!_castingMap.TryGetValue(typeof(TKey).GetGenericTypeDefinition(), out keyConverter))
-                throw new Exception($"Unable to find key converter from {typeof(string)} to {typeof(TKey).GetGenericTypeDefinition()}");
-            if (!_castingMap.TryGetValue(typeof(TValue).GetGenericTypeDefinition(), out valueConverter)) {
-                throw new Exception($"Unable to find value converter from {typeof(string)} to {typeof(TValue).GetGenericTypeDefinition()}");
-            }
-            
+            if (typeof(TKey).IsGenericType && !typeof(TKey).IsValueType && !_castingMap.TryGetValue(OpenType<TKey>(), out keyConverter))
+                throw new Exception($"Unable to find key converter from {typeof(string)} to {OpenType<TKey>()}");
+
+            if (typeof(TValue).IsGenericType && !typeof(TValue).IsValueType && !_castingMap.TryGetValue(OpenType<TValue>(), out valueConverter))
+                throw new Exception($"Unable to find value converter from {typeof(string)} to {OpenType<TValue>()}");
+
 
             var rootObject = jObj.GetValue(name);
             if (rootObject is JArray) {
@@ -365,9 +365,29 @@ namespace OctoGhast.Framework {
             return workingSet;
         }
 
+        private static bool ShouldLoad(JObject jObj, string propertyName) {
+            if (jObj.ContainsKey(propertyName))
+                return true;
+
+            // Check if there are Proportional/Relative/Extend/Delete properties
+            if (jObj.ContainsKey("relative"))
+                return true;
+            if (jObj.ContainsKey("proportional"))
+                return true;
+            if (jObj.ContainsKey("extend"))
+                return true;
+            if (jObj.ContainsKey("delete"))
+                return true;
+
+            return false;
+        }
+
         public static T ReadProperty<T>(this JObject jObject, Expression<Func<T>> expression) {
             var propertyInfo = expression.GetProperty();
             var attr = propertyInfo.GetCustomAttribute<LoaderInfoAttribute>();
+
+            if (attr == null)
+                throw new Exception($"Missing attribute on {expression.GetRootObject()}{propertyInfo.Name}");
 
             T defaultValue = default(T);
             if (attr.DefaultValue is string str) {
@@ -386,6 +406,9 @@ namespace OctoGhast.Framework {
             var value = expression.GetRootObject() != null
                 ? expression.Compile().GetValue(defaultValue)
                 : defaultValue;
+
+            if (!ShouldLoad(jObject, attr.FieldName))
+                return value;
 
             if (attr.TypeLoader != null) {
                 var loader = Activator.CreateInstance(attr.TypeLoader) as ITypeLoader;

@@ -53,7 +53,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         [LoaderInfo("ammo_data", TypeLoader=typeof(AmmoTypeLoader))]
         public SlotAmmo Ammo { get; set; }
 
-        [LoaderInfo("seed_data")]
+        [LoaderInfo("seed_data", TypeLoader = typeof(SeedTypeLoader))]
         public SlotSeed Seed { get; set; }
         // TODO: Artifacts
 
@@ -61,12 +61,12 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         /// String identifier for this type
         /// </summary>
         [LoaderInfo("id", true, "null")]
-        private string ID = "null";
+        private string ID { get; set; } = "null";
 
         [LoaderInfo("name", true, "none")]
-        public string Name = "none";
+        public string Name { get; set; } = "none";
         [LoaderInfo("name_plural", false, "none")]
-        public string PluralName = "none";
+        public string PluralName { get; set; } = "none";
 
         [LoaderInfo("looks_like")]
         public StringID<ItemType> LooksLike { get; set; }
@@ -131,10 +131,11 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         [LoaderInfo("explode_in_fire", false, false)]
         public bool ExplodesInFire { get; set; }
 
+        [LoaderInfo("explosion_data")]
         public ExplosionData Explosion { get; set; }
 
-        [LoaderInfo("phase", false, MaterialPhase.Solid)]
-        public MaterialPhase Phase { get; set; } = MaterialPhase.Solid;
+        [LoaderInfo("phase", false, "Solid")]
+        public string Phase { get; set; }
 
         [LoaderInfo("stackable", false, false)]
         public bool Stackable { get; set; } = false;
@@ -213,6 +214,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         [LoaderInfo("magazine_well")]
         public Volume MagazineWell { get; set; } = "0.0L";
 
+        [Obsolete("Query the item for what it can support")]
         public string GetItemType() {
             bool NotNull<T>(T t) => t != null;
 
