@@ -211,6 +211,9 @@ namespace OctoGhast.Units {
             return p0 * Math.Pow(10, (value / 20.0f));
         }
 
+        public SoundLevel AddRaw(SoundLevel other) => new SoundLevel(other.Value + Value);
+        public SoundLevel MultiplyRaw(double scalar) => new SoundLevel(Value * scalar);
+
         public SoundLevel AtMeters(float distance) {
             var p0 = Value;
             var r0 = 1;

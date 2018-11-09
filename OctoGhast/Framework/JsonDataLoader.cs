@@ -554,8 +554,7 @@ namespace OctoGhast.Framework {
                 name: name,
                 existingValue: val,
                 mapFunc: s => new SoundLevel(s),
-                relativeFunc: (v, acc) => new SoundLevel(v + acc),
-                proportionalFunc: (v, acc) => new SoundLevel(v * acc)
+                relativeFunc: (v, acc) => v.AddRaw(acc),
             );
         }
 
