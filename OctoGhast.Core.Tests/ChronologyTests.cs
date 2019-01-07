@@ -81,6 +81,26 @@ namespace OctoGhast.Core.Tests
         }
 
         [Test]
+        public void FromString() {
+            var str = "1 day 12 hours";
+            var str2 = "1 day, 12 hours";
+            var str3 = "1 day 1 day 12 hours";
+            var str4 = "1 year, 6 months, 4 days, 6 hours";
+
+            var time1 = TimeDuration.FromString(str);
+            Assert.AreEqual(time1.Turns, TimeDuration.FromDays(1).AddHours(12).Turns);
+
+            var time2 = TimeDuration.FromString(str2);
+            Assert.AreEqual(time2.Turns, TimeDuration.FromDays(1).AddHours(12).Turns);
+
+            var time3 = TimeDuration.FromString(str3);
+            Assert.AreEqual(time3.Turns, TimeDuration.FromDays(1).AddDays(1).AddHours(12).Turns);
+
+            var time4 = TimeDuration.FromString(str4);
+            Assert.AreEqual(time4.Turns, TimeDuration.FromYears(1).AddMonths(6).AddDays(4).AddHours(6).Turns);
+        }
+
+        [Test]
         public void Properties() {
             // Due to 1 Turn being 6 Seconds, TimeDuration doesn't deal with a smaller second granularity than 6s
             var t1 = TimeDuration.FromSeconds(6);

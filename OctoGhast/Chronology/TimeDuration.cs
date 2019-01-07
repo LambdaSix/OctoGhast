@@ -1,5 +1,8 @@
 ﻿using System;
 using System.CodeDom;
+using System.Collections.Generic;
+using System.Linq;
+using OctoGhast.Extensions;
 using static OctoGhast.Translation.Translation;
 
 namespace OctoGhast {
@@ -7,15 +10,19 @@ namespace OctoGhast {
     /// A duration of time, ie. 64 days, 7 hours and 4 minutes.
     /// </summary>
     public class TimeDuration : IEquatable<TimeDuration> {
-        public ulong Turns { get; }
-        private ulong YearLength => TimeDuration.FromDays(Season.GetTotalLength()).Turns;
+        public long Turns { get; }
+        private long YearLength => TimeDuration.FromDays(Season.GetTotalLength()).Turns;
 
-        public TimeDuration(ulong turns) {
+        public TimeDuration(long turns) {
             Turns = turns;
         }
 
         public TimeDuration() {
             Turns = 0;
+        }
+
+        public TimeDuration(string str) {
+            Turns = TimeDuration.FromString(str).Turns;
         }
 
         /*
@@ -35,6 +42,8 @@ namespace OctoGhast {
 
         public int TotalWeeks => (Turns < 100800) ? 0 : (int) (Turns / 100800);
 
+        public int TotalMonths => (Turns < 403200) ? 0 : (int) (Turns / 403200);
+
         public int TotalSeasons
         {
             get
@@ -52,13 +61,14 @@ namespace OctoGhast {
 
         public int TotalYears => (Turns < YearLength) ? 0 : (int) (Turns / YearLength);
 
-        public TimeDuration AddTurns(int turns) => new TimeDuration(Turns + (ulong) turns);
+        public TimeDuration AddTurns(long turns) => new TimeDuration(Turns + turns);
         public TimeDuration AddSeconds(int seconds) => new TimeDuration(Turns + FromSeconds(seconds).Turns);
         public TimeDuration AddMinutes(int minutes) => new TimeDuration(Turns + FromMinutes(minutes).Turns);
         public TimeDuration AddHours(int hours) => new TimeDuration(Turns + FromHours(hours).Turns);
         public TimeDuration AddDays(int days) => new TimeDuration(Turns + FromDays(days).Turns);
         public TimeDuration AddWeeks(int weeks) => new TimeDuration(Turns + FromWeeks(weeks).Turns);
-        public TimeDuration AddYears(int years) => new TimeDuration(Turns + (YearLength * (ulong)years));
+        public TimeDuration AddMonths(int months) => new TimeDuration(Turns + FromWeeks(months * 4).Turns);
+        public TimeDuration AddYears(int years) => new TimeDuration(Turns + (YearLength * years));
 
         /// <inheritdoc />
         public override string ToString() {
@@ -82,16 +92,47 @@ namespace OctoGhast {
                 return _($"{TotalDays} days", $"{TotalDays} days", (TotalDays));
             }
 
-            if (this < TimeDuration.FromSeasons(1))
+            if (this < TimeDuration.FromMonths(1))
             {
                 return _($"{TotalDays / 7} week", $"{TotalDays / 7} weeks", (TotalDays / 7));
             }
 
             if (this < TimeDuration.FromYears(1)) {
-                return _($"{TotalSeasons} season", $"{TotalSeasons} seasons", TotalSeasons);
+                
+                return _($"{TotalMonths} months", $"{TotalMonths} months", TotalMonths);
             }
 
             return _($"{TotalYears} year", $"{TotalYears} years", TotalYears);
+        }
+
+        public static TimeDuration FromString(string str) {
+            // Decompose a string like "1 day 12 hours" into TimeDuration.AddDays(1).AddHours(12)
+            var pairs = str.Split(new []{' ',','}, StringSplitOptions.RemoveEmptyEntries).Pair((a, b) => (value: Int32.Parse(a), increment: b));
+
+            var map = new Dictionary<(string singular, string plural), Func<int, TimeDuration>>
+            {
+                [("turn", "turns")] = v => TimeDuration.FromTurns(v),
+                [("second", "seconds")] = TimeDuration.FromSeconds,
+                [("minute", "minutes")] = TimeDuration.FromMinutes,
+                [("hour", "hours")] = TimeDuration.FromHours,
+                [("day", "days")] = TimeDuration.FromDays,
+                [("week", "weeks")] = TimeDuration.FromWeeks,
+                [("month", "months")] = TimeDuration.FromMonths,
+                [("season","seasons")] = TimeDuration.FromSeasons,
+                [("year", "years")] = TimeDuration.FromYears
+            };
+
+            var duration = new TimeDuration(0);
+
+            foreach (var pair in pairs) {
+                var foundKey = map.Keys.SingleOrDefault(s => s.singular == pair.increment || s.plural == pair.increment);
+
+                if (foundKey.singular != null || foundKey.plural != null) {
+                    duration += map[foundKey].Invoke(pair.value);
+                }
+            }
+
+            return duration;
         }
 
         public static bool operator ==(TimeDuration lhs, TimeDuration rhs) => lhs.Turns == rhs.Turns;
@@ -110,10 +151,10 @@ namespace OctoGhast {
             new TimeDuration(self.Turns - other.Turns);
 
         public static TimeDuration operator *(TimeDuration self, double other) =>
-            new TimeDuration((ulong)(self.Turns * other));
+            new TimeDuration((long)(self.Turns * other));
 
         public static TimeDuration operator /(TimeDuration self, double other) =>
-            new TimeDuration((ulong)(self.Turns / other));
+            new TimeDuration((long)(self.Turns / other));
 
         public static double operator *(TimeDuration self, TimeDuration other) =>
             (self.Turns * (double)other.Turns);
@@ -122,7 +163,10 @@ namespace OctoGhast {
             (self.Turns / (double)other.Turns);
 
         public static TimeDuration operator %(TimeDuration self, TimeDuration other) =>
-            new TimeDuration((ulong) self.Turns % other.Turns);
+            new TimeDuration(self.Turns % other.Turns);
+
+        public static implicit operator TimeDuration(int val) => new TimeDuration(val);
+        public static implicit operator TimeDuration(Int64 val) => new TimeDuration(val);
 
         /// <inheritdoc />
         public bool Equals(TimeDuration other)
@@ -152,13 +196,20 @@ namespace OctoGhast {
             throw new NotImplementedException();
         }
 
-        public static TimeDuration FromTurns(int turns) => new TimeDuration((ulong) turns);
-        public static TimeDuration FromSeconds(int seconds) => new TimeDuration((seconds < 6) ? 0 : (ulong) seconds / 6);
-        public static TimeDuration FromMinutes(int minutes) => new TimeDuration((ulong) minutes * 10);
+        public static TimeDuration FromTurns(long turns) => new TimeDuration(turns);
+        public static TimeDuration FromSeconds(int seconds) => new TimeDuration((seconds < 6) ? 0 : (long) seconds / 6);
+        public static TimeDuration FromMinutes(int minutes) => new TimeDuration((long) minutes * 10);
         public static TimeDuration FromHours(int hours) => FromMinutes(60 * hours);
         public static TimeDuration FromDays(int days) => FromHours(24 * days);
         public static TimeDuration FromWeeks(int weeks) => FromDays(7 * weeks);
 
+        public static TimeDuration FromMonths(int months) => FromWeeks(4 * months);
+
+        // nb. A Month is 4 weeks, a year is 12 months, a season is a variable length construct that doesn't impact time tracking.
+
+        public static TimeDuration FromYears(int years) => FromMonths(12 * years); // 1 year == 12 months
+
+        [Obsolete("Consider using FromMonths or FromYears")]
         public static TimeDuration FromSeasons(int seasons) {
             int totalDays = 0;
             for (int i = 0; i < seasons; i++) {
@@ -166,22 +217,6 @@ namespace OctoGhast {
             }
 
             return FromDays(totalDays);
-        }
-
-        /// <summary>
-        /// Give a TimeDuration calculated for n whole years assuming it starts at Season[0] and progresses to Season[Max]
-        /// </summary>
-        /// <param name="years"></param>
-        /// <returns></returns>
-        public static TimeDuration FromYears(int years) {
-            int totalDays = 0;
-
-            // One year
-            for (int i = 0; i < Season.Seasons.Count; i++) {
-                totalDays += Season.GetSeasonLength(i % 4);
-            }
-
-            return FromDays(totalDays * years);
         }
     }
 }

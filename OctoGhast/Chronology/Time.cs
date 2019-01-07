@@ -39,7 +39,7 @@ namespace OctoGhast {
     public class Time : IEquatable<Time> {
         private TimeDuration epoch;
 
-        public ulong Turns { get; }
+        public long Turns { get; }
 
         /// <summary>
         /// Create a new instance of time starting on the first day.
@@ -50,7 +50,7 @@ namespace OctoGhast {
             Turns = epoch.Turns;
         }
 
-        public Time(ulong turnNumber) {
+        public Time(long turnNumber) {
             Turns = turnNumber;
             epoch = new TimeDuration(Turns);
         }

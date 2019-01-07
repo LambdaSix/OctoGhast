@@ -83,6 +83,7 @@
     <Compile Include="Factory\Loader\BurnableLoader.cs" />
     <Compile Include="Factory\Loader\MaterialLoader.cs" />
     <Compile Include="Factory\ItemFactory.cs" />
+    <Compile Include="Extensions\LinqExtensions.cs" />
     <Compile Include="Extensions\JObjectExtensions.cs" />
     <Compile Include="Factory\Data\Material.cs" />
     <Compile Include="Entity\Item\Component\RangedComponent.cs" />

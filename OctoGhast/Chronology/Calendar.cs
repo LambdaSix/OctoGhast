@@ -13,7 +13,7 @@ namespace OctoGhast {
         /// <summary>
         /// A 'forever' value.
         /// </summary>
-        public static TimeDuration IndefinitelyLong = new TimeDuration(UInt64.MaxValue / 100);
+        public static TimeDuration IndefinitelyLong = new TimeDuration(Int64.MaxValue / 100);
 
         public static double MoonlightPerQuarter = 2.25;
     }
@@ -185,17 +185,39 @@ namespace OctoGhast {
         /// </summary>
         public static Season StartSeason;
 
+        /// <summary>
+        /// The current time of the game world.
+        /// </summary>
+        public static Time Now { get; set; }
+
+        /// <summary>
+        /// Advance time by a specified number of turns.
+        /// This is is designed to be called from the main game loop once per logical turn.
+        /// </summary>
+        /// <param name="turns"></param>
+        /// <returns>The new time index</returns>
+        public static Time Advance(long turns) => Now = Now.AddTime(TimeDuration.FromTurns(turns));
+
+        /// <summary>
+        /// Advance time by a time interval.
+        /// </summary>
+        /// <param name="timeDelta"></param>
+        /// <returns>The new time index</returns>
+        public static Time Advance(TimeDuration timeDelta) => Now = Now.AddTime(timeDelta);
+
         public Season CurrentSeason { get; set; }
 
         public Calendar() {
-            _currentTime = new Time(0);
+            _currentTime = new Time(0L);
             CurrentSeason = Season.Seasons[0];
             StartSeason = CurrentSeason;
+            Now = _currentTime;
         }
 
-        public Calendar(ulong turn) {
+        public Calendar(long turn) {
             _currentTime = new Time(turn);
             CurrentSeason = _currentTime.CurrentRealSeason;
+            Now = _currentTime;
         }
 
         public Calendar(int minute, int hour, int day, Season season, int year) {
@@ -207,6 +229,8 @@ namespace OctoGhast {
                 + TimeDuration.FromHours(hour)
                 + TimeDuration.FromDays(day)
                 + TimeDuration.FromDays(totalDays));
+
+            Now = _currentTime;
         }
 
         /// <summary>
