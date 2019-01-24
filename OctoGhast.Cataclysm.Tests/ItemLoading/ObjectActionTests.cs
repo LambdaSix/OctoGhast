@@ -75,7 +75,7 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
         }
 
         [ItemUse("dummy_action")]
-        private class DummyAction : ItemUse<TemplateType> {
+        public class DummyAction : ItemUse<TemplateType> {
             /// <inheritdoc />
             public override int Use(BaseCreature player, RLObject<TemplateType> item, bool turnTick, WorldSpace position) {
                 var outStr = $"Dummy action called on {item.GetName()}";
@@ -87,7 +87,7 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
 
         [Test]
         public void ActionsFromUseRegistry() {
-            // Also sneakily tests the auto-detection of new ItemUse handlers 
+            // Also sneakily tests the auto-detection of new ItemUse handlers via DummyAction :)
 
             var itemString = @"{
                 ""type"": ""GENERIC"",
@@ -96,7 +96,7 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
                 ""name"": ""concrete chunk"",
                 ""use_action"": [ ""NULL"", ""dummy_action"" ],
                 ""volume"": ""-11""
-            }";
+            }";            
 
             var itype = new ItemTypeLoader().Load(JObject.Parse(itemString));
             var item = new RLObject<ItemType>(itype, 1);
