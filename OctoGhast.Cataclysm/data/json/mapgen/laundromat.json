@@ -1,0 +1,132 @@
+[
+  {
+    "id": "laundromat_bleach",
+    "type": "item_group",
+    "items": [ [ "bleach", 50 ] ]
+  },
+  {
+    "id": "laundromat_containers",
+    "type": "item_group",
+    "items": [
+      [ "duffelbag", 5 ],
+      [ "backpack", 5 ],
+      [ "bag_plastic", 30 ],
+      [ "basket_laundry", 30 ]
+    ]
+  },
+  {
+    "id": "s_laundromat",
+    "type": "overmap_terrain",
+    "name": "laundromat",
+    "sym": 94,
+    "color": "white_white",
+    "see_cost": 5,
+    "mondensity": 2,
+    "extras": "build",
+    "mapgen": [
+      {
+        "method": "json",
+        "weight": 400,
+        "object": {
+          "rows": [
+            "ssssssssssssssssssssssss",
+            "ssssssssssssssssssssssss",
+            "ssssssssssssssssssssssss",
+            "ssssssssssssssssssssssss",
+            "_|===========-[[-===|___",
+            "_|^..........^..^...|___",
+            "_|t..#.............&|___",
+            "_|C.Bt.............D|___",
+            "_|ttt#....rrrr.....D|___",
+            "_|WWWWWWWWWWWt.....D|___",
+            "_|.................D|%__",
+            "_|WWWWWWWWWWWt.....D|%__",
+            "_|.................D|___",
+            "_|WWWWWWWWWWWt.....D|___",
+            "_|t................D|___",
+            "_|c...DDD####t.....D|___",
+            "_|c...-------......|--|_",
+            "_|c...WWWWWWWt.....|lS|_",
+            "_|6................+lT|_",
+            "_|6...rrrrrrrr.....|--|_",
+            "_|V...rrrrrrrr.....|lS|_",
+            "_|V................+lT|_",
+            "_|------------++------|_",
+            "________________________"
+          ],
+          "terrain": {
+            "#": "t_floor",
+            "%": "t_pavement",
+            "&": "t_floor",
+            "+": "t_door_c",
+            "-": "t_wall",
+            ".": "t_linoleum_white",
+            "6": "t_floor",
+            "=": "t_wall_glass",
+            "A": "t_atm",
+            "B": "t_linoleum_white",
+            "C": "t_console_broken",
+            "D": "t_floor",
+            "S": "t_linoleum_white",
+            "T": "t_linoleum_white",
+            "V": "t_floor",
+            "W": "t_floor",
+            "[": "t_door_glass_c",
+            "]": "t_floor",
+            "^": "t_linoleum_white",
+            "_": "t_pavement",
+            "c": "t_floor",
+            "l": "t_linoleum_gray",
+            "r": "t_floor",
+            "s": "t_sidewalk",
+            "t": "t_floor",
+            "w": "t_linoleum_white",
+            "y": "t_linoleum_white",
+            "|": "t_wall",
+            "~": "t_linoleum_white"
+          },
+          "furniture": {
+            "#": "f_counter",
+            "%": "f_trashcan",
+            "&": "f_trashcan",
+            "6": "f_arcade_machine",
+            "B": "f_stool",
+            "D": "f_dryer",
+            "S": "f_sink",
+            "T": "f_toilet",
+            "V": "f_vending_c",
+            "W": "f_washer",
+            "^": "f_indoor_plant",
+            "c": "f_chair",
+            "r": "f_rack",
+            "t": "f_table"
+          },
+          "toilets": { "T": {} },
+          "place_items": [
+            { "item": "trash", "x": 19, "y": 6, "chance": 80 },
+            { "item": "behindcounter", "x": 4, "y": 8, "chance": 60 },
+            { "item": "laundry", "x": [ 2, 13 ], "y": 9, "chance": 60, "repeat": [ 1, 2 ] },
+            { "item": "laundry", "x": 19, "y": [ 7, 15 ], "chance": 60, "repeat": [ 1, 2 ] },
+            { "item": "laundry", "x": [ 2, 13 ], "y": 11, "chance": 60, "repeat": [ 1, 2 ] },
+            { "item": "laundry", "x": [ 2, 13 ], "y": 13, "chance": 60, "repeat": [ 1, 2 ] },
+            { "item": "laundry", "x": [ 6, 12 ], "y": 17, "chance": 60, "repeat": [ 1, 2 ] },
+            { "item": "magazines", "x": [ 12, 13 ], "y": 8, "chance": 60, "repeat": [ 1, 2 ] },
+            { "item": "snacks", "x": [ 10, 11 ], "y": 8, "chance": 60, "repeat": [ 1, 2 ] },
+            { "item": "laundromat_containers", "x": [ 9, 12 ], "y": 15, "chance": 60, "repeat": [ 1, 2 ] },
+            { "item": "laundromat_bleach", "x": [ 6, 12 ], "y": [ 19, 20 ], "chance": 30, "repeat": [ 4, 8 ] },
+            { "item": "vending_drink", "x": 2, "y": 20, "chance": 75 },
+            { "item": "vending_food", "x": 2, "y": 21, "chance": 75 }
+          ],
+          "place_vehicles": [
+            { "vehicle": "shopping_cart", "x": 14, "y": 9, "chance": 10 },
+            { "vehicle": "shopping_cart", "x": 14, "y": 13, "chance": 10 },
+            { "vehicle": "shopping_cart", "x": 15, "y": 12, "chance": 10 },
+            { "vehicle": "shopping_cart", "x": 17, "y": 18, "chance": 10 },
+            { "vehicle": "shopping_cart", "x": 17, "y": 21, "chance": 10 }
+          ]
+        }
+      }
+    ],
+    "flags": [ "SIDEWALK" ]
+  }
+]

@@ -105,10 +105,1149 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CONTENTS.md" />
+    <None Include="Data\json\anatomy.json" />
+    <None Include="Data\json\bionics.json" />
+    <None Include="Data\json\body_parts.json" />
+    <None Include="Data\json\construction.json" />
+    <None Include="Data\json\default_blacklist.json" />
+    <None Include="Data\json\doll_speech.json" />
+    <None Include="Data\json\dreams.json" />
+    <None Include="Data\json\effects.json" />
+    <None Include="Data\json\emit.json" />
+    <None Include="Data\json\flags.json" />
+    <None Include="Data\json\furniture.json" />
+    <None Include="Data\json\game_balance.json" />
+    <None Include="Data\json\gates.json" />
+    <None Include="Data\json\harvest.json" />
+    <None Include="Data\json\health_msgs.json" />
+    <None Include="Data\json\itemgroups\ammo.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\books.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\clothing.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\defense_mode.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\drugs.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\faction_camps.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\forage.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\gear.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\gunmod.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\guns.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\locations.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\magazines.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\main.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\mansion.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\map_extras.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\misc.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\monster_drops.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\supplies.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\tools.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\itemgroups\vending_machines.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\12mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\20x66mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\22.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\223.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\300.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\3006.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\308.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\32.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\357.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\36paper.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\38.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\40.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\40mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\44.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\44paper.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\45.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\454.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\46.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\50.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\500.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\545x39.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\57.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\5x50.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\700nx.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\762.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\762R.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\762x25.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\84x246mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\8x40mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\9mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\9x18.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\flintlock.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\metal_rail.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\nail.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\shot.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\signal_flare.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo\weldgas.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ammo_types.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\archery.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\armor.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\armor\ammo_pouch.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\armor\bandolier.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\armor\boots.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\armor\holster.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\bionics.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\biosignatures.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\archery.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\barter.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\bashing.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\computer.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\cooking.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\cutting.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\dodge.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\driving.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\electronics.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\fabrication.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\firstaid.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\gun.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\launcher.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\martial.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\mechanics.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\melee.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\misc.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\pistol.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\rifle.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\shotgun.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\smg.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\speech.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\stabbing.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\survival.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\swimming.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\tailor.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\throw.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\traps.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\book\unarmed.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\chemicals_and_resources.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\classes\book.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\classes\comestible.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\classes\gun.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\classes\magazine.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\comestibles.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\comestibles\brewing.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\comestibles\carnivore.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\comestibles\drink.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\comestibles\egg.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\comestibles\med.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\comestibles\mutagen.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\comestibles\protein.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\comestibles\seed.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\comestibles\spice.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\containers.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\crossbows.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\fake.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\fuel.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\generic.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\generic\ammolink.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\generic\casing.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\generic\spares.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\generic\string.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\grenades.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gunmod\accessories.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gunmod\barrel.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gunmod\grip.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gunmod\laser_gunmods.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gunmod\magazine.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gunmod\mechanism.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gunmod\muzzle.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gunmod\rail.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gunmod\sights.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gunmod\stock.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gunmod\underbarrel.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\12mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\20x66mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\22.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\223.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\300.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\3006.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\308.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\32.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\357.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\36paper.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\38.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\40.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\40mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\44.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\44paper.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\45.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\454.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\46.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\50.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\500.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\545x39.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\57.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\5x50.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\700nx.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\762.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\762R.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\762x25.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\84x246mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\8x40mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\9mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\9x18.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\bio.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\blunderbuss.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\flammable.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\flintlock.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\metal_rail.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\nail.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\shot.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\signal_flare.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\gun\ups.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\handloaded_bullets.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\12mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\20x60mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\22.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\223.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\300.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\3006.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\308.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\32.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\357.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\38.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\40.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\40mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\44.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\45.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\46.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\50.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\545x39.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\57.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\5x50.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\762.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\762R.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\762x25.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\8x40mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\9mm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\9x18.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\liquid.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\nail.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\shot.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\magazine\weldgas.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\melee.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\migration.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\newspaper.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\obsolete.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\ranged.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\resources\metals.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\resources\misc.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\software.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\toolmod.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\tools.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\tool\deployable.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\tool\lighting.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\tool\med.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\tool\radio_tools.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\tool\workshop.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\tool_armor.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\vehicle\alternator.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\vehicle\armor.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\vehicle\battery.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\vehicle\engine.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\vehicle\engineering.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\vehicle\rams.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\vehicle\rigs.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\vehicle\wheel.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\items\vehicle_parts.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\json\item_actions.json" />
+    <None Include="Data\json\item_category.json" />
+    <None Include="Data\json\item_groups.json" />
+    <None Include="Data\json\lab_notes.json" />
+    <None Include="Data\json\LOADING_ORDER.md" />
+    <None Include="Data\json\mapgen\abandoned01.json" />
+    <None Include="Data\json\mapgen\abstorefront.json" />
+    <None Include="Data\json\mapgen\animalpound.json" />
+    <None Include="Data\json\mapgen\animalshelter.json" />
+    <None Include="Data\json\mapgen\antique_store.json" />
+    <None Include="Data\json\mapgen\apartment_con.json" />
+    <None Include="Data\json\mapgen\apartment_mod.json" />
+    <None Include="Data\json\mapgen\arcade.json" />
+    <None Include="Data\json\mapgen\bandit_cabin.json" />
+    <None Include="Data\json\mapgen\bandit_camp.json" />
+    <None Include="Data\json\mapgen\bandit_garage.json" />
+    <None Include="Data\json\mapgen\bank.json" />
+    <None Include="Data\json\mapgen\bar.json" />
+    <None Include="Data\json\mapgen\basement\basement_bionic.json" />
+    <None Include="Data\json\mapgen\basement\basement_chem.json" />
+    <None Include="Data\json\mapgen\basement\basement_game.json" />
+    <None Include="Data\json\mapgen\basement\basement_guns.json" />
+    <None Include="Data\json\mapgen\basement\basement_lab_stairs.json" />
+    <None Include="Data\json\mapgen\basement\basement_survival.json" />
+    <None Include="Data\json\mapgen\basement\basement_weed.json" />
+    <None Include="Data\json\mapgen\bike_shop.json" />
+    <None Include="Data\json\mapgen\bookstore1.json" />
+    <None Include="Data\json\mapgen\bookstore2.json" />
+    <None Include="Data\json\mapgen\bookstore3.json" />
+    <None Include="Data\json\mapgen\bowling_alley.json" />
+    <None Include="Data\json\mapgen\boxing.json" />
+    <None Include="Data\json\mapgen\bunker.json" />
+    <None Include="Data\json\mapgen\butcher.json" />
+    <None Include="Data\json\mapgen\cabin00.json" />
+    <None Include="Data\json\mapgen\cabin03.json" />
+    <None Include="Data\json\mapgen\cabin_strange.json" />
+    <None Include="Data\json\mapgen\campsite.json" />
+    <None Include="Data\json\mapgen\cathedral.json" />
+    <None Include="Data\json\mapgen\cemetery_4square.json" />
+    <None Include="Data\json\mapgen\church_gothic.json" />
+    <None Include="Data\json\mapgen\church_new_england.json" />
+    <None Include="Data\json\mapgen\clothing0.json" />
+    <None Include="Data\json\mapgen\clothing1.json" />
+    <None Include="Data\json\mapgen\clothing2.json" />
+    <None Include="Data\json\mapgen\clothing3.json" />
+    <None Include="Data\json\mapgen\clothing4.json" />
+    <None Include="Data\json\mapgen\clothing5.json" />
+    <None Include="Data\json\mapgen\clothing6.json" />
+    <None Include="Data\json\mapgen\coffee_shop.json" />
+    <None Include="Data\json\mapgen\coffee_shop2.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\AbandonedWarehouse.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\Cabin.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\Campground.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\Cemetery.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\CemeteryMedium.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\DesolateBarn.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\DollarStore.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\Dump.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\Dumpsite.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\EmptyCommercialLot.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\EmptyResidentialLot.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\GardenBotanical.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\GardenCommunity.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\GardenPublic.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\Golfcourse.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\Junkyard.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\LANCenter.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\Landfill.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\LanscapingSupplyCo.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\NatureTrail.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\Park.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\Pool.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\PublicPond.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\RecycleCenter.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\ShootingRange.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\TreeFarm.json" />
+    <None Include="Data\json\mapgen\cosmics_additions\VacantHouse.json" />
+    <None Include="Data\json\mapgen\dairy_farm.json" />
+    <None Include="Data\json\mapgen\debug_ramps.json" />
+    <None Include="Data\json\mapgen\diner.json" />
+    <None Include="Data\json\mapgen\dojo.json" />
+    <None Include="Data\json\mapgen\duplex.json" />
+    <None Include="Data\json\mapgen\electronics0.json" />
+    <None Include="Data\json\mapgen\electronics1.json" />
+    <None Include="Data\json\mapgen\evac_center.json" />
+    <None Include="Data\json\mapgen\faction_buildings.json" />
+    <None Include="Data\json\mapgen\farm.json" />
+    <None Include="Data\json\mapgen\field_football.json" />
+    <None Include="Data\json\mapgen\fire_station.json" />
+    <None Include="Data\json\mapgen\fortified_house01.json" />
+    <None Include="Data\json\mapgen\furniture.json" />
+    <None Include="Data\json\mapgen\garage.json" />
+    <None Include="Data\json\mapgen\garage_gas.json" />
+    <None Include="Data\json\mapgen\gardening_store.json" />
+    <None Include="Data\json\mapgen\gas_station.json" />
+    <None Include="Data\json\mapgen\grocery0.json" />
+    <None Include="Data\json\mapgen\grocery1.json" />
+    <None Include="Data\json\mapgen\gunsmith.json" />
+    <None Include="Data\json\mapgen\gunstore_home_defense.json" />
+    <None Include="Data\json\mapgen\gym.json" />
+    <None Include="Data\json\mapgen\hardware1.json" />
+    <None Include="Data\json\mapgen\hardware2.json" />
+    <None Include="Data\json\mapgen\hardware3.json" />
+    <None Include="Data\json\mapgen\hardware4.json" />
+    <None Include="Data\json\mapgen\homeimprovement.json" />
+    <None Include="Data\json\mapgen\homeimprovement_superstore.json" />
+    <None Include="Data\json\mapgen\hospital\hospital.json" />
+    <None Include="Data\json\mapgen\hotel_tower.json" />
+    <None Include="Data\json\mapgen\house\house04.json" />
+    <None Include="Data\json\mapgen\house\house05.json" />
+    <None Include="Data\json\mapgen\house\house05_ab.json" />
+    <None Include="Data\json\mapgen\house\house06.json" />
+    <None Include="Data\json\mapgen\house\house07.json" />
+    <None Include="Data\json\mapgen\house\house08.json" />
+    <None Include="Data\json\mapgen\house\house09.json" />
+    <None Include="Data\json\mapgen\house\house10.json" />
+    <None Include="Data\json\mapgen\house\house11.json" />
+    <None Include="Data\json\mapgen\house\house12.json" />
+    <None Include="Data\json\mapgen\house\house13.json" />
+    <None Include="Data\json\mapgen\house\house14.json" />
+    <None Include="Data\json\mapgen\house\house15.json" />
+    <None Include="Data\json\mapgen\house\house16.json" />
+    <None Include="Data\json\mapgen\house\house17.json" />
+    <None Include="Data\json\mapgen\house\house18.json" />
+    <None Include="Data\json\mapgen\house\house19.json" />
+    <None Include="Data\json\mapgen\house\house_dogs.json" />
+    <None Include="Data\json\mapgen\house\house_garage.json" />
+    <None Include="Data\json\mapgen\house\house_garage2.json" />
+    <None Include="Data\json\mapgen\house\house_garage3.json" />
+    <None Include="Data\json\mapgen\house\house_garage4.json" />
+    <None Include="Data\json\mapgen\house\house_garage5.json" />
+    <None Include="Data\json\mapgen\house\house_garage6.json" />
+    <None Include="Data\json\mapgen\house\house_garage7.json" />
+    <None Include="Data\json\mapgen\house\house_garage8.json" />
+    <None Include="Data\json\mapgen\house\house_garage_prepper.json" />
+    <None Include="Data\json\mapgen\house\house_gardener.json" />
+    <None Include="Data\json\mapgen\house\house_library.json" />
+    <None Include="Data\json\mapgen\house\house_modern_lx.json" />
+    <None Include="Data\json\mapgen\house\house_patio.json" />
+    <None Include="Data\json\mapgen\house\house_porch.json" />
+    <None Include="Data\json\mapgen\house\house_quiverfull.json" />
+    <None Include="Data\json\mapgen\house\house_rv.json" />
+    <None Include="Data\json\mapgen\house\house_suicide.json" />
+    <None Include="Data\json\mapgen\house\house_tool_shed.json" />
+    <None Include="Data\json\mapgen\jewel_store.json" />
+    <None Include="Data\json\mapgen\lab\lab_central.json" />
+    <None Include="Data\json\mapgen\lab\lab_common.json" />
+    <None Include="Data\json\mapgen\lab\lab_floorplans.json" />
+    <None Include="Data\json\mapgen\lab\lab_floorplans_1side.json" />
+    <None Include="Data\json\mapgen\lab\lab_floorplans_finale1level.json" />
+    <None Include="Data\json\mapgen\lab\lab_floorplan_cross.json" />
+    <None Include="Data\json\mapgen\lab\lab_rooms.json" />
+    <None Include="Data\json\mapgen\lab\lab_trains.json" />
+    <None Include="Data\json\mapgen\laundromat.json" />
+    <None Include="Data\json\mapgen\library1.json" />
+    <None Include="Data\json\mapgen\library2.json" />
+    <None Include="Data\json\mapgen\lmoe.json" />
+    <None Include="Data\json\mapgen\lmoe_under01.json" />
+    <None Include="Data\json\mapgen\lmoe_under02.json" />
+    <None Include="Data\json\mapgen\mall.json" />
+    <None Include="Data\json\mapgen\mansion\mansion.json" />
+    <None Include="Data\json\mapgen\mapgen-test.json" />
+    <None Include="Data\json\mapgen\meth_lab.json" />
+    <None Include="Data\json\mapgen\mil_surplus.json" />
+    <None Include="Data\json\mapgen\mortuary.json" />
+    <None Include="Data\json\mapgen\motel.json" />
+    <None Include="Data\json\mapgen\multistory_houses\house_2story_base_north.json" />
+    <None Include="Data\json\mapgen\multistory_houses\house_2story_second.json" />
+    <None Include="Data\json\mapgen\museum.json" />
+    <None Include="Data\json\mapgen\musicstore.json" />
+    <None Include="Data\json\mapgen\necropolis\necropolis.json" />
+    <None Include="Data\json\mapgen\necropolis\necropolisB1.json" />
+    <None Include="Data\json\mapgen\necropolis\necropolisB2.json" />
+    <None Include="Data\json\mapgen\necropolis\necropolisB3.json" />
+    <None Include="Data\json\mapgen\office_cubical.json" />
+    <None Include="Data\json\mapgen\office_doctor.json" />
+    <None Include="Data\json\mapgen\office_tower_2.json" />
+    <None Include="Data\json\mapgen\orchard_apple.json" />
+    <None Include="Data\json\mapgen\park.json" />
+    <None Include="Data\json\mapgen\parks_recreation\art_gallery.json" />
+    <None Include="Data\json\mapgen\parks_recreation\cemetery_small.json" />
+    <None Include="Data\json\mapgen\parks_recreation\derelict_property.json" />
+    <None Include="Data\json\mapgen\parks_recreation\dispensary.json" />
+    <None Include="Data\json\mapgen\parks_recreation\fishing_pond0_0.json" />
+    <None Include="Data\json\mapgen\parks_recreation\fishing_pond0_1.json" />
+    <None Include="Data\json\mapgen\parks_recreation\fishing_pond1_0.json" />
+    <None Include="Data\json\mapgen\parks_recreation\fishing_pond1_1.json" />
+    <None Include="Data\json\mapgen\parks_recreation\hunting_blind.json" />
+    <None Include="Data\json\mapgen\parks_recreation\orchard.json" />
+    <None Include="Data\json\mapgen\parks_recreation\pavilion.json" />
+    <None Include="Data\json\mapgen\parks_recreation\skate_park.json" />
+    <None Include="Data\json\mapgen\parks_recreation\small_office.json" />
+    <None Include="Data\json\mapgen\parks_recreation\small_storage_units.json" />
+    <None Include="Data\json\mapgen\parks_recreation\small_wooded_trail.json" />
+    <None Include="Data\json\mapgen\parks_recreation\state_park0_0.json" />
+    <None Include="Data\json\mapgen\parks_recreation\state_park0_1.json" />
+    <None Include="Data\json\mapgen\parks_recreation\state_park1_0.json" />
+    <None Include="Data\json\mapgen\parks_recreation\state_park1_1.json" />
+    <None Include="Data\json\mapgen\pawn_shop.json" />
+    <None Include="Data\json\mapgen\pharmacy.json" />
+    <None Include="Data\json\mapgen\pizza_parlor.json" />
+    <None Include="Data\json\mapgen\ponds.json" />
+    <None Include="Data\json\mapgen\pool.json" />
+    <None Include="Data\json\mapgen\power_station_large.json" />
+    <None Include="Data\json\mapgen\power_station_small.json" />
+    <None Include="Data\json\mapgen\Prepper_house01.json" />
+    <None Include="Data\json\mapgen\prison_1.json" />
+    <None Include="Data\json\mapgen\public_works.json" />
+    <None Include="Data\json\mapgen\pump_station.json" />
+    <None Include="Data\json\mapgen\radio_tower.json" />
+    <None Include="Data\json\mapgen\ranch_camp.json" />
+    <None Include="Data\json\mapgen\restaurant.json" />
+    <None Include="Data\json\mapgen\restaurant2.json" />
+    <None Include="Data\json\mapgen\restaurant_fast.json" />
+    <None Include="Data\json\mapgen\river_shipwreck.json" />
+    <None Include="Data\json\mapgen\roadstop.json" />
+    <None Include="Data\json\mapgen\roadstop_a.json" />
+    <None Include="Data\json\mapgen\roadstop_b.json" />
+    <None Include="Data\json\mapgen\road_4way.json" />
+    <None Include="Data\json\mapgen\sai.json" />
+    <None Include="Data\json\mapgen\school_1.json" />
+    <None Include="Data\json\mapgen\shelter.json" />
+    <None Include="Data\json\mapgen\small_town_buildings\bakery.json" />
+    <None Include="Data\json\mapgen\small_town_buildings\candy_shop.json" />
+    <None Include="Data\json\mapgen\small_town_buildings\construction_site.json" />
+    <None Include="Data\json\mapgen\small_town_buildings\icecream_shop.json" />
+    <None Include="Data\json\mapgen\small_town_buildings\lumberyard_0_0.json" />
+    <None Include="Data\json\mapgen\small_town_buildings\lumberyard_0_1.json" />
+    <None Include="Data\json\mapgen\small_town_buildings\lumberyard_1_0.json" />
+    <None Include="Data\json\mapgen\small_town_buildings\lumberyard_1_1.json" />
+    <None Include="Data\json\mapgen\small_town_buildings\post_office.json" />
+    <None Include="Data\json\mapgen\sports_store.json" />
+    <None Include="Data\json\mapgen\standing_stones.json" />
+    <None Include="Data\json\mapgen\station_radio.json" />
+    <None Include="Data\json\mapgen\sub_station.json" />
+    <None Include="Data\json\mapgen\sugar_house.json" />
+    <None Include="Data\json\mapgen\swamp_shack.json" />
+    <None Include="Data\json\mapgen\s_gas_rural.json" />
+    <None Include="Data\json\mapgen\s_gun0.json" />
+    <None Include="Data\json\mapgen\s_library.json" />
+    <None Include="Data\json\mapgen\s_liquor.json" />
+    <None Include="Data\json\mapgen\teashop.json" />
+    <None Include="Data\json\mapgen\triffid_grove.json" />
+    <None Include="Data\json\mapgen\veterinarian.json" />
+    <None Include="Data\json\mapgen\warehouse.json" />
+    <None Include="Data\json\mapgen_palettes\acidia_camp_palette.json" />
+    <None Include="Data\json\mapgen_palettes\basement.json" />
+    <None Include="Data\json\mapgen_palettes\church.json" />
+    <None Include="Data\json\mapgen_palettes\evac_center.json" />
+    <None Include="Data\json\mapgen_palettes\hospital.json" />
+    <None Include="Data\json\mapgen_palettes\houses_multistory.json" />
+    <None Include="Data\json\mapgen_palettes\lumberyard.json" />
+    <None Include="Data\json\mapgen_palettes\mansion.json" />
+    <None Include="Data\json\mapgen_palettes\mil_surplus.json" />
+    <None Include="Data\json\mapgen_palettes\office_doctor.json" />
+    <None Include="Data\json\mapgen_palettes\road.json" />
+    <None Include="Data\json\mapgen_palettes\shelter.json" />
+    <None Include="Data\json\mapgen_palettes\subway.json" />
+    <None Include="Data\json\martialarts.json" />
+    <None Include="Data\json\materials.json" />
+    <None Include="Data\json\monsterdrops\zombie_cop.json" />
+    <None Include="Data\json\monsterdrops\zombie_soldier.json" />
+    <None Include="Data\json\monsterdrops\zombie_survivor.json" />
+    <None Include="Data\json\monsterdrops\zombie_technician.json" />
+    <None Include="Data\json\monstergroups.json" />
+    <None Include="Data\json\monstergroups_egg.json" />
+    <None Include="Data\json\monsters.json" />
+    <None Include="Data\json\monsters\bird.json" />
+    <None Include="Data\json\monsters\defense_bot.json" />
+    <None Include="Data\json\monsters\drones.json" />
+    <None Include="Data\json\monsters\fish.json" />
+    <None Include="Data\json\monsters\insect_spider.json" />
+    <None Include="Data\json\monsters\mammal.json" />
+    <None Include="Data\json\monsters\military.json" />
+    <None Include="Data\json\monsters\obsolete.json" />
+    <None Include="Data\json\monsters\reptile_amphibian.json" />
+    <None Include="Data\json\monsters\triffid.json" />
+    <None Include="Data\json\monsters\zed_children.json" />
+    <None Include="Data\json\monsters\zed_explosive.json" />
+    <None Include="Data\json\monster_attacks.json" />
+    <None Include="Data\json\monster_drops.json" />
+    <None Include="Data\json\monster_factions.json" />
+    <None Include="Data\json\morale_types.json" />
+    <None Include="Data\json\mutations.json" />
+    <None Include="Data\json\mutation_category.json" />
+    <None Include="Data\json\mutation_ordering.json" />
+    <None Include="Data\json\npcs\classes.json" />
+    <None Include="Data\json\npcs\destination_locations.json" />
+    <None Include="Data\json\npcs\epilogues.json" />
+    <None Include="Data\json\npcs\factions.json" />
+    <None Include="Data\json\npcs\hints.json" />
+    <None Include="Data\json\npcs\items_generic.json" />
+    <None Include="Data\json\npcs\missiondef.json" />
+    <None Include="Data\json\npcs\NC_ARSONIST.json" />
+    <None Include="Data\json\npcs\NC_BARTENDER.json" />
+    <None Include="Data\json\npcs\NC_BOUNTY_HUNTER.json" />
+    <None Include="Data\json\npcs\NC_COWBOY.json" />
+    <None Include="Data\json\npcs\NC_DEBUG.json" />
+    <None Include="Data\json\npcs\NC_DOCTOR.json" />
+    <None Include="Data\json\npcs\NC_EVAC_SHOPKEEP.json" />
+    <None Include="Data\json\npcs\NC_HACKER.json" />
+    <None Include="Data\json\npcs\NC_HUNTER.json" />
+    <None Include="Data\json\npcs\NC_JUNK_SHOPKEEP.json" />
+    <None Include="Data\json\npcs\NC_NINJA.json" />
+    <None Include="Data\json\npcs\NC_SCAVENGER.json" />
+    <None Include="Data\json\npcs\NC_SCIENTIST.json" />
+    <None Include="Data\json\npcs\NC_SOLDIER.json" />
+    <None Include="Data\json\npcs\NC_THUG.json" />
+    <None Include="Data\json\npcs\NC_TRADER.json" />
+    <None Include="Data\json\npcs\npc.json" />
+    <None Include="Data\json\npcs\TALK_ARSONIST.json" />
+    <None Include="Data\json\npcs\TALK_COMMON.json" />
+    <None Include="Data\json\npcs\TALK_EVAC_GUARD1.json" />
+    <None Include="Data\json\npcs\TALK_EVAC_GUARD2.json" />
+    <None Include="Data\json\npcs\TALK_EVAC_GUARD3.json" />
+    <None Include="Data\json\npcs\TALK_EVAC_HUNTER.json" />
+    <None Include="Data\json\npcs\TALK_EVAC_MERCHANT.json" />
+    <None Include="Data\json\npcs\TALK_OLD_GUARD_REP.json" />
+    <None Include="Data\json\npcs\TALK_SCAVENGER_MERC.json" />
+    <None Include="Data\json\npcs\talk_tags.json" />
+    <None Include="Data\json\overmap\multitile_buildings_terrain.json" />
+    <None Include="Data\json\overmap\multitile_city_buildings.json" />
+    <None Include="Data\json\overmap\specials.json" />
+    <None Include="Data\json\overmap\special_locations.json" />
+    <None Include="Data\json\overmap_connections.json" />
+    <None Include="Data\json\overmap_terrain.json" />
+    <None Include="Data\json\player_activities.json" />
+    <None Include="Data\json\professions.json" />
+    <None Include="Data\json\recipes\ammo\components.json" />
+    <None Include="Data\json\recipes\ammo\grenades.json" />
+    <None Include="Data\json\recipes\ammo\pistol.json" />
+    <None Include="Data\json\recipes\ammo\rifle.json" />
+    <None Include="Data\json\recipes\ammo\shot.json" />
+    <None Include="Data\json\recipes\armor\arms.json" />
+    <None Include="Data\json\recipes\armor\feet.json" />
+    <None Include="Data\json\recipes\armor\hands.json" />
+    <None Include="Data\json\recipes\armor\head.json" />
+    <None Include="Data\json\recipes\armor\legs.json" />
+    <None Include="Data\json\recipes\armor\other.json" />
+    <None Include="Data\json\recipes\armor\storage.json" />
+    <None Include="Data\json\recipes\armor\suit.json" />
+    <None Include="Data\json\recipes\armor\torso.json" />
+    <None Include="Data\json\recipes\chem\fuel.json" />
+    <None Include="Data\json\recipes\chem\other.json" />
+    <None Include="Data\json\recipes\electronics\parts.json" />
+    <None Include="Data\json\recipes\electronics\toolmod.json" />
+    <None Include="Data\json\recipes\engines.json" />
+    <None Include="Data\json\recipes\food\brewing.json" />
+    <None Include="Data\json\recipes\food\distill.json" />
+    <None Include="Data\json\recipes\food\dry.json" />
+    <None Include="Data\json\recipes\food\pasta.json" />
+    <None Include="Data\json\recipes\food\seed.json" />
+    <None Include="Data\json\recipes\other\containers.json" />
+    <None Include="Data\json\recipes\other\materials.json" />
+    <None Include="Data\json\recipes\other\medical.json" />
+    <None Include="Data\json\recipes\other\other.json" />
+    <None Include="Data\json\recipes\other\parts.json" />
+    <None Include="Data\json\recipes\other\tool.json" />
+    <None Include="Data\json\recipes\other\vehicle.json" />
+    <None Include="Data\json\recipes\recipes.json" />
+    <None Include="Data\json\recipes\recipe_ammo.json" />
+    <None Include="Data\json\recipes\recipe_companion.json" />
+    <None Include="Data\json\recipes\recipe_construction_om.json" />
+    <None Include="Data\json\recipes\recipe_deconstruction.json" />
+    <None Include="Data\json\recipes\recipe_electronics.json" />
+    <None Include="Data\json\recipes\recipe_food.json" />
+    <None Include="Data\json\recipes\recipe_groups.json" />
+    <None Include="Data\json\recipes\recipe_medsandchemicals.json" />
+    <None Include="Data\json\recipes\recipe_others.json" />
+    <None Include="Data\json\recipes\recipe_vehicle.json" />
+    <None Include="Data\json\recipes\recipe_weapon.json" />
+    <None Include="Data\json\recipes\weapon\bashing.json" />
+    <None Include="Data\json\recipes\weapon\cutting.json" />
+    <None Include="Data\json\recipes\weapon\explosive.json" />
+    <None Include="Data\json\recipes\weapon\magazines.json" />
+    <None Include="Data\json\recipes\weapon\mods.json" />
+    <None Include="Data\json\recipes\weapon\piercing.json" />
+    <None Include="Data\json\recipes\weapon\ranged.json" />
+    <None Include="Data\json\regional_map_settings.json" />
+    <None Include="Data\json\requirements\ammo.json" />
+    <None Include="Data\json\requirements\cooking_components.json" />
+    <None Include="Data\json\requirements\cooking_tools.json" />
+    <None Include="Data\json\requirements\materials.json" />
+    <None Include="Data\json\requirements\toolsets.json" />
+    <None Include="Data\json\requirements\uncraft.json" />
+    <None Include="Data\json\requirements\vehicle.json" />
+    <None Include="Data\json\road_vehicles.json" />
+    <None Include="Data\json\rotatable_symbols.json" />
+    <None Include="Data\json\scenarios\scenarios.json" />
+    <None Include="Data\json\skills.json" />
+    <None Include="Data\json\snippets.json" />
+    <None Include="Data\json\species.json" />
+    <None Include="Data\json\speech.json" />
+    <None Include="Data\json\start_locations.json" />
+    <None Include="Data\json\techniques.json" />
+    <None Include="Data\json\terrain.json" />
+    <None Include="Data\json\test_regions.json" />
+    <None Include="Data\json\tool_qualities.json" />
+    <None Include="Data\json\traps.json" />
+    <None Include="Data\json\tutorial.json" />
+    <None Include="Data\json\uncraft\ammo\38.json" />
+    <None Include="Data\json\uncraft\ammo\40.json" />
+    <None Include="Data\json\uncraft\ammo\45.json" />
+    <None Include="Data\json\uncraft\ammo\762x25.json" />
+    <None Include="Data\json\uncraft\ammo\9mm.json" />
+    <None Include="Data\json\uncraft\ammo\flintlock.json" />
+    <None Include="Data\json\uncraft\ammo\shot.json" />
+    <None Include="Data\json\uncraft\classes\ammo.json" />
+    <None Include="Data\json\uncraft\generic.json" />
+    <None Include="Data\json\uncraft\vehicle\alternator.json" />
+    <None Include="Data\json\uncraft\weapon\explosive.json" />
+    <None Include="Data\json\vehicleparts\alternator.json" />
+    <None Include="Data\json\vehicleparts\armor.json" />
+    <None Include="Data\json\vehicleparts\battery.json" />
+    <None Include="Data\json\vehicleparts\boards.json" />
+    <None Include="Data\json\vehicleparts\cargo.json" />
+    <None Include="Data\json\vehicleparts\combustion.json" />
+    <None Include="Data\json\vehicleparts\engineering.json" />
+    <None Include="Data\json\vehicleparts\faults.json" />
+    <None Include="Data\json\vehicleparts\frames.json" />
+    <None Include="Data\json\vehicleparts\lights.json" />
+    <None Include="Data\json\vehicleparts\manual.json" />
+    <None Include="Data\json\vehicleparts\motor.json" />
+    <None Include="Data\json\vehicleparts\rams.json" />
+    <None Include="Data\json\vehicleparts\tanks.json" />
+    <None Include="Data\json\vehicleparts\turret.json" />
+    <None Include="Data\json\vehicleparts\vp_flags.json" />
+    <None Include="Data\json\vehicleparts\wheel.json" />
+    <None Include="Data\json\vehicles\bikes.json" />
+    <None Include="Data\json\vehicles\cars.json" />
+    <None Include="Data\json\vehicles\carts.json" />
+    <None Include="Data\json\vehicles\custom_vehicles.json" />
+    <None Include="Data\json\vehicles\emergency.json" />
+    <None Include="Data\json\vehicles\farm.json" />
+    <None Include="Data\json\vehicles\military.json" />
+    <None Include="Data\json\vehicles\trucks.json" />
+    <None Include="Data\json\vehicles\utility.json" />
+    <None Include="Data\json\vehicles\vans_busses.json" />
+    <None Include="Data\json\vehicles\vehicles.json" />
+    <None Include="Data\json\vehicle_groups.json" />
+    <None Include="Data\json\vehicle_parts.json" />
+    <None Include="Data\json\vitamin.json" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Items\" />
+    <Folder Include="Entities\" />
+    <Folder Include="LegacyLoader\UseActions\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

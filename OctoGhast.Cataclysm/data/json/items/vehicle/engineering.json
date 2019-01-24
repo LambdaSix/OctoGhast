@@ -1,0 +1,54 @@
+[
+  {
+    "id": "cantilever_medium",
+    "type": "GENERIC",
+    "category": "veh_parts",
+    "name": "steel boom",
+    "description": "A large rigid steel boom.  If attached to a frame it could be used to lift up to 20 metric tonnes.",
+    "price": 23400,
+    "weight": 31600,
+    "volume": 50,
+    "material": "steel",
+    "symbol": "&",
+    "color": "dark_gray"
+  },
+  {
+    "id": "cantilever_small",
+    "type": "GENERIC",
+    "category": "veh_parts",
+    "name": "telescopic cantilever",
+    "description": "A small steel telescoping cantilever.  If attached to a frame it could be used to lift up to 3.5 metric tonnes.",
+    "price": 7900,
+    "weight": 12000,
+    "volume": 12,
+    "material": "steel",
+    "symbol": "&",
+    "color": "dark_gray"
+  },
+  {
+    "id": "pallet_lifter",
+    "type": "GENERIC",
+    "category": "veh_parts",
+    "name": "pallet lifter",
+    "description": "A makeshift pallet lifter.  If attached to a frame it could be used to lift up to 0.5 metric tonnes.",
+    "price": 7900,
+    "weight": 12000,
+    "volume": 12,
+    "material": "steel",
+    "symbol": "&",
+    "color": "dark_gray"
+  },
+  {
+    "type": "GENERIC",
+    "id": "v_rockwheel_item",
+    "symbol": "&",
+    "name": "rockwheel",
+    "color": "dark_gray",
+    "description": "A large and heavy jagged metal disc to dig trenches.",
+    "weight": 62000,
+    "material": "steel",
+    "category": "veh_parts",
+    "price": 8500,
+    "volume": 29
+  }
+]
