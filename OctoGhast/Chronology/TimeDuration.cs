@@ -2,6 +2,7 @@
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using OctoGhast.Extensions;
 using static OctoGhast.Translation.Translation;
 
@@ -11,7 +12,7 @@ namespace OctoGhast {
     /// </summary>
     public class TimeDuration : IEquatable<TimeDuration> {
         public long Turns { get; }
-        private long YearLength => TimeDuration.FromDays(Season.GetTotalLength()).Turns;
+        private long YearLength => TimeDuration.FromWeeks(52).Turns;
 
         public TimeDuration(long turns) {
             Turns = turns;
@@ -41,8 +42,10 @@ namespace OctoGhast {
         public int TotalDays => (Turns < 14400) ? 0 : (int) (Turns / 14400);
 
         public int TotalWeeks => (Turns < 100800) ? 0 : (int) (Turns / 100800);
+        public int DayOfWeek => (TotalWeeks % 7);
 
         public int TotalMonths => (Turns < 403200) ? 0 : (int) (Turns / 403200);
+        public int MonthOfYear => (TotalMonths % 12);
 
         public int TotalSeasons
         {
@@ -72,7 +75,7 @@ namespace OctoGhast {
 
         /// <inheritdoc />
         public override string ToString() {
-            // TODO: Pluralising
+            // TODO: Make this more human readable. '1 year, 12 weeks, 15 days, 4 hours'
             if (Turns >= TimeConstants.IndefinitelyLong.Turns)
                 return _($"forever");
 
@@ -92,7 +95,7 @@ namespace OctoGhast {
                 return _($"{TotalDays} days", $"{TotalDays} days", (TotalDays));
             }
 
-            if (this < TimeDuration.FromMonths(1))
+            if (this < TimeDuration.FromWeeks(4))
             {
                 return _($"{TotalDays / 7} week", $"{TotalDays / 7} weeks", (TotalDays / 7));
             }
@@ -117,8 +120,6 @@ namespace OctoGhast {
                 [("hour", "hours")] = TimeDuration.FromHours,
                 [("day", "days")] = TimeDuration.FromDays,
                 [("week", "weeks")] = TimeDuration.FromWeeks,
-                [("month", "months")] = TimeDuration.FromMonths,
-                [("season","seasons")] = TimeDuration.FromSeasons,
                 [("year", "years")] = TimeDuration.FromYears
             };
 
@@ -203,11 +204,9 @@ namespace OctoGhast {
         public static TimeDuration FromDays(int days) => FromHours(24 * days);
         public static TimeDuration FromWeeks(int weeks) => FromDays(7 * weeks);
 
-        public static TimeDuration FromMonths(int months) => FromWeeks(4 * months);
+        // nb. A Month is ~4 weeks, a year is 12 months, a season is a variable length construct that doesn't impact time tracking.
 
-        // nb. A Month is 4 weeks, a year is 12 months, a season is a variable length construct that doesn't impact time tracking.
-
-        public static TimeDuration FromYears(int years) => FromMonths(12 * years); // 1 year == 12 months
+        public static TimeDuration FromYears(int years) => FromDays(365); // 1 year == 12 months/52 weeks/365 days
 
         [Obsolete("Consider using FromMonths or FromYears")]
         public static TimeDuration FromSeasons(int seasons) {

@@ -5,8 +5,10 @@ namespace OctoGhast.Renderer
 {
     public static class CameraExtensions
     {
-        public static void BindTo(this ICamera camera, IMobile mobile) {
+        /*
+        public static void BindTo(this ICamera camera, Mobile mobile) {
             mobile.OnMove(camera.MoveTo);
         }
+        */
     }
 }

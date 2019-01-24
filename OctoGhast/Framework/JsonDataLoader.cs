@@ -6,6 +6,7 @@ using System.Reflection;
 using MiscUtil;
 using Newtonsoft.Json.Linq;
 using OctoGhast.Entity;
+using OctoGhast.Extensions.FastExpressionCompiler;
 using OctoGhast.Units;
 using OctoGhast.UserInterface.Controls;
 
@@ -41,7 +42,12 @@ namespace OctoGhast.Framework {
 
         private static Dictionary<Type,Func<JToken, Type, object>> _castingMap = new Dictionary<Type, Func<JToken, Type, object>>()
         {
-            [typeof(StringID<>)] = ConvertStringID
+            [typeof(StringID<>)] = ConvertStringID,
+            [typeof(Volume)] = ConvertVolume,
+            [typeof(Mass)] = ConvertMass,
+            [typeof(Energy)] = ConvertEnergy,
+            [typeof(SoundLevel)] = ConvertSoundLevel,
+            [typeof(TimeDuration)] = ConvertTimeDuration,
         };
 
         public static void RegisterTypeLoader(Type typeDef, Func<JObject, string, object, Type[], object> func) {
@@ -60,6 +66,46 @@ namespace OctoGhast.Framework {
             if (input.Value<string>() is string str && type.GetGenericTypeDefinition().IsAssignableFrom(typeof(StringID<>))) {
                 var ctor = type.GetConstructor(new Type[] {typeof(string)});
                 return Convert.ChangeType(ctor.Invoke(new object[] {str}), type);
+            }
+
+            return input;
+        }
+
+        private static object ConvertVolume(JToken input, Type type) {
+            if (input.Value<string>() is string str && type.IsAssignableFrom(typeof(Volume))) {
+                return new Volume(str);
+            }
+
+            return input;
+        }
+
+        private static object ConvertMass(JToken input, Type type) {
+            if (input.Value<string>() is string str && type.IsAssignableFrom(typeof(Mass))) {
+                return new Mass(str);
+            }
+
+            return input;
+        }
+
+        private static object ConvertEnergy(JToken input, Type type) {
+            if (input.Value<string>() is string str && type.IsAssignableFrom(typeof(Energy))) {
+                return new Energy(str);
+            }
+
+            return input;
+        }
+
+        private static object ConvertSoundLevel(JToken input, Type type) {
+            if (input.Value<string>() is string str && type.IsAssignableFrom(typeof(SoundLevel))) {
+                return new SoundLevel(str);
+            }
+
+            return input;
+        }
+
+        private static object ConvertTimeDuration(JToken input, Type type) {
+            if (input.Value<long>() is long val && type.IsAssignableFrom(typeof(TimeDuration))) {
+                return new TimeDuration(val);
             }
 
             return input;
@@ -269,7 +315,7 @@ namespace OctoGhast.Framework {
             if (jObj.TryGetValue(name, out var token) && token.Type != JTokenType.Array)
                 dict = jObj.GetValue(name).ToObject<Dictionary<TKey, TValue>>();
 
-            dict = existingValue ?? dict ?? RetrieveDictionary<TKey,TValue>(jObj.GetValue(name).Parent);
+            dict = existingValue ?? dict ?? RetrieveDictionary<TKey,TValue>(jObj.GetValue(name)?.Parent);
 
             if (TryRetrieveDeletesObject(jObj, name, out var deletionSeq, RetrieveDictionary<TKey, TValue>)) {
                 foreach (var (key, value) in deletionSeq.Select(s => (s.Key, s.Value))) {
@@ -370,16 +416,27 @@ namespace OctoGhast.Framework {
                 return true;
 
             // Check if there are Proportional/Relative/Extend/Delete properties
-            if (jObj.ContainsKey("relative"))
-                return true;
-            if (jObj.ContainsKey("proportional"))
-                return true;
-            if (jObj.ContainsKey("extend"))
-                return true;
-            if (jObj.ContainsKey("delete"))
-                return true;
+            if (jObj.TryGetValue("relative", out var relative))
+                if (((JObject) relative).ContainsKey(propertyName))
+                    return true;
+            if (jObj.TryGetValue("proportional", out var proportional))
+                if (((JObject) proportional).ContainsKey(propertyName))
+                    return true;
+            if (jObj.TryGetValue("extend", out var extend))
+                if (((JObject) extend).ContainsKey(propertyName))
+                    return true;
+            if (jObj.TryGetValue("delete", out var delete))
+                if (((JObject) delete).ContainsKey(propertyName))
+                    return true;
 
             return false;
+        }
+
+        public static TOut ReadProperty<T, TOut>(this JObject jObject, Expression<Func<T>> expression, Func<T, TOut> mapFunc) {
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (mapFunc == null) throw new ArgumentNullException(nameof(mapFunc));
+
+            return mapFunc.Invoke(jObject.ReadProperty(expression));
         }
 
         public static T ReadProperty<T>(this JObject jObject, Expression<Func<T>> expression) {
@@ -394,9 +451,12 @@ namespace OctoGhast.Framework {
                 // Bit of a hack but if we're a string, then be an actual string for conversion.
                 defaultValue = Operator.Convert<string, T>(str);
             }
+            else if (attr.DefaultValue != null && _castingMap.TryGetValue(typeof(T), out var func)) {
+                defaultValue = (T) func(new JObject(new JProperty("default", attr.DefaultValue))["default"], typeof(T));
+            }
             else {
                 if (attr.DefaultValue != null) {
-                    defaultValue = (T) attr?.DefaultValue;
+                    defaultValue = Operator.Convert<object, T>(attr.DefaultValue);
                 }
                 else {
                     defaultValue = default(T);
@@ -404,17 +464,17 @@ namespace OctoGhast.Framework {
             }
 
             var value = expression.GetRootObject() != null
-                ? expression.Compile().GetValue(defaultValue)
+                ? expression.CompileFast().GetValue(defaultValue)
                 : defaultValue;
-
-            if (!ShouldLoad(jObject, attr.FieldName))
-                return value;
 
             if (attr.TypeLoader != null) {
                 var loader = Activator.CreateInstance(attr.TypeLoader) as ITypeLoader;
                 return (T) loader?.Load(jObject, value);
 
             }
+
+            if (!ShouldLoad(jObject, attr.FieldName))
+                return value;
 
             return ReadProperty(jObject, attr.FieldName, value);
         }
@@ -457,6 +517,9 @@ namespace OctoGhast.Framework {
         }
 
         public static IEnumerable<T> ReadEnumerable<T>(this JObject jObj, string name, IEnumerable<T> existingValue, Func<JToken,T> mapFunc) {
+            if (existingValue is null)
+                existingValue = Enumerable.Empty<T>();
+
             // TODO: Extend & Delete
             if (jObj.TryRetrieveExtends<T>(name, out var extends)) {
                 return existingValue.Concat(extends);
@@ -526,8 +589,8 @@ namespace OctoGhast.Framework {
                 name: name,
                 existingValue: val,
                 mapFunc: s => new Mass(s),
-                relativeFunc: (v, acc) => new Mass((v + acc)),
-                proportionalFunc: (v, acc) => new Mass(v * acc)
+                relativeFunc: (v, acc) => (v + acc),
+                proportionalFunc: (v, acc) => (v * acc)
             );
         }
 
@@ -555,6 +618,7 @@ namespace OctoGhast.Framework {
                 existingValue: val,
                 mapFunc: s => new SoundLevel(s),
                 relativeFunc: (v, acc) => v.AddRaw(acc),
+                proportionalFunc: (v, acc) => v.MultiplyRaw(acc)
             );
         }
 
@@ -563,7 +627,7 @@ namespace OctoGhast.Framework {
                 jObj: jObject,
                 name: name,
                 existingValue: val,
-                mapFunc: s => new TimeDuration(UInt64.Parse(s)),
+                mapFunc: s => new TimeDuration(Int64.Parse(s)),
                 relativeFunc: (v, acc) => v + acc,
                 proportionalFunc: (v, acc) => v * acc
             );

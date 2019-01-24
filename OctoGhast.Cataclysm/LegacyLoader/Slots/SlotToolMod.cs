@@ -2,7 +2,7 @@
 using OctoGhast.Framework;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {
-    public class SlotMod {
+    public class SlotToolMod {
         [LoaderInfo("acceptable_ammo")]
         public IEnumerable<string> AcceptableAmmo { get; set; }
 

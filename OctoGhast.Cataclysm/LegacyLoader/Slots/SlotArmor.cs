@@ -5,6 +5,9 @@ using OctoGhast.Units;
 namespace OctoGhast.Cataclysm.LegacyLoader {
     public class SlotArmor {
         [LoaderInfo("coverage")]
+        public int Coverage { get; set; }
+
+        [LoaderInfo("covers")]
         public IEnumerable<string> Covers { get; set; }
 
         [LoaderInfo("sided")]

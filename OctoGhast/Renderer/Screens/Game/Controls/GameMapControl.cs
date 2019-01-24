@@ -33,8 +33,7 @@ namespace OctoGhast.Renderer.Screens.Game.Controls
         IGameViewModel Model { get; set; }
 
         // Shortcuts
-        public IPlayer Player => Model.World.Player;
-        public ICamera Camera => Model.World.Camera;
+        //public Player Player => Model.World.Player;
         public Map2D<ITile> Map => Model.World.Map;
 
         public GameMapControl(GameMapControlTemplate template) : base(template) {
@@ -50,6 +49,7 @@ namespace OctoGhast.Renderer.Screens.Game.Controls
             return constraint.TopLeft + pos;
         }
 
+        /*
         protected override string DetermineTooltipText() {
             return Model.TooltipFor(toWorld(ScreenToLocal(CurrentMousePosition), Camera.ViewFrustum));
         }
@@ -78,16 +78,17 @@ namespace OctoGhast.Renderer.Screens.Game.Controls
                 }
             }
 
-            var playerFrustum = Rect.FromCenter(Player.Position, Camera.Size);
+            //var playerFrustum = Rect.FromCenter(Player.Position, Camera.Size);
 
-            var playerX = playerFrustum.TopRight.X - Player.Position.X;
-            var playerY = playerFrustum.BottomLeft.Y - Player.Position.Y;
-            var distanceFromCamera = playerFrustum.TopLeft - Camera.ViewFrustum.TopLeft;
+            //var playerX = playerFrustum.TopRight.X - Player.Position.X;
+            //var playerY = playerFrustum.BottomLeft.Y - Player.Position.Y;
+            //var distanceFromCamera = playerFrustum.TopLeft - Camera.ViewFrustum.TopLeft;
 
-            Canvas.PrintChar(playerX + distanceFromCamera.X, playerY + distanceFromCamera.Y, '@',
-                new Pigment(new Color(XColor.Brown), new Color(XColor.Black)));
+            //Canvas.PrintChar(playerX + distanceFromCamera.X, playerY + distanceFromCamera.Y, '@',
+            //    new Pigment(new Color(XColor.Brown), new Color(XColor.Black)));
 
-            Canvas.PrintString(0, 0, "FPS: " + Framework.Game.FrameCounter.CurrentFramesPerSecond);
+            // Canvas.PrintString(0, 0, "FPS: " + Framework.Game.FrameCounter.CurrentFramesPerSecond);
         }
+        */
     }
 }

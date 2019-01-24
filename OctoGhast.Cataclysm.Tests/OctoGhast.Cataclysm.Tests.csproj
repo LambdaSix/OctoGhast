@@ -54,7 +54,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ItemLoading\ItemFactoryTests.cs" />
     <Compile Include="ItemLoading\JsonDataLoaderTests.cs" />
+    <Compile Include="ItemLoading\ObjectActionTests.cs" />
     <Compile Include="ItemLoading\TypeLoaders.cs" />
     <Compile Include="Simulation\Explosives\ExplosiveLethalityTests.cs" />
     <Compile Include="Simulation\Explosives\ExplosiveTests.cs" />

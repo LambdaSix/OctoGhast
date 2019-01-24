@@ -1,6 +1,7 @@
 ﻿using System;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
+using OctoGhast.Cataclysm.LegacyLoader;
 using OctoGhast.Units;
 
 namespace OctoGhast.Core.Tests {

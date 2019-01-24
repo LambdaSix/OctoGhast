@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using static OctoGhast.Translation.Translation;
 using MiscUtil;
+using OctoGhast.Cataclysm.LegacyLoader;
 
 namespace OctoGhast.Units {
     public class VolumeInMillilitersTag { }
@@ -227,6 +228,10 @@ namespace OctoGhast.Units {
 
         public static implicit operator SoundLevel(string value)
         {
+            if (Int32.TryParse(value, out var level)) {
+                return FromDecibels(level * 15);
+            }
+
             var matches = _compiledRegex.Match(value);
             if (matches.Success) {
                 var (val, unit) = (matches.Groups[1].Value, matches.Groups[2].Value.ToLower());
@@ -247,33 +252,36 @@ namespace OctoGhast.Units {
 
             throw new ArgumentException("Unable to match value against known quantity", nameof(value));
         }
+
+        // TODO: Overload the + * - operators to provide logarithmic correct values.
     }
 
-    public class Volume : Quantity<int, VolumeInMillilitersTag> {
+    public class Volume : Quantity<double, VolumeInMillilitersTag> {
         public static Volume Min = new Volume(Int32.MinValue);
         public static Volume Max = new Volume(Int32.MaxValue);
 
         public Volume(int value) : base(value) { }
+        public Volume(double value) : base(value) { }
 
         public Volume(string value) : base(((Volume) value).Value) { }
-        public Volume(Quantity<int, VolumeInMillilitersTag> val) : this(val.Value) { }
+        public Volume(Quantity<double, VolumeInMillilitersTag> val) : this(val.Value) { }
 
         /// <summary>
         /// Density of the contained volume in g/cm³
         /// e.x. Water is 1 g/cm³
         /// </summary>
         public float VolumeDensity => Material.Density;
-        private int Density(int value) {
+        private int Density(double value) {
             // m = V(ml) x ρ(g/cm³)
             return (int) (Milliliters * VolumeDensity);
         }
 
         public Mass Mass() => new Mass(Density(Value)); // 1KG per 1L
 
-        public int Milliliters => Value;
-        public float Liters => Value / 1000.0f;
+        public double Milliliters => Value;
+        public double Liters => Value / 1000.0;
 
-        public static Volume FromMilliliters(int value) => new Volume(value);
+        public static Volume FromMilliliters(double value) => new Volume(value);
         public static Volume FromLiters(double value) => FromMilliliters((int) (value * 1000.0f));
 
         /// <summary>
@@ -307,7 +315,7 @@ namespace OctoGhast.Units {
                     case "ml":
                     case "milliliter":
                     case "cc":
-                        return Volume.FromMilliliters(Int32.Parse(val));
+                        return Volume.FromMilliliters(Double.Parse(val));
                     case "l":
                     case "liter": {
                         return FromLiters(Double.Parse(val));
@@ -321,31 +329,49 @@ namespace OctoGhast.Units {
                 // Without a unit we're assuming it's being specified in multiples of 250 milliliters
                 // HACK: Legacy support code, phase out
                 if (String.IsNullOrWhiteSpace(unit)) {
-                    var rawVal = Int32.Parse(val);
+                    var rawVal = Double.Parse(val);
                     return FromMilliliters(rawVal*250);
                 }
             }
 
             throw new ArgumentException("Unable to match value against known quantity", nameof(value));
         }
+
+        public static Volume operator *(Volume lhs, double rhs) {
+            return new Volume(lhs.Value * rhs);
+        }
+
+        public static Volume operator /(Volume lhs, double rhs)
+        {
+            return new Volume(lhs.Value / rhs);
+        }
+
+        public static Volume operator +(Volume lhs, Volume rhs) {
+            return new Volume(lhs.Value + rhs.Value);
+        }
+
+        public static Volume operator -(Volume lhs, Volume rhs)
+        {
+            return new Volume(lhs.Value - rhs.Value);
+        }
     }
 
-    public class Mass : Quantity<int, MassInGramsTag> {
+    public class Mass : Quantity<double, MassInGramsTag> {
         public static Mass Min = new Mass(Int32.MinValue);
         public static Mass Max = new Mass(Int32.MaxValue);
 
-        public Mass(int value) : base(value) { }
+        public Mass(double value) : base(value) { }
 
         public Mass(string value) : base(((Mass)value).Value) { }
 
         public Mass(Quantity<int, MassInGramsTag> value) : this(value.Value) { }
 
-        public int Grams => Value;
-        public float Kilograms => Value / 1000.0f;
-        public float Tons => Kilograms / 1000.0f;
+        public int Grams => (int) Math.Ceiling(Value);
+        public double Kilograms => Value / 1000.0f;
+        public double Tons => Kilograms / 1000.0f;
 
-        public static Mass FromGrams(int value) => new Mass(value);
-        public static Mass FromKilograms(float value) => FromGrams((int) (value * 1000.0f));
+        public static Mass FromGrams(double value) => new Mass(value);
+        public static Mass FromKilograms(double value) => FromGrams(value * 1000.0f);
 
         /// <summary>
         /// Density of the mass in g/cm³
@@ -353,10 +379,10 @@ namespace OctoGhast.Units {
         /// Ice is 0.9340g/cm³
         /// </summary>
         public float VolumeDensity => Material.Density;
-        private int Density(int value)
+        private double Density(double value)
         {
             // V(ml) = m(g) / ρ(g/cm³)
-            return (int)(Grams / VolumeDensity);
+            return Grams / VolumeDensity;
         }
 
         public Volume Volume() => new Volume(Density(Value)); // 1KG per 1L
@@ -384,31 +410,31 @@ namespace OctoGhast.Units {
 
                 // Match grams, or a unitless value.
                 if (unit == "g" || unit == "gram" || String.IsNullOrWhiteSpace(unit)) {
-                    return Mass.FromGrams(Int32.Parse(val));
+                    return Mass.FromGrams(Double.Parse(val));
                 }
 
                 if (unit == "kg" || unit == "kilogram") {
-                    if (val.Contains(".")) {
-                        // If there's a decimal point and it's a liter:
-                        var rawVal = Single.Parse(val);
-                        return FromKilograms(rawVal);
-                    }
-
-                    return FromKilograms(Int32.Parse(val));
+                    return FromKilograms(Double.Parse(val));
                 }
 
                 if (unit == "t" || unit == "ton") {
-                    if (val.Contains(".")) {
-                        // If there's a decimal point and it's a liter:
-                        var rawVal = Single.Parse(val);
-                        return FromKilograms(rawVal * 1000.0f);
-                    }
-
-                    return FromKilograms(Int32.Parse(val) * 1000.0f);
+                    return FromKilograms(Double.Parse(val) * 1000.0f);
                 }
             }
 
             throw new ArgumentException("Unable to match value against known quantity", nameof(value));
+        }
+
+        public static Mass operator *(Mass lhs, double rhs) {
+            return new Mass(lhs.Value * rhs);
+        }
+
+        public static Mass operator +(Mass lhs, double rhs) {
+            return new Mass(lhs.Value + rhs);
+        }
+
+        public static Mass operator +(Mass lhs, Mass rhs) {
+            return new Mass(lhs.Value + rhs.Value);
         }
     }
 

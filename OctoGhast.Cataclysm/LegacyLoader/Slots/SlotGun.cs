@@ -4,10 +4,6 @@ using OctoGhast.Framework;
 using OctoGhast.Units;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {
-    public class GunMod {
-
-    }
-
     public class SlotGun : CommonRangedData {
         [LoaderInfo("skill")]
         public StringID<Skill> SkillUsed { get; set; }
@@ -21,8 +17,8 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         [LoaderInfo("integral_magazine_volume")]
         public Volume IntegralMagazineSize { get; set; }
 
-        [LoaderInfo("reload")]
-        public TimeDuration ReloadTime { get; set; }
+        [LoaderInfo("reload", false, 6ul)]
+        public TimeDuration ReloadTime { get; set; } = TimeDuration.FromSeconds(36);
 
         [LoaderInfo("reload_noise")]
         public string ReloadNoise { get; set; } = Translation.Translation._($"click.");
@@ -49,7 +45,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         /// Key is the (untranslated) location, value is the number of mods can have installed there.
         /// </summary>
         [LoaderInfo("valid_mod_locations")]
-        public Dictionary<StringID<GunMod>, int> ValidModLocations { get; set; }
+        public Dictionary<string, int> ValidModLocations { get; set; }
 
         /// <summary>
         /// Built in mods, these mods cannot be removed (IRREMOVABLE)

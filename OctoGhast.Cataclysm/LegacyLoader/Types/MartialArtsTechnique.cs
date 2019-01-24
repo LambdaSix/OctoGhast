@@ -1,5 +1,5 @@
 ﻿namespace OctoGhast.Cataclysm.LegacyLoader {
-    public class MaterialArtsTechnique {
+    public class MartialArtsTechnique {
 
     }
 }

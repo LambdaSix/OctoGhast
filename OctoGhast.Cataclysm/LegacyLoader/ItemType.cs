@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using OctoGhast.Entity;
 using OctoGhast.Framework;
@@ -7,7 +8,8 @@ using OctoGhast.Units;
 using static OctoGhast.Translation.Translation;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {
-    public class ItemType {
+    [DebuggerDisplay("{Type}::{Id}")]
+    public class ItemType : TemplateType {
         [LoaderInfo("container_data", TypeLoader = typeof(ContainerTypeLoader))]
         public SlotContainer Container { get; set; }
         
@@ -26,8 +28,8 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         [LoaderInfo("book_data", TypeLoader = typeof(BookTypeLoader))]
         public SlotBook Book { get; set; }
 
-        [LoaderInfo("mod_data", TypeLoader = typeof(ModTypeLoader))]
-        public SlotMod Mod { get; set; }
+        [LoaderInfo("toolmod_data", TypeLoader = typeof(ToolModTypeLoader))]
+        public SlotToolMod ToolMod { get; set; }
 
         [LoaderInfo("engine_data", TypeLoader = typeof(EngineTypeLoader))]
         public SlotEngine Engine { get; set; }
@@ -60,8 +62,14 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         /// <summary>
         /// String identifier for this type
         /// </summary>
-        [LoaderInfo("id", true, "null")]
-        private string ID { get; set; } = "null";
+        [LoaderInfo("id", true, null)]
+        public string Id { get => base.Id; set => base.Id = value; }
+
+        [LoaderInfo("abstract", true, null)]
+        public string Abstract { get => base.Abstract; set => base.Abstract = value; }
+
+        [LoaderInfo("type", true, "null")]
+        public string Type { get => base.Type; set => base.Type = value; }
 
         [LoaderInfo("name", true, "none")]
         public string Name { get; set; } = "none";
@@ -72,7 +80,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         public StringID<ItemType> LooksLike { get; set; }
 
         [LoaderInfo("snippet_category")]
-        public string SnippetCategory { get; set; }
+        public IEnumerable<SnippetCategory> SnippetCategory { get; set; }
 
         [LoaderInfo("description")]
         public string Description { get; set; }
@@ -89,20 +97,20 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         [LoaderInfo("materials")]
         public IEnumerable<StringID<Material>> Materials { get; set; }
 
-        [LoaderInfo("use_methods")]
-        public Dictionary<string,Action> UseMethods { get; set; }
+        [LoaderInfo("use_action")]
+        public IEnumerable<string> UseActions { get; set; }
 
         [LoaderInfo("countdown_interval", false, 0)]
         public int CountdownInterval { get; set; }
 
-        [LoaderInfo("countdown_action")]
-        // TODO: Implement UseMethods/UseFunction (func{t,t,t} ?)
+//        [LoaderInfo("countdown_action")]
         public string CountdownAction { get; set; }
 
         [LoaderInfo("countdown_destroy", false, false)]
         public bool CountDownDestroy { get; set; }
 
-        [LoaderInfo("drop_action")]
+        // TODO: Implement a DropActionTypeLoader ?
+        //[LoaderInfo("drop_action")]
         public string DropAction { get; set; }
 
         [LoaderInfo("emits")]
@@ -112,7 +120,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         public IEnumerable<string> ItemTags { get; set; }
 
         [LoaderInfo("techniques")]
-        public IEnumerable<StringID<MaterialArtsTechnique>> Techniques { get; set; }
+        public IEnumerable<StringID<MartialArtsTechnique>> Techniques { get; set; }
 
         [LoaderInfo("min_str", false, 0)]
         public int MinimumStrength { get; set; }
@@ -131,7 +139,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         [LoaderInfo("explode_in_fire", false, false)]
         public bool ExplodesInFire { get; set; }
 
-        [LoaderInfo("explosion_data")]
+        [LoaderInfo("explosion_data", TypeLoader = typeof(ExplosionDataTypeLoader))]
         public ExplosionData Explosion { get; set; }
 
         [LoaderInfo("phase", false, "Solid")]
@@ -159,6 +167,9 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
 
         [LoaderInfo("rigid", false, true)]
         public bool Rigid { get; set; }
+
+        [LoaderInfo("flags", false)]
+        public IEnumerable<string> Flags { get; set; }
 
         [LoaderInfo("melee_data")]
         public Dictionary<string,int> MeleeDamageTypes { get; set; }
@@ -246,11 +257,11 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
             return StringID<ItemType>.NullId;
         }
 
-        public string GetName(int quantity = 1) {
+        public override string GetName(int quantity = 1) {
             return _($"{Name}", $"{PluralName}", quantity);
         }
 
-        public string GetId() => ID;
+        public string GetId() => Id;
         public bool CountByCharges() => Stackable;
 
         public int ChargesDefault() => (int) (Tool?.DefaultCharges ?? Comestible?.DefaultCharges ?? Ammo?.DefaultCharges ?? (Stackable ? 1 : 0));
@@ -259,14 +270,12 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
 
         public int MaximumCharges() => (int) (Tool?.MaxCharges ?? 1);
 
-        public bool HasUse() => UseMethods.Any();
+        public bool HasUse() => UseActions.Any();
 
         public bool CanUse(string useName) => GetUse(useName) != null;
 
-        public Action GetUse(string useName) {
-            return UseMethods.TryGetValue(useName, out var action)
-                ? action
-                : null;
+        public string GetUse(string useName) {
+            return UseActions.SingleOrDefault(s => s == useName);
         }
     }
 }

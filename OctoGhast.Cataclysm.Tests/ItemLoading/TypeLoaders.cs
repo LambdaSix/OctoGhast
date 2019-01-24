@@ -130,6 +130,55 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
         }
 
         [Test]
+        public void ComestibleDataTypeLoader()
+        {
+            var json = "{ " +
+                       " 'comestible_type': 'FOOD'," +
+                       " 'tool': 'hammer'," +
+                       " 'charges': 5," +
+                       " 'quench': 5," +
+                       " 'nutrition': 30," +
+                       " 'calories': 300," +
+                       " 'spoils_in': 10," +
+                       " 'addiction_potential': 1," +
+                       " 'addiction_type': 'methadone'," +
+                       " 'fun': 5," +
+                       " 'stim': 10," +
+                       " 'healthy': -5," +
+                       " 'parasites': 10," +
+                       " 'vitamins': [ [ 'calcium', 0.5 ], [ 'iron', 20 ], [ 'vitB', 10 ] ]," +
+                       " 'rot_spawn': 'rot_group_default'," +
+                       " 'rot_spawn_chance': 5" +
+                       "}";
+
+            json = json.Replace('\'', '\"');
+            var jsonStr = JObject.Parse(json);
+
+            var loader = new ComestibleTypeLoader();
+            var res = loader.Load(jsonStr, null);
+
+            Assert.That(res.ComestibleType, Is.EqualTo("FOOD"));
+            Assert.That(res.Tool, Is.EqualTo(new StringID<ItemType>("hammer")));
+            Assert.That(res.DefaultCharges, Is.EqualTo(5));
+            Assert.That(res.Quench, Is.EqualTo(5));
+            Assert.That(res.Nutrition, Is.EqualTo(30));
+            Assert.That(res.Calories, Is.EqualTo(300));
+            Assert.That(res.SpoilsIn, Is.EqualTo(TimeDuration.FromTurns(10)));
+            Assert.That(res.AddictionFactor, Is.EqualTo(1));
+            Assert.That(res.AddictionType, Is.EqualTo(new StringID<AddictionType>("methadone")));
+            Assert.That(res.Fun, Is.EqualTo(5));
+            Assert.That(res.StimulantFactor, Is.EqualTo(10));
+            Assert.That(res.HealthyFactor, Is.EqualTo(-5));
+            Assert.That(res.ParasiteFactor, Is.EqualTo(10));
+
+            Assert.That(res.Vitamins["calcium"], Is.EqualTo(0.5));
+            Assert.That(res.Vitamins["iron"], Is.EqualTo(20));
+            Assert.That(res.Vitamins["vitB"], Is.EqualTo(10));
+            Assert.That(res.RotSpawn, Is.EqualTo(new StringID<MonsterGroup>("rot_group_default")));
+            Assert.That(res.RotSpawnChance, Is.EqualTo(5));
+        }
+
+        [Test]
         public void BrewableTypeLoader() {
             // "brewable": { "time" : 7200, "results" : [ "wash_whiskey", "yeast" ] }
             var json = "{ 'results': [ 'wash_whiskey', 'yeast' ], 'time': 7200 }";

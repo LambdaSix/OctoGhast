@@ -60,29 +60,92 @@ namespace OctoGhast {
         WaningCrescent
     }
 
+    [Flags]
+    public enum Month
+    {
+        NotSet = 0,
+        January = 1 << 0,
+        February = 1 << 1,
+        March = 1 << 2,
+        April = 1 << 3,
+        May = 1 << 4,
+        June = 1 << 5,
+        July = 1 << 6,
+        August = 1 << 7,
+        September = 1 << 8,
+        October = 1 << 9,
+        November = 1 << 10,
+        December = 1 << 11,
+    }
+
     public class Season {
+        public static Dictionary<Month, int> MonthLength = new Dictionary<Month, int>()
+        {
+            [Month.December] = 31,
+            [Month.January] = 31,
+            [Month.February] = 28, // 29 in leap year..
+
+            // 92
+            [Month.March] = 31,
+            [Month.April] = 30,
+            [Month.May] = 31,
+
+            // 92
+            [Month.June] = 30,
+            [Month.July] = 31,
+            [Month.August] = 31,
+
+            // 91
+            [Month.September] = 30,
+            [Month.October] = 31,
+            [Month.November] = 30
+        };
+
+        public static Dictionary<Month, string> MonthSeasons = new Dictionary<Month, string>()
+        {
+            // 90(91)
+            [Month.December] = "WINTER", // 31 days
+            [Month.January] = "WINTER", // 31 days
+            [Month.February] = "WINTER", // 28(29) days
+
+            // 92
+            [Month.March] = "SPRING", // 31
+            [Month.April] = "SPRING", // 30
+            [Month.May] = "SPRING", // 31
+
+            // 92
+            [Month.June] = "SUMMER", // 30
+            [Month.July] = "SUMMER", // 31
+            [Month.August] = "SUMMER", // 31
+
+            // 91
+            [Month.September] = "AUTUMN", // 30
+            [Month.October] = "AUTUMN", // 31
+            [Month.November] = "AUTUMN" // 30
+        };
+
         public static List<Season> Seasons = new List<Season>()
         {
             // Sunset/Sunrise is a scaling function, so in spring it starts at 6AM and moves back to 5AM
             // then summer it starts at 5AM and moves forward to 6 and so on in autumn and winter before returning to spring.
             new Season("SPRING")
             {
-                Sunrise = (6, 5), Sunset = (19, 21), Length = 91,
+                Sunrise = (6, 5), Sunset = (19, 21), Length = GetSeasonLength("SPRING"),
                 ModifierFunc = (percent, deviation) => 1.0 + (percent * deviation)
             },
             new Season("SUMMER")
             {
-                Sunrise = (5, 6), Sunset = (21, 19), Length = 91,
+                Sunrise = (5, 6), Sunset = (21, 19), Length = GetSeasonLength("SUMMER"),
                 ModifierFunc = (percent, deviation) => (1.0 + deviation) - (percent * deviation)
             },
             new Season("AUTUMN")
             {
-                Sunrise = (6, 7), Sunset = (19, 17), Length = 91,
+                Sunrise = (6, 7), Sunset = (19, 17), Length = GetSeasonLength("AUTUMN"),
                 ModifierFunc = (percent, deviation) => (1.0 - (percent * deviation))
             },
             new Season("WINTER")
             {
-                Sunrise = (7, 6), Sunset = (17, 19), Length = 91,
+                Sunrise = (7, 6), Sunset = (17, 19), Length = GetSeasonLength("WINTER"),
                 ModifierFunc = (percent, deviation) => (1.0 - deviation) + (percent * deviation)
             },
         };
@@ -172,8 +235,14 @@ namespace OctoGhast {
         }
 
         public static int GetAverageSeasonLength() => (int)Math.Round(Seasons.Average(s => s.Length));
-        public static int GetSeasonLength(string seasonName) => Get(seasonName).Length;
-        public static int GetSeasonLength(int seasonIndex) => Seasons[seasonIndex].Length;
+
+        public static int GetSeasonLength(string seasonName) {
+            var monthsForSeason = MonthSeasons.Where(s => s.Value == seasonName);
+
+            return monthsForSeason.Sum(month => MonthLength[month.Key]);
+        }
+
+        public static int GetSeasonLength(int seasonIndex) => GetSeasonLength(Seasons[seasonIndex].Name);
         public static int GetTotalLength() => Seasons.Sum(s => s.Length);
     }
 
@@ -188,7 +257,7 @@ namespace OctoGhast {
         /// <summary>
         /// The current time of the game world.
         /// </summary>
-        public static Time Now { get; set; }
+        public static Time Now { get; set; } = new Time();
 
         /// <summary>
         /// Advance time by a specified number of turns.

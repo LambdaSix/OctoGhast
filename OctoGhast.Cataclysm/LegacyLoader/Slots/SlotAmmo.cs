@@ -30,8 +30,11 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         [LoaderInfo("count")]
         public long DefaultCharges { get; set; } = 1;
 
-        [LoaderInfo("loudness")]
-        public SoundLevel Loudness { get; set; } = "-1dB";
+        /// <summary>
+        /// Noise-level of ammunition in decibels, defaults to 140dB, a small .22 caliber rifle
+        /// </summary>
+        [LoaderInfo("loudness", false, "140dB")]
+        public SoundLevel Loudness { get; set; }
 
         [LoaderInfo("recoil")]
         public int Recoil { get; set; } = -1;

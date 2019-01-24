@@ -52,24 +52,29 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Explosion.cs" />
+    <Compile Include="Items\Item.cs" />
     <Compile Include="LegacyLoader\Enums\AddictionType.cs" />
-    <Compile Include="LegacyLoader\Bionic.cs" />
+    <Compile Include="LegacyLoader\Mobiles\CreatureType.cs" />
+    <Compile Include="LegacyLoader\ItemTemplateFactory.cs" />
+    <Compile Include="LegacyLoader\TemplateFactoryBase.cs" />
+    <Compile Include="LegacyLoader\Types\AmmoType.cs" />
+    <Compile Include="LegacyLoader\Types\Bionic.cs" />
     <Compile Include="LegacyLoader\DataContainers\CommonRangedData.cs" />
-    <Compile Include="LegacyLoader\Emit.cs" />
+    <Compile Include="LegacyLoader\Types\Emit.cs" />
     <Compile Include="LegacyLoader\DataContainers\ExplosionData.cs" />
     <Compile Include="LegacyLoader\DataContainers\ExplosiveData.cs" />
-    <Compile Include="LegacyLoader\ExplosiveMaterial.cs" />
-    <Compile Include="LegacyLoader\GunMode.cs" />
+    <Compile Include="LegacyLoader\Types\ExplosiveMaterial.cs" />
+    <Compile Include="LegacyLoader\Types\GunMode.cs" />
     <Compile Include="LegacyLoader\DataContainers\GunModifierData.cs" />
-    <Compile Include="LegacyLoader\GunModLocation.cs" />
-    <Compile Include="LegacyLoader\GunType.cs" />
+    <Compile Include="LegacyLoader\Types\GunModLocation.cs" />
+    <Compile Include="LegacyLoader\Types\GunType.cs" />
     <Compile Include="LegacyLoader\DataContainers\IncendiaryData.cs" />
-    <Compile Include="LegacyLoader\ItemCategory.cs" />
+    <Compile Include="LegacyLoader\Types\ItemCategory.cs" />
     <Compile Include="LegacyLoader\ItemType.cs" />
-    <Compile Include="LegacyLoader\MaterialArtsTechnique.cs" />
-    <Compile Include="LegacyLoader\MonsterGroup.cs" />
+    <Compile Include="LegacyLoader\Types\MartialArtsTechnique.cs" />
+    <Compile Include="LegacyLoader\Types\MonsterGroup.cs" />
     <Compile Include="LegacyLoader\DataContainers\ShrapnelData.cs" />
-    <Compile Include="LegacyLoader\Skill.cs" />
+    <Compile Include="LegacyLoader\Types\Skill.cs" />
     <Compile Include="LegacyLoader\Slots\SlotAmmo.cs" />
     <Compile Include="LegacyLoader\Slots\SlotArmor.cs" />
     <Compile Include="LegacyLoader\Slots\SlotBionic.cs" />
@@ -82,12 +87,15 @@
     <Compile Include="LegacyLoader\Slots\SlotGun.cs" />
     <Compile Include="LegacyLoader\Slots\SlotGunMod.cs" />
     <Compile Include="LegacyLoader\Slots\SlotMagazine.cs" />
-    <Compile Include="LegacyLoader\Slots\SlotMod.cs" />
+    <Compile Include="LegacyLoader\Slots\SlotToolMod.cs" />
     <Compile Include="LegacyLoader\Slots\SlotSeed.cs" />
     <Compile Include="LegacyLoader\Slots\SlotTool.cs" />
     <Compile Include="LegacyLoader\Slots\SlotWheel.cs" />
     <Compile Include="LegacyLoader\TypeLoaders.cs" />
+    <Compile Include="LegacyLoader\Types\SnippetCategory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UseActions\BaseUseAction.cs" />
+    <Compile Include="UseActions\TransformUseAction.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\lib\InfiniMap\InfiniMap\InfiniMap.csproj">

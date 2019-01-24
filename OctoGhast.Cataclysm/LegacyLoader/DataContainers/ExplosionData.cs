@@ -1,4 +1,5 @@
 ﻿using System;
+using OctoGhast.Framework;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {
     [Obsolete("Legacy JSON - Use ExplosiveData instead")]
@@ -7,18 +8,22 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         /// <summary>
         /// Measure of explosive power in Grams Of TNT equivalent. 
         /// </summary>
+        [LoaderInfo("power", true)]
         public double Power { get; set; } = -1.0f;
 
         /// <summary>
         /// Power retained per traveled tile of explosion. 0..1
         /// </summary>
+        [LoaderInfo("distance_factor", false, 0.8)]
         public double DistanceFactor { get; set; } = 0.8f;
 
         /// <summary>
         /// Is this explosion fire based?
         /// </summary>
+        [LoaderInfo("fire", false, false)]
         public bool Incendiary { get; set; } = false;
 
+        [LoaderInfo("shrapnel", TypeLoader = typeof(ShrapnelDataTypeLoader))]
         public ShrapnelData Shrapnel { get; set; }
 
         /// <summary>

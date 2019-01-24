@@ -87,8 +87,8 @@ namespace OctoGhast.Core.Tests
             var str3 = "1 day 1 day 12 hours";
             var str4 = "1 year, 6 months, 4 days, 6 hours";
 
-            var time1 = TimeDuration.FromString(str);
-            Assert.AreEqual(time1.Turns, TimeDuration.FromDays(1).AddHours(12).Turns);
+            
+            Assert.AreEqual(TimeDuration.FromString("1 day, 12 hours").Turns, TimeDuration.FromDays(1).AddHours(12).Turns);
 
             var time2 = TimeDuration.FromString(str2);
             Assert.AreEqual(time2.Turns, TimeDuration.FromDays(1).AddHours(12).Turns);

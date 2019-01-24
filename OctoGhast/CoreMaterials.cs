@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using OctoGhast.Cataclysm.LegacyLoader;
 
 namespace OctoGhast.Units {
     /// <summary>

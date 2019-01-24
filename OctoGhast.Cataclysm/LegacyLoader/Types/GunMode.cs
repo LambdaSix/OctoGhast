@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using OctoGhast.Cataclysm.Items;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {
     public class GunMode {
         public string Name { get; }
 
-        public Item Target { get; }
+        public BaseItem Target { get; }
 
         /// <summary>
         /// Burst size for firearms, melee range for melee weapons.
@@ -14,7 +15,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
 
         public IEnumerable<string> Flags { get; }
 
-        public GunMode(string name, Item target, int value, IEnumerable<string> flags) {
+        public GunMode(string name, BaseItem target, int value, IEnumerable<string> flags) {
             Name = name;
             Target = target;
             Value = value;

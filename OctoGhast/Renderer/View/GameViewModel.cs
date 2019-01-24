@@ -1,17 +1,16 @@
-﻿using OctoGhast.DataStructures.Lighting;
+﻿using System;
+using OctoGhast.DataStructures.Lighting;
 using OctoGhast.DataStructures.Renderer;
 using OctoGhast.Entity;
 using OctoGhast.Spatial;
-using OctoGhast.World;
 
 namespace OctoGhast.Renderer.View
 {
     public class GameViewModel : IGameViewModel
     {
-        public WorldInstance World { get; set; }
+        public World World { get; set; }
 
-        public IPlayer Player => World.Player;
-        public ICamera Camera => World.Camera;
+        // public Player Player => World.Player;
         public bool DrawLighting { get; set; }
 
         public GameViewModel() {
@@ -19,7 +18,8 @@ namespace OctoGhast.Renderer.View
         }
 
         public LightMap<TileLightInfo> CalculateLightMap() {
-            return World.CalculateFov(Camera.ViewFrustum.Center, 8, (x, y) => new Vec(x, y).ToView(Camera.ViewFrustum));
+            throw new NotImplementedException();
+            // return World.CalculateFov(Camera.ViewFrustum.Center, 8, (x, y) => new Vec(x, y).ToView(Camera.ViewFrustum));
         }
 
         public string TooltipFor(Vec position) {

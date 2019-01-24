@@ -256,10 +256,6 @@ namespace OctoGhast {
         }
         */
 
-        public Resistances(IMobile mob) : this() {
-            
-        }
-
         public void SetResist(DamageType type, float amount) {
             
         }
