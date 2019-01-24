@@ -1,0 +1,57 @@
+﻿<Window x:Class="CataSharp.Client.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CataSharp.Client"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:command="http://www.galasoft.ch/mvvmlight"
+        xmlns:mt="clr-namespace:MonotoneTheme;assembly=MonotoneTheme"
+        mc:Ignorable="d"
+        KeyDown="MainWindow_OnKeyDown"
+        Title="MainWindow" Height="450" Width="800" DataContext="{Binding Main, Source={StaticResource Locator}}">
+
+    <Window.Resources>
+        <Style x:Key="FocusStyle" TargetType="TextBlock">
+            <Style.Triggers>
+                <Trigger Property="IsKeyboardFocused" Value="true">
+                    <Setter Property="FontWeight" Value="Bold"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.Background>
+            <SolidColorBrush Color="{DynamicResource BaseM2Color}" />
+        </Grid.Background>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="30px"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="40px"></RowDefinition>
+        </Grid.RowDefinitions>
+
+        <TextBlock Foreground="LightBlue" Background="Black" Text="{Binding CataLogo, Mode=OneWay}" FontFamily="Consolas" Grid.Row="0" HorizontalAlignment="Center"/>
+        <TextBlock Foreground="DarkBlue" Background="Black" Text="{Binding CataLogo2, Mode=OneWay}" FontFamily="Consolas" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Foreground="DarkBlue" Background="Black" Text="{Binding CataLogo3, Mode=OneWay}" FontFamily="Consolas" Grid.Row="2" HorizontalAlignment="Center"/>
+        <TextBlock Foreground="DarkRed" Background="Black" Text="{Binding VersionNumber, Mode=OneWay}" FontFamily="Consolas" Grid.Row="3" HorizontalAlignment="Center"/>
+
+        <!-- Menu Expansions -->
+        <StackPanel Name="NewGamePanel" ZIndex="1" Grid.Row="4" HorizontalAlignment="Left" Orientation="Horizontal" Visibility="Collapsed">
+            <TextBlock Name="NewGame_Custom" Padding="20px,0px" Foreground="SlateGray" Text="[Custom Character]"></TextBlock>
+            <TextBlock Name="NewGame_Preset" Padding="20px,0px" Foreground="SlateGray" Text="[Preset Character]"></TextBlock>
+            <TextBlock Name="NewGame_Random" Padding="20px,0px" Foreground="SlateGray" Text="[Random Character]"></TextBlock>
+            <TextBlock Name="NewGame_Quickplay" Padding="20px,0px" Foreground="SlateGray" Text="[Play Now!]"></TextBlock>
+        </StackPanel>
+
+        <!-- Menu -->
+        <StackPanel Name="MainMenu"  Orientation="Horizontal" Grid.Row="5" HorizontalAlignment="Center"/>
+
+        <Separator Grid.Row="6" VerticalAlignment="Top"/>
+        <TextBlock Grid.Row="6" Foreground="Gray" Text="Report bugs on the issue tracker: http://github.com/LambdaSix/OctoGhast" VerticalAlignment="Center" HorizontalAlignment="Center"></TextBlock>
+    </Grid>
+</Window>

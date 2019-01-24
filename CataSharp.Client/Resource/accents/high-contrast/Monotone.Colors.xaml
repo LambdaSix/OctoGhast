@@ -1,0 +1,22 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="BaseColor">#FFF</Color>
+    <Color x:Key="Base1Color">#FFF</Color>
+    <Color x:Key="Base2Color">#FFF</Color>
+    <Color x:Key="Base3Color">#000</Color>
+    <Color x:Key="Base3TColor">Yellow</Color>
+    <Color x:Key="Base5Color">#000</Color>
+    <Color x:Key="Base4Color">Black</Color>
+    <Color x:Key="Base6Color">Black</Color>
+    <Color x:Key="Base7Color">#BBB</Color>
+    <Color x:Key="BaseM1Color">#FFF</Color>
+    <Color x:Key="BaseM2Color">#FFF</Color>
+    <Color x:Key="BaseM2TColor">#FFF</Color>
+    <Color x:Key="TextColor">#000</Color>
+    <Color x:Key="SelectedColor">Red</Color>
+    <Color x:Key="DarkerSelectedColor">DarkRed</Color>
+    <Color x:Key="DarkerSelectedColorHover">Black </Color>
+    <Color x:Key="ErrorColor">#ff8888</Color>
+    <Color x:Key="DarkErrorColor">#aa4444</Color>
+
+</ResourceDictionary>
