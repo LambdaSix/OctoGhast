@@ -53,7 +53,7 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
 
         [Test]
         public void ToolTypeLoader() {
-            var json = "{ " +
+            var json = "{ 'tool_data': { " +
                        " 'ammo': 'battery', " +
                        " 'revert_to': 'hedgetrimmer_off', " +
                        " 'revert_msg': 'the trimmer switches off', " +
@@ -63,7 +63,7 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
                        " 'rand_charges': [ 3,4,5,19 ], " +
                        " 'charges_per_use': 1," +
                        " 'turns_per_charge': 1 " +
-                       "}";
+                       "} }";
             json = json.Replace('\'', '\"');
             var jsonStr = JObject.Parse(json);
 
@@ -199,8 +199,9 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
         [Test]
         public void ArmorTypeLoader() {
             var json = "{" +
-                       " 'coverage': [ 'TORSO' ], " +
+                       " 'covers': [ 'TORSO' ], " +
                        " 'encumbrance': 15, " +
+                       " 'coverage': 15, " +
                        " 'material_thickness': 2, " +
                        " 'sided': true," + // Legacy data this is calculated from coverage
                        " 'environmental_protection': 15, " +
@@ -217,6 +218,7 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
             var res = loader.Load(jsonStr, null);
 
             Assert.That(res.Covers, Contains.Item("TORSO"));
+            Assert.That(res.Coverage, Is.EqualTo(15));
             Assert.That(res.Encumbrance, Is.EqualTo(15));
             Assert.That(res.Thickness, Is.EqualTo(2));
             Assert.That(res.Sided, Is.True);
