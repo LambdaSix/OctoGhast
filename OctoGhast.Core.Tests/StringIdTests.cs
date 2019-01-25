@@ -54,7 +54,7 @@ namespace OctoGhast.Core.Tests {
         [Test]
         public void QualifiedName() {
             var id = CoreMaterials.Water;
-            var qualifiedName = id.Id;
+            var qualifiedName = id.FullName;
 
             Assert.That(qualifiedName, Is.EqualTo("Material::core_water"));
 

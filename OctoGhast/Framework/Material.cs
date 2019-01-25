@@ -3,5 +3,6 @@
         public string Name { get; set; }
         public string Id { get; set; }
         public float Density { get; set; }
+        public string FullName => $"Material::{Id}";
     }
 }
