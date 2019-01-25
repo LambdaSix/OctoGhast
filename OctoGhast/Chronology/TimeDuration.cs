@@ -12,7 +12,7 @@ namespace OctoGhast {
     /// </summary>
     public class TimeDuration : IEquatable<TimeDuration> {
         public long Turns { get; }
-        private long YearLength => TimeDuration.FromWeeks(52).Turns;
+        private static long YearLength { get; } = TimeDuration.FromWeeks(52).Turns;
 
         public TimeDuration(long turns) {
             Turns = turns;
@@ -120,6 +120,7 @@ namespace OctoGhast {
                 [("hour", "hours")] = TimeDuration.FromHours,
                 [("day", "days")] = TimeDuration.FromDays,
                 [("week", "weeks")] = TimeDuration.FromWeeks,
+                [("month","months")] = TimeDuration.FromMonths,
                 [("year", "years")] = TimeDuration.FromYears
             };
 
@@ -203,10 +204,11 @@ namespace OctoGhast {
         public static TimeDuration FromHours(int hours) => FromMinutes(60 * hours);
         public static TimeDuration FromDays(int days) => FromHours(24 * days);
         public static TimeDuration FromWeeks(int weeks) => FromDays(7 * weeks);
+        public static TimeDuration FromMonths(int months) => FromWeeks(months * 4);
 
         // nb. A Month is ~4 weeks, a year is 12 months, a season is a variable length construct that doesn't impact time tracking.
 
-        public static TimeDuration FromYears(int years) => FromDays(365); // 1 year == 12 months/52 weeks/365 days
+        public static TimeDuration FromYears(int years) => FromTurns(TimeDuration.YearLength * years);
 
         [Obsolete("Consider using FromMonths or FromYears")]
         public static TimeDuration FromSeasons(int seasons) {

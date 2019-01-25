@@ -198,10 +198,11 @@ namespace OctoGhast.Core.Tests
             Assert.That(s_t4.IsNightTime(), Is.True);
 
             // Summer [0]
-            var su_t1 = new Time(TimeDuration.FromDays(91+1).AddHours(4)); // 0400, before dawn in summer
-            var su_t2 = new Time(TimeDuration.FromDays(91+1).AddHours(9)); // 0900, after dawn in summer
-            var su_t3 = new Time(TimeDuration.FromDays(91+1).AddHours(21).AddMinutes(30)); // 2101, after sunset in summer, still twilight
-            var su_t4 = new Time(TimeDuration.FromDays(91+1).AddHours(22)); // 2200, after sunset + twilight
+            var deltaSummer = Season.GetSeasonLength(0) + 1;
+            var su_t1 = new Time(TimeDuration.FromDays(deltaSummer).AddHours(4)); // 0400, before dawn in summer
+            var su_t2 = new Time(TimeDuration.FromDays(deltaSummer).AddHours(9)); // 0900, after dawn in summer
+            var su_t3 = new Time(TimeDuration.FromDays(deltaSummer).AddHours(21).AddMinutes(30)); // 2101, after sunset in summer, still twilight
+            var su_t4 = new Time(TimeDuration.FromDays(deltaSummer).AddHours(22)); // 2200, after sunset + twilight
 
             Assert.That(su_t1.CurrentRealSeason.Name, Is.EqualTo("SUMMER"));
 
@@ -211,10 +212,11 @@ namespace OctoGhast.Core.Tests
             Assert.That(su_t4.IsNightTime(), Is.True);
 
             // Autumn [0]
-            var au_t1 = new Time(TimeDuration.FromDays(91+91+1).AddHours(5)); // 0500, before dawn in autumn
-            var au_t2 = new Time(TimeDuration.FromDays(91+91+1).AddHours(8)); // 0800, after dawn in autumn
-            var au_t3 = new Time(TimeDuration.FromDays(91+91+1).AddHours(19).AddMinutes(1)); // 1901, after sunset in autumn, still twilight
-            var au_t4 = new Time(TimeDuration.FromDays(91+91+1).AddHours(22)); // 2200, after sunset + twilight
+            var deltaAutumn = Season.GetSeasonLength(0) + Season.GetSeasonLength(1) + 1;
+            var au_t1 = new Time(TimeDuration.FromDays(deltaAutumn).AddHours(5)); // 0500, before dawn in autumn
+            var au_t2 = new Time(TimeDuration.FromDays(deltaAutumn).AddHours(8)); // 0800, after dawn in autumn
+            var au_t3 = new Time(TimeDuration.FromDays(deltaAutumn).AddHours(19).AddMinutes(1)); // 1901, after sunset in autumn, still twilight
+            var au_t4 = new Time(TimeDuration.FromDays(deltaAutumn).AddHours(22)); // 2200, after sunset + twilight
 
             Assert.That(au_t1.CurrentRealSeason.Name, Is.EqualTo("AUTUMN"));
 
@@ -224,10 +226,11 @@ namespace OctoGhast.Core.Tests
             Assert.That(au_t4.IsNightTime(), Is.True);
 
             // Winter [0]
-            var wi_t1 = new Time(TimeDuration.FromDays((3*91)+1).AddHours(5)); // 0600, before dawn in winter
-            var wi_t2 = new Time(TimeDuration.FromDays((3 * 91) + 1).AddHours(8)); // 0800, after dawn in winter
-            var wi_t3 = new Time(TimeDuration.FromDays((3 * 91) + 1).AddHours(17)); // 1700, after sunset in winter, still twilight
-            var wi_t4 = new Time(TimeDuration.FromDays((3 * 91) + 1).AddHours(19).AddMinutes(1)); // 1701, after sunset + twilight
+            var deltaWinter = Season.GetSeasonLength(0) + Season.GetSeasonLength(1) + Season.GetSeasonLength(2) + 1;
+            var wi_t1 = new Time(TimeDuration.FromDays(deltaWinter).AddHours(5)); // 0600, before dawn in winter
+            var wi_t2 = new Time(TimeDuration.FromDays(deltaWinter).AddHours(8)); // 0800, after dawn in winter
+            var wi_t3 = new Time(TimeDuration.FromDays(deltaWinter).AddHours(17)); // 1700, after sunset in winter, still twilight
+            var wi_t4 = new Time(TimeDuration.FromDays(deltaWinter).AddHours(19).AddMinutes(1)); // 1701, after sunset + twilight
 
             Assert.That(wi_t1.CurrentRealSeason.Name, Is.EqualTo("WINTER"));
 
