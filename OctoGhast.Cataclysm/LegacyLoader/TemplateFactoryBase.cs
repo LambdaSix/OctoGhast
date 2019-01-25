@@ -48,7 +48,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
                         };
 
                         if (baseTemplate.AbstractId != null && baseTemplate.Id != null) {
-                            throw new Exception(
+                            throw new LoaderException(
                                 $"Item (type:{baseTemplate.Type}) '{baseTemplate.Id}/{baseTemplate.AbstractId}' has both abstract & id defined");
                         }
 

@@ -224,4 +224,14 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
             "TOOL", "TOOL_ARMOR", "TOOLMOD", "WHEEL", "AMMO"
         };
     }
+    public class LoaderException : Exception {
+        /// <inheritdoc />
+        public LoaderException() { }
+
+        /// <inheritdoc />
+        public LoaderException(string message) : base(message) { }
+
+        /// <inheritdoc />
+        public LoaderException(string message, Exception innerException) : base(message, innerException) { }
+    }
 }
