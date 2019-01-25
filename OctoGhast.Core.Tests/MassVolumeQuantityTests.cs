@@ -199,7 +199,7 @@ namespace OctoGhast.Core.Tests {
             solidWater.Material = ice;
             Volume volumeOfIce = solidWater.Volume();
 
-            Assert.That(solidWater.Kilograms == 1);
+            Assert.That(solidWater.Kilograms == 1.0f);
             Assert.AreEqual(volumeOfIce.Liters, ((Volume) "1.07L").Liters, 0.0010);
         }
 
