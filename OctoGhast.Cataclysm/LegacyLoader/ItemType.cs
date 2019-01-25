@@ -19,7 +19,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         [LoaderInfo("comestible_data", TypeLoader = typeof(ComestibleTypeLoader))]
         public SlotComestible Comestible { get; set; }
 
-        [LoaderInfo("brewable", TypeLoader = typeof(BrewableTypeLoader))]
+        [LoaderInfo("brewable_data", TypeLoader = typeof(BrewableTypeLoader))]
         public SlotBrewable Brewable { get; set; }
 
         [LoaderInfo("armor_data", TypeLoader = typeof(ArmorTypeLoader))]

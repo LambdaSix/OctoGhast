@@ -17,7 +17,7 @@
         "charges" : 7,
         "phase" : "liquid",
         "comestible_type" : "DRINK",
-        "brewable" : {
+        "brewable_data" : {
             "time" : 7200,
             "results" : [ "wash_whiskey", "yeast" ]
         }
@@ -63,7 +63,7 @@
         "charges" : 7,
         "phase" : "liquid",
         "comestible_type" : "DRINK",
-        "brewable" : {
+        "brewable_data" : {
             "time" : 3600,
             "results" : [ "wash_vodka", "yeast" ]
         }
@@ -110,7 +110,7 @@
         "charges" : 7,
         "phase" : "liquid",
         "comestible_type" : "DRINK",
-        "brewable" : {
+        "brewable_data" : {
             "time" : 7200,
             "results" : [ "wash_rum", "yeast" ]
         }
@@ -158,7 +158,7 @@
         "charges" : 7,
         "phase" : "liquid",
         "comestible_type" : "DRINK",
-        "brewable" : {
+        "brewable_data" : {
             "time" : 7200,
             "results" : [ "fruit_wine", "yeast" ]
         }
@@ -182,7 +182,7 @@
         "charges" : 7,
         "phase" : "liquid",
         "comestible_type" : "DRINK",
-        "brewable" : {
+        "brewable_data" : {
             "time" : 72000,
             "results" : [ "mead", "yeast" ]
         }
@@ -204,7 +204,7 @@
         "charges" : 7,
         "phase" : "liquid",
         "comestible_type" : "DRINK",
-        "brewable" : {
+        "brewable_data" : {
             "time" : 22000,
             "results" : [ "dandelion_wine", "yeast" ]
         }
@@ -226,7 +226,7 @@
         "charges" : 7,
         "phase" : "liquid",
         "comestible_type" : "DRINK",
-        "brewable" : {
+        "brewable_data" : {
             "time" : 24500,
             "results" : [ "pine_wine", "yeast" ]
         }
@@ -248,7 +248,7 @@
         "volume" : 1,
         "phase" : "liquid",
         "comestible_type" : "DRINK",
-        "brewable" : {
+        "brewable_data" : {
             "time" : 5400,
             "results" : [ "hb_beer", "yeast" ]
         }
@@ -272,7 +272,7 @@
         "charges" : 7,
         "phase" : "liquid",
         "comestible_type" : "DRINK",
-        "brewable" : {
+        "brewable_data" : {
             "time" : 3600,
             "results" : [ "wash_moonshine", "yeast" ]
         }
@@ -319,7 +319,7 @@
         "volume" : 1,
         "phase" : "liquid",
         "fun" : -12,
-        "brewable" : {
+        "brewable_data" : {
             "time" : 2400,
             "results" : [ "milk_curdled" ]
         }
@@ -341,7 +341,7 @@
         "charges" : 2,
         "phase" : "liquid",
         "comestible_type" : "DRINK",
-        "brewable" : {
+        "brewable_data" : {
             "time" : 4200,
             "results" : [ "vinegar" ]
         }

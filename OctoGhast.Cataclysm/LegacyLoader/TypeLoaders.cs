@@ -10,6 +10,27 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         T Load(JObject jObj, T existing = default(T));
     }
 
+    public class TypeLoader {
+        /// <summary>
+        /// Returns either the sub-object on <paramref name="jObj"/> matching at least one of
+        /// <paramref name="names"/> or the root object if none match.
+        /// </summary>
+        /// <param name="jObj">JObject to inspect</param>
+        /// <param name="names">List of property names to look for</param>
+        /// <returns>JObject of either the sub-object or root object</returns>
+        public static JObject FindObject(JObject jObj, params string[] names) {
+            // TODO: Throw an exception is the object has >1 of the fields matched by name.
+
+            // Loop through all given names, and return the first match.
+            foreach (var name in names) {
+                if (jObj.ContainsKey(name))
+                    return jObj[name] as JObject;
+            }
+
+            return jObj;
+        }
+    }
+
     public class ItemTypeLoader : ITypeLoader<ItemType> {
         /// <inheritdoc />
         public ItemType Load(JObject jObj, ItemType existing = default(ItemType)) {
@@ -189,17 +210,16 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         }
     }
 
-    public class BrewableTypeLoader : ITypeLoader<SlotBrewable> {
+    public class BrewableTypeLoader : TypeLoader, ITypeLoader<SlotBrewable> {
         /// <inheritdoc />
         public SlotBrewable Load(JObject jObj, SlotBrewable existing = default(SlotBrewable)) {
-            if (jObj.ContainsKey("brewable") || jObj["type"].Value<string>().ToLowerInvariant() == "brewable")
-                return new SlotBrewable()
-                {
-                    Results = jObj.ReadProperty(() => existing.Results),
-                    Time = jObj.ReadProperty(() => existing.Time)
-                };
+            jObj = FindObject(jObj, "brewable_data", "brewable");
 
-            return null;
+            return new SlotBrewable()
+            {
+                Results = jObj.ReadProperty(() => existing.Results),
+                Time = jObj.ReadProperty(() => existing.Time)
+            };
         }
 
         /// <inheritdoc />
