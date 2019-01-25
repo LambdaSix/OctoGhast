@@ -37,7 +37,7 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
 
         [Test]
         public void ContainerTypeLoader() {
-            var json = "{ 'contains': '5L', 'seals': true, 'watertight': true, 'preserves': true, 'unseals_into': 'meat_slice' } ";
+            var json = "{ 'container_data': { 'contains': '5L', 'seals': true, 'watertight': true, 'preserves': true, 'unseals_into': 'meat_slice' } }";
             json = json.Replace('\'', '\"');
             var jsonStr = JObject.Parse(json);
 

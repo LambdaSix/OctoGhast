@@ -85,17 +85,16 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
 
     public class ContainerTypeLoader : ITypeLoader<SlotContainer> {
         public SlotContainer Load(JObject jObj, SlotContainer existing) {
-            if (jObj.ContainsKey("container_data") || jObj["type"].Value<string>().ToLowerInvariant() == "container")
-                return new SlotContainer()
-                {
-                    Contains = jObj.ReadProperty(() => existing.Contains),
-                    Seals = jObj.ReadProperty(() => existing.Seals),
-                    Watertight = jObj.ReadProperty(() => existing.Watertight),
-                    Preserves = jObj.ReadProperty(() => existing.Preserves),
-                    UnsealsInto = jObj.ReadProperty(() => existing.UnsealsInto)
-                };
+            jObj = jObj.ContainsKey("container_data") ? jObj["container_data"] as JObject : jObj;
 
-            return null;
+            return new SlotContainer()
+            {
+                Contains = jObj.ReadProperty(() => existing.Contains),
+                Seals = jObj.ReadProperty(() => existing.Seals),
+                Watertight = jObj.ReadProperty(() => existing.Watertight),
+                Preserves = jObj.ReadProperty(() => existing.Preserves),
+                UnsealsInto = jObj.ReadProperty(() => existing.UnsealsInto)
+            };
         }
 
         /// <inheritdoc />
