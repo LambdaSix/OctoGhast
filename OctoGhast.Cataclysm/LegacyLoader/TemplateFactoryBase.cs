@@ -31,6 +31,10 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
                             continue;
                         }
 
+                        if (obj.ContainsKey("abstract") && obj.ContainsKey("id")) {
+                            throw new LoaderException($"Item (type:{type}) '{obj["abstract"]}/{obj["id"]}' has both abstract & id defined");
+                        }
+
                         var id = obj.ReadProperty(() => baseTemplate.Id);
                         var abstractId = obj.ReadProperty(() => baseTemplate.AbstractId);
                         bool isAbstract = false;
@@ -46,11 +50,6 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
                             PathInfo = obj.Path,
                             IsAbstract = isAbstract
                         };
-
-                        if (baseTemplate.AbstractId != null && baseTemplate.Id != null) {
-                            throw new LoaderException(
-                                $"Item (type:{baseTemplate.Type}) '{baseTemplate.Id}/{baseTemplate.AbstractId}' has both abstract & id defined");
-                        }
 
                         BaseTemplates.Add(baseTemplate, obj);
                     }
