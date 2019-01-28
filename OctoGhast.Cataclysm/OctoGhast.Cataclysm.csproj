@@ -1258,4 +1258,7 @@
     <Folder Include="LegacyLoader\UseActions\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /y /S $(ProjectDir)data $(ProjectDir)$(OutDir)data\</PostBuildEvent>
+  </PropertyGroup>
 </Project>

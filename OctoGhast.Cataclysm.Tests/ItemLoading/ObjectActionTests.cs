@@ -104,7 +104,7 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
             var fakePlayer = new FakePlayer(1);
             
 
-            var usage = useRegistry.Retrieve(item.TemplateData.UseActions.First());
+            var usage = useRegistry.Retrieve(item.TemplateData.UseActions.First().Name);
             var res = usage(fakePlayer, item, false, new WorldSpace(0, 0, 0));
 
             Assert.That(res, Is.EqualTo(0));
@@ -112,7 +112,7 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
             Assert.That(fakePlayer.MessageQueue.First(),
                 Is.EqualTo($"You can't do anything interesting with your {item.GetName()}"));
 
-            var usage2 = useRegistry.Retrieve(item.TemplateData.UseActions.ElementAt(1));
+            var usage2 = useRegistry.Retrieve(item.TemplateData.UseActions.ElementAt(1).Name);
             var res2 = usage2(fakePlayer, item, false, new WorldSpace(0, 0, 0));
 
             Assert.That(res2, Is.EqualTo(1));

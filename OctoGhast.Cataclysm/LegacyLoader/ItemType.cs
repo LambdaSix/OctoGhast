@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 using OctoGhast.Entity;
 using OctoGhast.Framework;
 using OctoGhast.Units;
@@ -98,7 +99,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         public IEnumerable<StringID<Material>> Materials { get; set; }
 
         [LoaderInfo("use_action")]
-        public IEnumerable<string> UseActions { get; set; }
+        public IEnumerable<UseActionData> UseActions { get; set; }
 
         [LoaderInfo("countdown_interval", false, 0)]
         public int CountdownInterval { get; set; }
@@ -274,8 +275,33 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
 
         public bool CanUse(string useName) => GetUse(useName) != null;
 
-        public string GetUse(string useName) {
-            return UseActions.SingleOrDefault(s => s == useName);
+        public UseActionData GetUse(string useName) {
+            return UseActions.SingleOrDefault(s => s.Name == useName);
+        }
+    }
+
+    public class UseActionData {
+        public string Name { get; set; }
+        
+        /// <summary>
+        /// Defines the type of the iuse.
+        /// Native is a built-in IUSE handler.
+        /// Otherwise it's the UseAction handler.
+        /// </summary>
+        public string Type { get; set; }
+        public JObject Data { get; set; }
+
+        public UseActionData(JToken data) {
+            if (data.Type == JTokenType.String) {
+                Name = data.Value<string>();
+                Type = "native";
+            }
+            else if (data.Type == JTokenType.Object) {
+                data = data as JObject;
+                Type = data.HasValues ? data["type"].Value<string>() : "NULL";
+                Name = Type;
+                Data = (JObject) data;
+            }
         }
     }
 }

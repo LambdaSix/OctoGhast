@@ -81,4 +81,7 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /y /S $(ProjectDir)..\OctoGhast.Cataclysm\data $(ProjectDir)$(OutDir)data\</PostBuildEvent>
+  </PropertyGroup>
 </Project>

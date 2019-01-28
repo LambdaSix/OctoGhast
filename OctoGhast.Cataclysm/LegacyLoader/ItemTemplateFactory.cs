@@ -87,6 +87,35 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
 
                 return null;
             });
+            JsonDataLoader.RegisterConverter(typeof(UseActionData), (token, type) => {
+                if (token.Type == JTokenType.Object || token.Type == JTokenType.String) {
+                    return new UseActionData(token);
+                }
+
+                throw new LoaderException($"Unable to process {token}");
+            });
+
+            JsonDataLoader.RegisterTypeLoader(typeof(IEnumerable<UseActionData>), (jObj, name, val, types) => {
+                // Raw object or string can be converted by the constructor
+                if (jObj.Type == JTokenType.Object || jObj.Type == JTokenType.String) {
+                    return new[] {new UseActionData(jObj)};
+                }
+                // And pull apart arrays to get individual objects.
+                else if (jObj.Type == JTokenType.Array) {
+                    var array = jObj.Children();
+                    var seq = new List<UseActionData>(array.Count());
+
+                    foreach (var item in array) {
+                        if (jObj.Type == JTokenType.Object || jObj.Type == JTokenType.String) {
+                            seq.Add(new UseActionData(jObj));
+                        }
+                    }
+
+                    return seq;
+                }
+
+                throw new LoaderException($"Found unknown object at {jObj.Path} -- {jObj.Parent}");
+            });
         }
 
         public void LoadAbstracts() {
@@ -97,7 +126,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
 
                 // If this abstract is copying from another item, 
                 if (jObj.TryGetValue("copy-from", out var value)) {
-                    var loadOrder = LoadInheritanceChain(template.Key.Id);
+                    var loadOrder = LoadInheritanceChain(template);
 
                     foreach (var item in loadOrder) {
                         var itemInfo = FindOrLoadAbstract(item);
@@ -120,18 +149,23 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
 
                 // If this abstract is copying from another item, 
                 if (jObj.TryGetValue("copy-from", out _)) {
-                    var loadOrder = LoadInheritanceChain(template.Key.Id);
+                    var loadOrder = LoadInheritanceChain(template);
 
                     foreach (var item in loadOrder) {
                         var itemInfo = FindOrLoadItem(item);
-                        if (!ItemTemplates.ContainsKey(itemInfo.Id)) {
-                            ItemTemplates.Add(itemInfo.Id, itemInfo);
+                        if (!ItemTemplates.ContainsKey(itemInfo.GetIdentifier())) {
+                            ItemTemplates.Add(itemInfo.GetIdentifier(), itemInfo);
                         }
                     }
                 }
                 else {
                     var info = TypeLoader.Load(jObj, null);
-                    ItemTemplates.Add(info.Id, info);
+
+                    if (ItemTemplates.ContainsKey(info.GetIdentifier())) {
+                        continue; // We probably loaded this from a prior copy_from so don't worry about it.
+                    }
+
+                    ItemTemplates.Add(info.GetIdentifier(), info);
                 }
             }
         }
@@ -191,16 +225,15 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
             return null;
         }
 
-        public IEnumerable<string> LoadInheritanceChain(string id) {
+        public IEnumerable<string> LoadInheritanceChain(KeyValuePair<BaseTemplateType, JObject> baseItem) {
             // generate inheritance chain for each object
             // (itemId -> Parent)
             var inheritanceChain = new List<(string item, string super)>();
 
-            var item = BaseTemplates.FirstOrDefault(s => s.Key.Id == id);
-
-            if (!IsLoadable(item.Key.Type))
+            if (!IsLoadable(baseItem.Key.Type))
                 return Enumerable.Empty<string>();
 
+            var item = baseItem;
             while (true) {
                 if (item.Value.TryGetValue("copy-from", out var token)) {
                     var parent = token.Value<string>();
@@ -211,6 +244,10 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
                     inheritanceChain.Add((item.Key.Id, null));
                     break;
                 }
+
+                // Check that the parent item could be found.
+                if (item.Value == null || item.Key == null)
+                    throw new LoaderException($"Unable to find parent item for {baseItem}");
             }
 
             var loadOrder = new List<string>() {inheritanceChain.Last().item};
@@ -221,9 +258,10 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         protected override IEnumerable<string> LoadableTypes { get; } = new[]
         {
             "ARMOR", "BIONIC_ITEM", "BOOK", "CONTAINER", "ENGINE", "FUEL", "GENERIC", "GUN", "GUNMOD", "MAGAZINE",
-            "TOOL", "TOOL_ARMOR", "TOOLMOD", "WHEEL", "AMMO"
+            "TOOL", "TOOL_ARMOR", "TOOLMOD", "WHEEL", "AMMO", "BIONIC", "COMESTIBLE"
         };
     }
+
     public class LoaderException : Exception {
         /// <inheritdoc />
         public LoaderException() { }

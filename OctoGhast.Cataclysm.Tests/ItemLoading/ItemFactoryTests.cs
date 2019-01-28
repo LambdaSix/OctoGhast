@@ -43,7 +43,8 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
         [Test]
         public void Inheritance() {
             var itemFactory = new ItemTemplateFactory();
-            itemFactory.LoadFrom("C:\\Users\\somervn\\Documents\\Code\\OctoGhast\\OctoGhast.Cataclysm\\data\\json");
+            itemFactory.LoadFrom(TestContext.CurrentContext.TestDirectory + "\\data\\core");
+            itemFactory.LoadFrom(TestContext.CurrentContext.TestDirectory + "\\data\\json");
 
             var groups = itemFactory.BaseTemplates.GroupBy(s => s.Key.Type);
             foreach (var group in groups) {
