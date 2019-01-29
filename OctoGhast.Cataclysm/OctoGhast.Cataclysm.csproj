@@ -56,7 +56,6 @@
     <Compile Include="LegacyLoader\Enums\AddictionType.cs" />
     <Compile Include="LegacyLoader\Mobiles\CreatureType.cs" />
     <Compile Include="LegacyLoader\ItemTemplateFactory.cs" />
-    <Compile Include="LegacyLoader\TemplateFactoryBase.cs" />
     <Compile Include="LegacyLoader\Types\AmmoType.cs" />
     <Compile Include="LegacyLoader\Types\Bionic.cs" />
     <Compile Include="LegacyLoader\DataContainers\CommonRangedData.cs" />

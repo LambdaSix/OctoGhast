@@ -4,55 +4,9 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using OctoGhast.Framework;
+using OctoGhast.Framework.Data.Loading;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {
-    /// <summary>
-    /// Skeletal loader structure, not related to <seealso cref="TemplateType"/>
-    /// </summary>
-    public class BaseTemplateType : IEquatable<BaseTemplateType> {
-        public string FileID { get; set; }
-        public string PathInfo { get; set; }
-
-        [LoaderInfo("id", true)]
-        public string Id { get; }
-
-        [LoaderInfo("abstract", false)]
-        public string AbstractId { get; }
-
-        [LoaderInfo("type", true)]
-        public string Type { get; }
-
-        public bool IsAbstract { get; set; }
-
-        public BaseTemplateType(string id, string abstractId, string templateType) {
-            Id = id;
-            AbstractId = abstractId;
-            Type = templateType;
-        }
-
-        /// <inheritdoc />
-        public bool Equals(BaseTemplateType other) {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return string.Equals(Id, other.Id) && string.Equals(Type, other.Type);
-        }
-
-        /// <inheritdoc />
-        public override bool Equals(object obj) {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((BaseTemplateType) obj);
-        }
-
-        /// <inheritdoc />
-        public override int GetHashCode() {
-            unchecked {
-                return ((Id != null ? Id.GetHashCode() : 0) * 397) ^ (Type != null ? Type.GetHashCode() : 0);
-            }
-        }
-    }
-
     [DataObject("TemplateFactory", "Provide hydration of template data from storage")]
     public class ItemTemplateFactory : TemplateFactoryBase<ItemType, ItemTypeLoader> {
         public ItemTemplateFactory() {
@@ -260,16 +214,5 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
             "ARMOR", "BIONIC_ITEM", "BOOK", "CONTAINER", "ENGINE", "FUEL", "GENERIC", "GUN", "GUNMOD", "MAGAZINE",
             "TOOL", "TOOL_ARMOR", "TOOLMOD", "WHEEL", "AMMO", "BIONIC", "COMESTIBLE"
         };
-    }
-
-    public class LoaderException : Exception {
-        /// <inheritdoc />
-        public LoaderException() { }
-
-        /// <inheritdoc />
-        public LoaderException(string message) : base(message) { }
-
-        /// <inheritdoc />
-        public LoaderException(string message, Exception innerException) : base(message, innerException) { }
     }
 }

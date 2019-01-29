@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
-using OctoGhast.Framework;
+using OctoGhast.Cataclysm.LegacyLoader;
 
-namespace OctoGhast.Cataclysm.LegacyLoader {
+namespace OctoGhast.Framework.Data.Loading {
     public abstract class TemplateFactoryBase<TTemplateType, TTemplateLoader> where TTemplateLoader: class, new() {
         // TODO: Support multiple loaders, per LoadableType?
         protected TTemplateLoader TypeLoader = new TTemplateLoader();
@@ -55,11 +55,23 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
                     }
                 }
                 catch (Exception e) {
-                    Console.WriteLine($"Ex: {e}");
+                    Console.WriteLine($"Error loading {file} - Ex: {e}");
                 }
             }
         }
 
         protected bool IsLoadable(string type) => LoadableTypes.Contains(type);
+    }
+
+    public class LoaderException : Exception
+    {
+        /// <inheritdoc />
+        public LoaderException() { }
+
+        /// <inheritdoc />
+        public LoaderException(string message) : base(message) { }
+
+        /// <inheritdoc />
+        public LoaderException(string message, Exception innerException) : base(message, innerException) { }
     }
 }

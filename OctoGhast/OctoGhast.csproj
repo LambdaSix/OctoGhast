@@ -71,6 +71,8 @@
     <Compile Include="Entity\Item\GearLayer.cs" />
     <Compile Include="Entity\Mobile.cs" />
     <Compile Include="Extensions\LinqExtensions.cs" />
+    <Compile Include="Framework\Data\Loading\BaseTemplateType.cs" />
+    <Compile Include="Framework\Data\Loading\TemplateFactoryBase.cs" />
     <Compile Include="Framework\Items\Actions\DefaultItemUsage.cs" />
     <Compile Include="Framework\Items\Actions\ItemUse.cs" />
     <Compile Include="Framework\Items\Actions\ItemUseAttribute.cs" />
