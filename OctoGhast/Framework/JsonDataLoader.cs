@@ -104,8 +104,10 @@ namespace OctoGhast.Framework {
         }
 
         private static object ConvertTimeDuration(JToken input, Type type) {
-            if (input.Value<long>() is long val && type.IsAssignableFrom(typeof(TimeDuration))) {
+            if (input.Type == JTokenType.Integer && input.Value<long>() is long val && type.IsAssignableFrom(typeof(TimeDuration))) {
                 return new TimeDuration(val);
+            } else if (input.Type == JTokenType.String && input.Value<string>() is string str && type.IsAssignableFrom(typeof(TimeDuration))) {
+                return new TimeDuration(str);
             }
 
             return input;
