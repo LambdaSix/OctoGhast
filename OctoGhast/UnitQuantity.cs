@@ -226,10 +226,13 @@ namespace OctoGhast.Units {
         private static Regex _compiledRegex =
             new Regex(@"([-]?[\d.]+)((dB)|(kpa)|(pa)|(pascals)|(decibels)|(kilopascals))", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
 
+        // Based entirely on the base cataclysm data files defining a .22 rifle as 'loudness: 25', and a real-life .22 rifle being 134dB
+        // 134 / 25 = 5.36
+        private static float scalingFactor = 5.36f;
         public static implicit operator SoundLevel(string value)
         {
             if (Int32.TryParse(value, out var level)) {
-                return FromDecibels(level * 15);
+                return FromDecibels(level * scalingFactor);
             }
 
             var matches = _compiledRegex.Match(value);
