@@ -11,9 +11,9 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         /// </summary>
         [LoaderInfo("ammo_type")]
         public StringID<AmmoType> AmmoType { get;set; }
-        
+
         [LoaderInfo("casing")]
-        public StringID<ItemType> Casing { get; set; } = StringID<ItemType>.NullId;
+        public StringID<ItemType> Casing { get; set; }
 
         /// <summary>
         /// Type of item, if any, dropped at ranged target.
@@ -21,14 +21,14 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         [LoaderInfo("drop")]
         public IEnumerable<StringID<ItemType>> Drops { get; set; }
 
-        [LoaderInfo("drop_chance")]
-        public double DropChance { get; set; } = 1.0f;
+        [LoaderInfo("drop_chance", defaultValue: 1.0)]
+        public double DropChance { get; set; }
 
-        [LoaderInfo("drop_active")]
-        public bool DropActive { get; set; } = true;
+        [LoaderInfo("drop_active", defaultValue: true)]
+        public bool DropActive { get; set; }
 
-        [LoaderInfo("count")]
-        public long DefaultCharges { get; set; } = 1;
+        [LoaderInfo("count", defaultValue: 1L)]
+        public long DefaultCharges { get; set; }
 
         /// <summary>
         /// Noise-level of ammunition in decibels, defaults to 140dB, a small .22 caliber rifle
@@ -36,14 +36,14 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         [LoaderInfo("loudness", false, "140dB")]
         public SoundLevel Loudness { get; set; }
 
-        [LoaderInfo("recoil")]
-        public int Recoil { get; set; } = -1;
+        [LoaderInfo("recoil", defaultValue: -1)]
+        public int Recoil { get; set; }
 
         [LoaderInfo("cooks_off")]
-        public bool CooksOff { get; set; } = false;
+        public bool CooksOff { get; set; }
 
         [LoaderInfo("special_cook_off")]
-        public bool SpecialCookOff { get; set; } = false;
+        public bool SpecialCookOff { get; set; }
 
         [LoaderInfo("effects")]
         public IEnumerable<string> AmmoEffects { get; set; }

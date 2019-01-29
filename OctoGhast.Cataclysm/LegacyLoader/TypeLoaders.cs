@@ -44,7 +44,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
 
             load.Id = jObj.ReadProperty(() => existing.Id);
             load.Abstract = jObj.ReadProperty(() => existing.Abstract);
-            load.Type = jObj.ReadProperty(() => load.Type);
+            load.Type = jObj.ReadProperty(() => existing.Type);
             load.Container = ReadIf(
                 () => TypeMatches(load.Type, "container"),
                 () => jObj.ContainsKey("container_data"),

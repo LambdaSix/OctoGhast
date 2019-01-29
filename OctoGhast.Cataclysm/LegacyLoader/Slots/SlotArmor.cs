@@ -11,27 +11,27 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         public IEnumerable<string> Covers { get; set; }
 
         [LoaderInfo("sided")]
-        public bool Sided { get; set; } = false;
+        public bool Sided { get; set; }
 
         [LoaderInfo("encumbrance")]
-        public int Encumbrance { get; set; } = default;
+        public int Encumbrance { get; set; }
 
         [LoaderInfo("material_thickness")]
-        public int Thickness { get; set; } = default;
+        public int Thickness { get; set; }
 
         [LoaderInfo("environmental_protection")]
-        public int EnvResist { get; set; } = default;
+        public int EnvResist { get; set; }
 
         [LoaderInfo("environmental_protection_with_filter")]
-        public int EnvResistWithFilter { get; set; } = default;
+        public int EnvResistWithFilter { get; set; }
 
         [LoaderInfo("warmth")]
-        public int Warmth { get; set; } = default;
+        public int Warmth { get; set; }
 
-        [LoaderInfo("storage")]
-        public Volume Storage { get; set; } = "0.0L";
+        [LoaderInfo("storage", defaultValue: "0.0L")]
+        public Volume Storage { get; set; }
 
         [LoaderInfo("power_armor")]
-        public bool PowerArmour { get; set; } = default;
+        public bool PowerArmour { get; set; }
     }
 }

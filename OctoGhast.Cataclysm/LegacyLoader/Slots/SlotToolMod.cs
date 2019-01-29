@@ -12,7 +12,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         [LoaderInfo("magazine_adaptor")]
         public Dictionary<string, IEnumerable<string>> MagazineAdapter { get; set; }
 
-        [LoaderInfo("capacity_multiplier")]
-        public float CapacityMultiplier { get; set; } = 1.0f;
+        [LoaderInfo("capacity_multiplier", defaultValue: 1.0f)]
+        public float CapacityMultiplier { get; set; }
     }
 }

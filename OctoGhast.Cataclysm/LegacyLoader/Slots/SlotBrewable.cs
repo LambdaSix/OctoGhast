@@ -8,6 +8,6 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         public IEnumerable<StringID<ItemType>> Results { get; set; }
 
         [LoaderInfo("time")]
-        public TimeDuration Time { get; set; } = new TimeDuration(0);
+        public TimeDuration Time { get; set; }
     }
 }

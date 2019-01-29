@@ -17,11 +17,11 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         [LoaderInfo("integral_magazine_volume")]
         public Volume IntegralMagazineSize { get; set; }
 
-        [LoaderInfo("reload", false, 6ul)]
-        public TimeDuration ReloadTime { get; set; } = TimeDuration.FromSeconds(36);
+        [LoaderInfo("reload", false, "36 seconds")]
+        public TimeDuration ReloadTime { get; set; }
 
-        [LoaderInfo("reload_noise")]
-        public string ReloadNoise { get; set; } = Translation.Translation._($"click.");
+        [LoaderInfo("reload_noise", defaultValue: "click")]
+        public string ReloadNoise { get; set; }
 
         [LoaderInfo("reload_noise_volume")]
         public SoundLevel ReloadNoiseVolume { get; set; }

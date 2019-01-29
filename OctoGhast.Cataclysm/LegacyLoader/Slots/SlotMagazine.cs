@@ -16,14 +16,14 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         public StringID<ItemType> DefaultAmmo { get; set; }
 
         [LoaderInfo("reliability")]
-        public int Reliability { get; set; } = 0;
+        public int Reliability { get; set; }
 
         /// <summary>
         /// How long it takes to load each unit of ammunition into the magazine.
         /// Defaults to 36 seconds (6 turns)
         /// </summary>
-        [LoaderInfo("reload_time")]
-        public TimeDuration ReloadTime { get; set; } = TimeDuration.FromSeconds(36);
+        [LoaderInfo("reload_time", defaultValue: "36 seconds")]
+        public TimeDuration ReloadTime { get; set; }
 
         /// <summary>
         /// For ammo-belts, one linkage of given type is dropped for each unit of ammunition consumed

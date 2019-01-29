@@ -17,7 +17,7 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         /// A sight is only usable to aim by a character whose current Character::recoil is at or below this value.
         /// </summary>
         [LoaderInfo("sight_dispersion")]
-        public new int? SightDispersion { get; set; } = default;
+        public new int? SightDispersion { get; set; }
 
         /// <summary>
         /// For Sights, this value affects time cost of aiming.
@@ -48,6 +48,6 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
         public IEnumerable<string> AmmoEffects { get; set; }
 
         [LoaderInfo("handling_modifier")]
-        public new int HandlingModifier { get; set; } = 0;
+        public int HandlingModifier { get; set; }
     }
 }
