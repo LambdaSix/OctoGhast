@@ -449,9 +449,17 @@ namespace OctoGhast.Framework {
                 throw new Exception($"Missing attribute on {expression.GetRootObject()}{propertyInfo.Name}");
 
             T defaultValue = default(T);
-            if (attr.DefaultValue is string str) {
+            if (attr.DefaultValue is string str && propertyInfo.PropertyType == typeof(string)) {
                 // Bit of a hack but if we're a string, then be an actual string for conversion.
                 defaultValue = Operator.Convert<string, T>(str);
+            }
+            else if (attr.DefaultValue is string && propertyInfo.PropertyType != typeof(string)) {
+                // Try and use one of the conversion methods
+                if (_castingMap.TryGetValue(OpenType<T>(), out var func))
+                {
+                    var token = new JValue(attr.DefaultValue);
+                    defaultValue = Operator.Convert<object, T>(func(token, propertyInfo.PropertyType));
+                }
             }
             else if (attr.DefaultValue != null && _castingMap.TryGetValue(typeof(T), out var func)) {
                 defaultValue = (T) func(new JObject(new JProperty("default", attr.DefaultValue))["default"], typeof(T));
@@ -465,6 +473,7 @@ namespace OctoGhast.Framework {
                 }
             }
 
+            // If the property pointed to already has a value, use that as a default.
             var value = expression.GetRootObject() != null
                 ? expression.CompileFast().GetValue(defaultValue)
                 : defaultValue;
