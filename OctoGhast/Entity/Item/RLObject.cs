@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OctoGhast.Framework;
 
 namespace OctoGhast {
     public interface IDataObject {
@@ -64,8 +65,13 @@ namespace OctoGhast {
     /// Base ancestor for any Template's used with RLObject, provides serialization primitives.
     /// </summary>
     public class TemplateType {
+        [LoaderInfo("id")]
         public string Id { get; set; }
+
+        [LoaderInfo("abstract")]
         public string Abstract { get; set; }
+
+        [LoaderInfo("type")]
         public string Type { get; set; }
 
         public virtual string GetIdentifier() => Id ?? Abstract;
