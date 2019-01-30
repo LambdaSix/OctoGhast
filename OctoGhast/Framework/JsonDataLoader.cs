@@ -8,7 +8,6 @@ using Newtonsoft.Json.Linq;
 using OctoGhast.Entity;
 using OctoGhast.Extensions.FastExpressionCompiler;
 using OctoGhast.Units;
-using OctoGhast.UserInterface.Controls;
 
 namespace OctoGhast.Framework {
     public interface ITypeLoader {
@@ -680,7 +679,7 @@ namespace OctoGhast.Framework {
             return newValue;
         }
 
-        private static TValue ReadProperty<T, TValue>(this JObject jObj, string name, T existingValue,
+        public static TValue ReadProperty<T, TValue>(this JObject jObj, string name, T existingValue,
             Func<string, TValue> mapFunc,
             Func<T, TValue, TValue> relativeFunc, Func<T, double, TValue> proportionalFunc, bool required = false) {
             TValue newValue = default;
@@ -803,8 +802,14 @@ namespace OctoGhast.Framework {
             return false;
         }
 
+        private static Dictionary<(string, Type[],int), MethodInfo> genericMethodCache = new Dictionary<(string, Type[],int), MethodInfo>();
+        public static void ClearGenericMethodCache() => genericMethodCache.Clear();
         private static MethodInfo FindGenericMethod(string name, Type[] paramTypes, int genericArgs = 1)
         {
+            if (genericMethodCache.TryGetValue((name, paramTypes, genericArgs), out var value)) {
+                return value;
+            }
+
             var methodInfos = typeof(JsonDataLoader).GetMethods()
                 .Where(s => s.Name == name)
                 .Select(m => new
@@ -820,10 +825,19 @@ namespace OctoGhast.Framework {
                 )
                 .Select(x => x.Method);
             var method = methodInfo.First();
+
+            genericMethodCache.Add((name, paramTypes, genericArgs), method);
             return method;
         }
 
+        private static Dictionary<(string, Type[]), MethodInfo> methodCache = new Dictionary<(string, Type[]), MethodInfo>();
+        public static void ClearMethodCache() => methodCache.Clear();
+
         private static MethodInfo FindMethod(string name, Type[] paramTypes) {
+            if (methodCache.TryGetValue((name,paramTypes), out var value)) {
+                return value;
+            }
+
             var methodInfos = typeof(JsonDataLoader).GetMethods()
                 .Where(s => s.Name == name)
                 .Select(m => new
@@ -837,6 +851,8 @@ namespace OctoGhast.Framework {
                 )
                 .Select(x => x.Method);
             var method = methodInfo.First();
+
+            methodCache.Add((name, paramTypes), method);
             return method;
         }
     }
@@ -885,19 +901,67 @@ namespace OctoGhast.Framework {
         /// <param name="accessor">Lambda to retrieve the object</param>
         /// <param name="defaultValue">A default value to return instead of null</param>
         /// <returns>The objects value or the default value</returns>
-        public static T GetValue<T>(this Func<T> accessor, T defaultValue = default(T)) {
+        public static T GetValue<T>(this Func<T> accessor, T defaultValue = default(T))
+        {
             var type = typeof(T);
-            bool isNullable = !type.IsValueType || (Nullable.GetUnderlyingType(type) != null);
+            bool isNullable = !type.IsValueType;
             T value;
-            if (isNullable) {
+            if (isNullable)
+            {
                 var val = accessor();
                 value = val != null ? val : defaultValue;
             }
-            else {
+            else
+            {
                 value = accessor();
             }
-
             return value;
+        }
+
+        /// <summary>
+        /// Decompose an Expression Tree into parts and return the root object of the expression.
+        /// That is, for an expression <code>() => MyFoo.Property.SubValue.Value</code> return a reference
+        /// to <code>MyFoo</code>
+        /// </summary>
+        /// <param name="propertyExpression">Lambda pointing to the property to retrieve the root object from</param>
+        /// <returns></returns>
+        public static object GetRootObject<T>(this Expression<Func<T>> propertyExpression)
+        {
+            MemberExpression body;
+            switch (propertyExpression.Body.NodeType)
+            {
+                case ExpressionType.Convert:
+                case ExpressionType.ConvertChecked:
+                    body = ((propertyExpression.Body is UnaryExpression ue) ? ue.Operand : null) as MemberExpression;
+                    break;
+                default:
+                    body = propertyExpression.Body as MemberExpression;
+                    break;
+            }
+
+            while (body.Expression is MemberExpression)
+                body = (MemberExpression)body.Expression;
+
+            if (!(body.Expression is ConstantExpression rootObject))
+                return null;
+
+            if (body.Member.MemberType == MemberTypes.Property)
+            {
+                var propInfo = body.Member as PropertyInfo;
+                return propInfo != null
+                    ? propInfo.GetValue(rootObject.Value)
+                    : null;
+            }
+
+            if (body.Member.MemberType == MemberTypes.Field)
+            {
+                var fieldInfo = body.Member as FieldInfo;
+                return fieldInfo != null
+                    ? fieldInfo.GetValue(rootObject.Value)
+                    : null;
+            }
+
+            return null;
         }
     }
 }
