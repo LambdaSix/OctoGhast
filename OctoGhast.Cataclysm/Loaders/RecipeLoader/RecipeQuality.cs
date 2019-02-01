@@ -18,7 +18,7 @@ namespace OctoGhast.Cataclysm.RecipeLoader {
 
         private static IEnumerable<RecipeQuality> LoadQualities(IEnumerable<JToken> qualities) {
             return qualities.Where(s => s.Type == JTokenType.Object)
-                .Select(quality => new RecipeQuality(quality as JObject));
+                            .Select(quality => new RecipeQuality(quality as JObject));
         }
 
         public IEnumerator<RecipeQuality> GetEnumerator() {
