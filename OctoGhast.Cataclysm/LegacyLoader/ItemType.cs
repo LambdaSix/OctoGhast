@@ -9,7 +9,7 @@ using OctoGhast.Units;
 using static OctoGhast.Translation.Translation;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {
-    [DebuggerDisplay("{Type}::{Id}")]
+    [DebuggerDisplay("{Type}::{GetIdentifier()}")]
     public class ItemType : TemplateType {
         [LoaderInfo("container_data", TypeLoader = typeof(ContainerTypeLoader))]
         public SlotContainer Container { get; set; }

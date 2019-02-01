@@ -7,8 +7,14 @@ using OctoGhast.Framework;
 using OctoGhast.Framework.Data.Loading;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {
-    [DataObject("TemplateFactory", "Provide hydration of template data from storage")]
+    [DataObject("ItemTemplateFactory", "Provide hydration of template data from storage")]
     public class ItemTemplateFactory : TemplateFactoryBase<ItemType, ItemTypeLoader> {
+        private Dictionary<string, IEnumerable<ItemType>> _itemGroups;
+
+        public Dictionary<string, IEnumerable<ItemType>> ItemGroups =>
+            _itemGroups ?? (_itemGroups = ItemTemplates.GroupBy(s => s.Value.Type ?? "Unknown")
+                .ToDictionary(key => key.Key, value => value.Select(s => s.Value)));
+
         public ItemTemplateFactory() {
             // Inform the JsonDataLoader we have custom types and how to load them.
             JsonDataLoader.RegisterConverter(typeof(GunModifierData), (token, type) =>
@@ -122,6 +128,8 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
                     ItemTemplates.Add(info.GetIdentifier(), info);
                 }
             }
+
+            _itemGroups = null;
         }
 
         public ItemType RetrieveType(string id) => LoadItemTemplate(id);
