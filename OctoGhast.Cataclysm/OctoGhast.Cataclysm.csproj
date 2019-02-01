@@ -56,7 +56,14 @@
     <Compile Include="LegacyLoader\Enums\AddictionType.cs" />
     <Compile Include="LegacyLoader\Mobiles\CreatureType.cs" />
     <Compile Include="LegacyLoader\ItemTemplateFactory.cs" />
+    <Compile Include="RecipeLoader\RecipeComponent.cs" />
+    <Compile Include="RecipeLoader\RecipeQuality.cs" />
+    <Compile Include="RecipeLoader\RecipeQualityGroup.cs" />
+    <Compile Include="RecipeLoader\RecipeTool.cs" />
+    <Compile Include="RecipeLoader\TypeLoaders\RecipeComponentGroupTypeLoader.cs" />
     <Compile Include="RecipeLoader\RecipeFactory.cs" />
+    <Compile Include="RecipeLoader\TypeLoaders\RecipeToolGroupTypeLoader.cs" />
+    <Compile Include="RecipeLoader\TypeLoaders\RecipeQualityTypeLoader.cs" />
     <Compile Include="RecipeLoader\RecipeTypeLoader.cs" />
     <Compile Include="RecipeLoader\RecipeType.cs" />
     <Compile Include="LegacyLoader\Types\AmmoType.cs" />

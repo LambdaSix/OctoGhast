@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using OctoGhast.Cataclysm.LegacyLoader;
 using OctoGhast.Framework;
@@ -11,6 +12,8 @@ namespace OctoGhast.Cataclysm.RecipeLoader {
         public RecipeType Load(JObject jObj, RecipeType existing = default(RecipeType)) {
             var load = new RecipeType();
             load.Id = jObj.ReadProperty(() => existing.Id);
+            load.Type = jObj.ReadProperty(() => existing.Type);
+            load.Result = jObj.ReadProperty(() => existing.Result);
             load.IdSuffix = jObj.ReadProperty(() => existing.IdSuffix);
             load.Category = jObj.ReadProperty(() => existing.Category);
             load.SubCategory = jObj.ReadProperty(() => existing.SubCategory);
@@ -19,9 +22,9 @@ namespace OctoGhast.Cataclysm.RecipeLoader {
             load.Time = LoadRecipeTime(jObj, existing);
             load.Reversible = jObj.ReadProperty(() => existing.Reversible);
             LoadAutoLearn(jObj, existing, v => load.AutoLearn = v, map => load.AutoLearnSkills = map);
-            load.Qualities = jObj.ReadProperty(() => existing.Qualities);
-            load.Tools = jObj.ReadProperty(() => existing.Tools);
-            load.Components = jObj.ReadProperty(() => existing.Components);
+            load.Qualities = jObj.ReadProperty(() => existing.Qualities).ToList();
+            load.Tools = jObj.ReadProperty(() => existing.Tools).ToList();
+            load.Components = jObj.ReadProperty(() => existing.Components).ToList();
 
             return load;
         }

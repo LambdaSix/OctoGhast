@@ -7,12 +7,7 @@ namespace OctoGhast.Cataclysm.RecipeLoader {
     [DataObject("RecipeFactory", "Provide hydration of recipe data from storage")]
     public class RecipeFactory : TemplateFactoryBase<RecipeType, RecipeTypeLoader> {
         public RecipeFactory() {
-            JsonDataLoader.RegisterConverter(typeof(RecipeQuality),
-                (token, type) => new RecipeQuality(token as JObject));
-            JsonDataLoader.RegisterConverter(typeof(RecipeComponent),
-                (token,type) => new RecipeComponent(token as JObject));
-            JsonDataLoader.RegisterConverter(typeof(RecipeTool),
-                (token, type) => new RecipeTool(token as JObject));
+
         }
 
         /// <inheritdoc />
