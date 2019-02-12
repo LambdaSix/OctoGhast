@@ -1,5 +1,6 @@
 [
     {
+		"id": "furn_deconstruct",
         "type" : "construction",
         "description" : "Deconstruct Furniture",
         "category" : "FURN",
@@ -16,6 +17,7 @@
         "pre_special" : "check_deconstruct",
         "post_special" : "done_deconstruct"
     },{
+		"id": "furn_deconstruct_simple",
         "type" : "construction",
         "description" : "Deconstruct Simple Furniture",
         "category" : "FURN",
@@ -26,6 +28,7 @@
         "pre_special" : "check_deconstruct",
         "post_special" : "done_deconstruct"
     },{
+		"id": "pit_spiked",
         "type" : "construction",
         "description" : "Spike Pit",
         "category" : "DIG",
@@ -37,6 +40,7 @@
         "pre_terrain" : "t_pit",
         "post_terrain" : "t_pit_spiked"
     },{
+		"id": "pit_glass",
         "type" : "construction",
         "description" : "Glass Pit",
         "category" : "DIG",
@@ -48,6 +52,7 @@
         "pre_terrain" : "t_pit",
         "post_terrain" : "t_pit_glass"
     },{
+		"id": "trunk_chop_planks",
         "type" : "construction",
         "description" : "Chop Tree Trunk Into Planks",
         "category" : "FARM_WOOD",
@@ -60,6 +65,7 @@
         "post_terrain" : "t_dirt",
         "post_special" : "done_trunk_plank"
     },{
+		"id": "shelter_improvised",
         "type" : "construction",
         "skill" : "survival",
         "description" : "Build Improvised Shelter",
@@ -77,6 +83,7 @@
         "pre_terrain" : "t_pit_shallow",
         "post_terrain" : "t_improvised_shelter"
     },{
+		"id": "door_curtain",
         "type" : "construction",
         "description" : "Build Door Curtain", "//": "Door frame not required",
         "category" : "CONSTRUCT",
@@ -95,6 +102,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "t_door_curtain_c"
     },{
+		"id": "door_makeshift",
         "type" : "construction",
         "description" : "Build Makeshift Door",
         "category" : "CONSTRUCT",
@@ -111,6 +119,7 @@
         "pre_terrain" : "t_door_frame",
         "post_terrain" : "t_door_makeshift_c"
     },{
+		"id": "door_build_frame",
         "type" : "construction",
         "description" : "Build Door", "//": "Step 1: door frame",
         "category" : "CONSTRUCT",
@@ -126,6 +135,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "t_door_frame"
     },{
+		"id": "door_build_door",
         "type" : "construction",
         "description" : "Build Door", "//": "Step 2: door",
         "category" : "CONSTRUCT",
@@ -141,6 +151,7 @@
         "pre_terrain" : "t_door_frame",
         "post_terrain" : "t_door_c"
     },{
+		"id": "door_add_peephole",
         "type" : "construction",
         "description" : "Build Door", "//": "Step 3: peephole",
         "category" : "CONSTRUCT",
@@ -163,6 +174,7 @@
         "pre_terrain" : "t_door_c",
         "post_terrain" : "t_door_c_peep"
     },{
+		"id": "door_repair_regular",
         "type" : "construction",
         "description" : "Repair Wood Door", "//": "Repair the regular door",
         "category" : "REPAIR",
@@ -178,6 +190,7 @@
         "pre_terrain" : "t_door_b",
         "post_terrain" : "t_door_c"
     },{
+		"id": "door_repair_peephole",
         "type" : "construction",
         "description" : "Repair Wood Door", "//": "Repair the peephole door",
         "category" : "REPAIR",
@@ -193,6 +206,7 @@
         "pre_terrain" : "t_door_b_peep",
         "post_terrain" : "t_door_c_peep"
     },{
+		"id": "door_repair_reinforced",
         "type" : "construction",
         "description" : "Repair Wood Door", "//": "Repair the reinforced door",
         "category" : "REPAIR",
@@ -208,6 +222,7 @@
         "pre_terrain" : "t_rdoor_b",
         "post_terrain" : "t_rdoor_c"
     },{
+		"id": "door_board_up_regular",
         "type" : "construction",
         "description" : "Board Up Wood Door", "//": "regular door",
         "category" : "REINFORCE",
@@ -223,6 +238,7 @@
         "pre_flags" : "BARRICADABLE_DOOR",
         "post_terrain" : "t_door_boarded"
     },{
+		"id": "door_board_up_peephole",
         "type" : "construction",
         "description" : "Board Up Wood Door", "//": "peephole door",
         "category" : "REINFORCE",
@@ -238,6 +254,7 @@
         "pre_terrain" : "t_door_c_peep",
         "post_terrain" : "t_door_boarded_peep"
     },{
+		"id": "door_board_up_damaged",
         "type" : "construction",
         "description" : "Board Up Wood Door", "//": "boarded damaged door",
         "category" : "REINFORCE",
@@ -253,6 +270,7 @@
         "pre_flags" : "BARRICADABLE_DOOR_DAMAGED",
         "post_terrain" : "t_door_boarded_damaged"
     },{
+		"id": "door_board_up_peephole_damaged",
         "type" : "construction",
         "description" : "Board Up Wood Door", "//": "boarded damaged peephole door",
         "category" : "REINFORCE",
@@ -268,6 +286,7 @@
         "pre_terrain" : "t_door_b_peep",
         "post_terrain" : "t_door_boarded_damaged_peep"
     },{
+		"id": "door_reinforce_board_up",
         "type" : "construction",
         "description" : "Board Up Wood Door", "//": "the reinforced doors",
         "category" : "REINFORCE",
@@ -283,6 +302,7 @@
         "pre_flags" : "BARRICADABLE_DOOR_REINFORCED",
         "post_terrain" : "t_rdoor_boarded"
     },{
+		"id": "door_repair_reinforced_Wooden",
         "type" : "construction",
         "description" : "Board Up Wood Door", "//": "damaged reinforced doors",
         "category" : "REINFORCE",
@@ -298,6 +318,7 @@
         "pre_flags" : "BARRICADABLE_DOOR_REINFORCED_DAMAGED",
         "post_terrain" : "t_rdoor_boarded_damaged"
     },{
+		"id": "door_reinforce_wooden",
         "type" : "construction",
         "description" : "Reinforce Wood Door",
         "category" : "REINFORCE",
@@ -313,6 +334,7 @@
         "pre_flags" : "BARRICADABLE_DOOR",
         "post_terrain" : "t_rdoor_c"
     },{
+		"id": "door_metal_frame",
         "type" : "construction",
         "description" : "Build Metal Door", "//": "step 1: door frame",
         "category" : "CONSTRUCT",
@@ -333,6 +355,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "t_mdoor_frame"
     },{
+		"id": "door_metal",
         "type" : "construction",
         "description" : "Build Metal Door", "//": "Step 2: metal door",
         "category" : "CONSTRUCT",
@@ -356,6 +379,7 @@
         "pre_terrain" : "t_mdoor_frame",
         "post_terrain" : "t_door_metal_c"
     },{
+		"id": "door_metal_add_peephole",
         "type" : "construction",
         "description" : "Build Metal Door", "//": "Step 3: peephole",
         "category" : "CONSTRUCT",
@@ -369,6 +393,7 @@
         "pre_terrain" : "t_door_metal_c",
         "post_terrain" : "t_door_metal_c_peep"
     },{
+		"id": "window_build_frame",
         "type" : "construction",
         "description" : "Build Window", "//": "Step 1: window frame",
         "category" : "CONSTRUCT",
@@ -384,6 +409,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "t_window_empty"
     },{
+		"id": "window_build_no_curtains",
         "type" : "construction",
         "description" : "Build Window", "//": "Step 2: window, no curtains",
         "category" : "CONSTRUCT",
@@ -395,6 +421,7 @@
         "pre_terrain" : "t_window_empty",
         "post_terrain" : "t_window_no_curtains"
     },{
+		"id": "window_build_domestic",
         "type" : "construction",
         "description" : "Build Window", "//": "Step 3: window with curtains",
         "category" : "CONSTRUCT",
@@ -413,6 +440,7 @@
         "pre_terrain" : "t_window_no_curtains",
         "post_terrain" : "t_window_domestic"
     },{
+		"id": "window_broken_clean",
         "type" : "construction",
         "description" : "Clean Broken Window",
         "category" : "REPAIR",
@@ -421,6 +449,7 @@
         "pre_terrain" : "t_window_frame",
         "post_terrain" : "t_window_empty"
     },{
+		"id": "window_add_tape",
         "type" : "construction",
         "description" : "Tape Up Window", "//": "Need a recipe for each type of window tapable due to how code works",
         "category" : "REINFORCE",
@@ -432,6 +461,7 @@
         "pre_terrain" : "t_window",
         "post_terrain" : "t_window_taped"
     },{
+		"id": "window_add_tape_domestic",
         "type" : "construction",
         "description" : "Tape Up Window", "//": "Need a recipe for each type of window tapable due to how code works",
         "category" : "REINFORCE",
@@ -443,6 +473,7 @@
         "pre_terrain" : "t_window_domestic",
         "post_terrain" : "t_window_domestic_taped"
     },{
+		"id": "window_add_tape_alarmed",
         "type" : "construction",
         "description" : "Tape Up Window", "//": "Need a recipe for each type of window tapable due to how code works",
         "category" : "REINFORCE",
@@ -454,6 +485,7 @@
         "pre_terrain" : "t_window_alarm",
         "post_terrain" : "t_window_alarm_taped"
     },{
+		"id": "window_add_tape_no_curtains",
         "type" : "construction",
         "description" : "Tape Up Window", "//": "Need a recipe for each type of window tapable due to how code works",
         "category" : "REINFORCE",
@@ -465,6 +497,7 @@
         "pre_terrain" : "t_window_no_curtains",
         "post_terrain" : "t_window_no_curtains_taped"
     },{
+		"id": "window_remove_tape",
         "type" : "construction",
         "description" : "Remove Tape from Window", "//": "Need a recipe for each type of window tapable due to how code works",
         "category" : "REINFORCE",
@@ -476,6 +509,7 @@
         "pre_terrain" : "t_window_taped",
         "post_terrain" : "t_window"
     },{
+		"id": "window_remove_tape_domestic",
         "type" : "construction",
         "description" : "Remove Tape from Window", "//": "Need a recipe for each type of window tapable due to how code works",
         "category" : "REINFORCE",
@@ -487,6 +521,7 @@
         "pre_terrain" : "t_window_domestic_taped",
         "post_terrain" : "t_window_domestic"
     },{
+		"id": "window_remove_tape_alarmed",
         "type" : "construction",
         "description" : "Remove Tape from Window", "//": "Need a recipe for each type of window tapable due to how code works",
         "category" : "REINFORCE",
@@ -498,6 +533,7 @@
         "pre_terrain" : "t_window_alarm_taped",
         "post_terrain" : "t_window_alarm"
     },{
+		"id": "window_remove_tape_no_curtains",
         "type" : "construction",
         "description" : "Remove Tape from Window", "//": "Need a recipe for each type of window tapable due to how code works",
         "category" : "REINFORCE",
@@ -509,6 +545,7 @@
         "pre_terrain" : "t_window_no_curtains_taped",
         "post_terrain" : "t_window_no_curtains"
     },{
+		"id": "window_board_up",
         "type" : "construction",
         "description" : "Board Up Window", "//": "Board up normal window",
         "category" : "REINFORCE",
@@ -524,6 +561,7 @@
         "pre_flags" : "BARRICADABLE_WINDOW",
         "post_terrain" : "t_window_boarded"
     },{
+		"id": "window_board_up_from_curtains",
         "type" : "construction",
         "description" : "Board Up Window", "//": "Board up window with curtains",
         "category" : "REINFORCE",
@@ -540,6 +578,7 @@
         "post_terrain" : "t_window_boarded",
         "post_special" : "done_window_curtains"
     },{
+		"id": "window_noglass_board_from empty",
         "type" : "construction",
         "description" : "Board Up Window", "//": "Board up empty window",
         "category" : "REINFORCE",
@@ -555,6 +594,7 @@
         "pre_terrain" : "t_window_empty",
         "post_terrain" : "t_window_boarded_noglass"
     },{
+		"id": "window_noglass_board_from_frame",
         "type" : "construction",
         "description" : "Board Up Window", "//": "Board up window frame only",
         "category" : "REINFORCE",
@@ -570,6 +610,7 @@
         "pre_terrain" : "t_window_frame",
         "post_terrain" : "t_window_boarded_noglass"
     },{
+		"id": "window_reinforce",
         "type" : "construction",
         "description" : "Reinforce Boarded Window", "//": "For regular windows",
         "category" : "REINFORCE",
@@ -585,6 +626,7 @@
         "pre_terrain" : "t_window_boarded",
         "post_terrain" : "t_window_reinforced"
     },{
+		"id": "window_no_glass_reinforce",
         "type" : "construction",
         "description" : "Reinforce Boarded Window", "//": "For windows with no glass that were barricaded",
         "category" : "REINFORCE",
@@ -600,6 +642,7 @@
         "pre_terrain" : "t_window_boarded_noglass",
         "post_terrain" : "t_window_reinforced_noglass"
     },{
+		"id": "window_reinforce_armor",
         "type" : "construction",
         "description" : "Armor Reinforced Window", "//": "Armo up regular reinforced window",
         "category" : "REINFORCE",
@@ -615,6 +658,7 @@
         "pre_terrain" : "t_window_reinforced",
         "post_terrain" : "t_window_enhanced"
     },{
+		"id": "window_noglass_reinforce_armor",
         "type" : "construction",
         "description" : "Armor Reinforced Window", "//": "When underlying window has no glass",
         "category" : "REINFORCE",
@@ -630,6 +674,7 @@
         "pre_terrain" : "t_window_reinforced_noglass",
         "post_terrain" : "t_window_enhanced_noglass"
     },{
+		"id": "wall_bars_metal",
         "type" : "construction",
         "description" : "Build Metal Bars",
         "category" : "CONSTRUCT",
@@ -654,6 +699,7 @@
         "pre_terrain" : "t_floor",
         "post_terrain" : "t_bars"
     },{
+		"id": "wall_wood_half_from_window",
         "type" : "construction",
         "description" : "Build Wood Wall", "//": "Step 1: half of a wall where a window used to be",
         "category" : "CONSTRUCT",
@@ -669,6 +715,7 @@
         "pre_terrain" : "t_window_empty",
         "post_terrain" : "t_wall_half"
     },{
+		"id": "wall_wood_half",
         "type" : "construction",
         "description" : "Build Wood Wall", "//": "Step 1: half of a wall in an empty space",
         "category" : "CONSTRUCT",
@@ -684,6 +731,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "t_wall_half"
     },{
+		"id": "wall_wood_full",
         "type" : "construction",
         "description" : "Build Wood Wall", "//": "Step 2: complete the half made wall",
         "category" : "CONSTRUCT",
@@ -699,6 +747,7 @@
         "pre_terrain" : "t_wall_half",
         "post_terrain" : "t_wall_wood"
     },{
+		"id": "wall_wood_repair_chipped",
         "type" : "construction",
         "description" : "Repair Wood Wall", "//": "fix a chip",
         "category" : "REPAIR",
@@ -714,6 +763,7 @@
         "pre_terrain" : "t_wall_wood_chipped",
         "post_terrain" : "t_wall_wood"
     },{
+		"id": "wall_wood_repair_broken",
         "type" : "construction",
         "description" : "Repair Wood Wall", "//": "fix the broken to chipped",
         "category" : "REPAIR",
@@ -729,6 +779,7 @@
         "pre_terrain" : "t_wall_wood_broken",
         "post_terrain" : "t_wall_wood_chipped"
     },{
+		"id": "wall_log_half",
         "type" : "construction",
         "description" : "Build Log Wall", "//": "Step 1: half of a log wall",
         "category" : "CONSTRUCT",
@@ -742,6 +793,7 @@
         "pre_terrain" : "t_pit_shallow",
         "post_terrain" : "t_wall_log_half"
     },{
+		"id": "wall_log_full",
         "type" : "construction",
         "description" : "Build Log Wall", "//": "Step 2: Finish the log wall",
         "category" : "CONSTRUCT",
@@ -755,6 +807,7 @@
         "pre_terrain" : "t_wall_log_half",
         "post_terrain" : "t_wall_log"
     },{
+		"id": "wall_repair_log_chipped",
         "type" : "construction",
         "description" : "Repair Log Wall", "//": "Fix the chipped back to normal",
         "category" : "REPAIR",
@@ -770,6 +823,7 @@
         "pre_terrain" : "t_wall_log_chipped",
         "post_terrain" : "t_wall_log"
     },{
+		"id": "wall_repair_log_broken",
         "type" : "construction",
         "description" : "Repair Log Wall", "//": "fix broken back to chipped",
         "category" : "REPAIR",
@@ -786,6 +840,7 @@
         "pre_terrain" : "t_wall_log_broken",
         "post_terrain" : "t_wall_log_chipped"
     },{
+		"id": "wall_sandbag_half",
         "type" : "construction",
         "description" : "Build Sandbag Wall", "//": "Step 1: Build sandbag barricade",
         "category" : "CONSTRUCT",
@@ -799,6 +854,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_sandbag_half"
     },{
+		"id": "wall_sandbag_full",
         "type" : "construction",
         "description" : "Build Sandbag Wall", "//": "Step 2: Finish the sandbag wall",
         "category" : "CONSTRUCT",
@@ -812,6 +868,7 @@
         "pre_terrain" : "f_sandbag_half",
         "post_terrain" : "f_sandbag_wall"
     },{
+		"id": "wall_scrap_half",
         "type" : "construction",
         "description" : "Build Metal Wall", "//": "Step 1: foundation",
         "category" : "CONSTRUCT",
@@ -832,6 +889,7 @@
         "pre_terrain" : "t_pit_shallow",
         "post_terrain" : "t_scrap_wall_halfway"
     },{
+		"id": "wall_scrap_full",
         "type" : "construction",
         "description" : "Build Metal Wall", "//": "Step 2: finish wall",
         "category" : "CONSTRUCT",
@@ -852,6 +910,7 @@
         "pre_terrain" : "t_scrap_wall_halfway",
         "post_terrain" : "t_scrap_wall"
     },{
+		"id": "wall_brick_half",
         "type" : "construction",
         "description" : "Build Brick Wall", "//": "Step 1: start wall",
         "category" : "CONSTRUCT",
@@ -868,7 +927,8 @@
         "pre_terrain" : "t_dirt",
         "post_terrain" : "t_brick_wall_halfway"
     },{
-        "type" : "construction",
+		"id": "wall_brick_full",
+		"type" : "construction",
         "description" : "Build Brick Wall", "//": "Step 2: finish wall",
         "category" : "CONSTRUCT",
         "required_skills" : [ [ "fabrication", 3 ] ],
@@ -884,6 +944,7 @@
         "pre_terrain" : "t_brick_wall_halfway",
         "post_terrain" : "t_brick_wall"
     },{
+		"id": "wall_concrete_start",
         "type" : "construction",
         "description" : "Build Simple Concrete Wall", "//": "Step 1: foundation",
         "category" : "CONSTRUCT",
@@ -900,6 +961,7 @@
         "pre_terrain" : "t_pit_shallow",
         "post_terrain" : "t_sconc_wall_halfway"
     },{
+		"id": "wall_concrete_full",
         "type" : "construction",
         "description" : "Build Simple Concrete Wall", "//": "Step 2: finish wall",
         "category" : "CONSTRUCT",
@@ -916,6 +978,7 @@
         "pre_terrain" : "t_sconc_wall_halfway",
         "post_terrain" : "t_sconc_wall"
     },{
+		"id": "wall_concrete_reinforced_start",
         "type" : "construction",
         "description" : "Build Reinforced Concrete Wall", "//": "Step 1: rebar cage",
         "category" : "CONSTRUCT",
@@ -932,6 +995,7 @@
         "pre_terrain" : "t_pit",
         "post_terrain" : "t_reb_cage"
     },{
+		"id": "wall_concrete_reinforced_half",
         "type" : "construction",
         "description" : "Build Reinforced Concrete Wall", "//": "Step 2: foundation",
         "category" : "CONSTRUCT",
@@ -948,6 +1012,7 @@
         "pre_terrain" : "t_reb_cage",
         "post_terrain" : "t_strconc_wall_halfway"
     },{
+		"id": "wall_concrete_reinforced_full",
         "type" : "construction",
         "description" : "Build Reinforced Concrete Wall", "//": "Step 3: finish wall",
         "category" : "CONSTRUCT",
@@ -964,6 +1029,7 @@
         "pre_terrain" : "t_strconc_wall_halfway",
         "post_terrain" : "t_strconc_wall"
     },{
+		"id": "floor_scrap",
         "type" : "construction",
         "description" : "Build Metal Roof",
         "category" : "CONSTRUCT",
@@ -985,7 +1051,8 @@
         "pre_special" : "check_support",
         "post_terrain" : "t_scrap_floor"
     },{
-            "type" : "construction",
+		"id": "floor_concrete_floor_start",
+        "type" : "construction",
         "description" : "Build Concrete Roof", "//": "Step 1: rebar cage & supports",
         "category" : "CONSTRUCT",
         "required_skills" : [ [ "fabrication", 5 ] ],
@@ -1003,6 +1070,7 @@
         "pre_terrain" : "t_pit_shallow",
         "post_terrain" : "t_ov_smreb_cage"
     },{
+		"id": "floor_concrete",
         "type" : "construction",
         "description" : "Build Concrete Roof", "//": "Step 2: roof & floor",
         "category" : "CONSTRUCT",
@@ -1018,6 +1086,7 @@
         "pre_terrain" : "t_ov_smreb_cage",
         "post_terrain" : "t_thconc_floor"
     },{
+		"id": "floor_reinforced_floor_start",
         "type" : "construction",
         "description" : "Build Reinforced Concrete Roof", "//": "Step 1: rebar cage & supports",
         "category" : "CONSTRUCT",
@@ -1036,6 +1105,7 @@
         "pre_terrain" : "t_pit",
         "post_terrain" : "t_ov_reb_cage"
     },{
+		"id": "floor_concrete_half",
         "type" : "construction",
         "description" : "Build Reinforced Concrete Roof", "//": "Step 2: start roof & floor",
         "category" : "CONSTRUCT",
@@ -1051,6 +1121,7 @@
         "pre_terrain" : "t_ov_reb_cage",
         "post_terrain" : "t_strconc_floor_halfway"
     },{
+		"id": "floor_concrete_full",
         "type" : "construction",
         "description" : "Build Reinforced Concrete Roof", "//": "Step 3: finish roof & floor",
         "category" : "CONSTRUCT",
@@ -1066,6 +1137,7 @@
         "pre_terrain" : "t_strconc_floor_halfway",
         "post_terrain" : "t_strconc_floor"
     },{
+		"id": "palisade_wall",
         "type" : "construction",
         "description" : "Build Palisade Wall",
         "category" : "CONSTRUCT",
@@ -1079,6 +1151,7 @@
         "pre_terrain" : "t_pit",
         "post_terrain" : "t_palisade"
     },{
+		"id": "wall_stone_half",
         "type" : "construction",
         "description" : "Build Stone Wall", "//": "Step 1: half the wall",
         "category" : "CONSTRUCT",
@@ -1094,6 +1167,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "t_rock_wall_half"
     },{
+		"id": "wall_stone_full",
         "type" : "construction",
         "description" : "Build Stone Wall", "//": "Step 2: the full wall",
         "category" : "CONSTRUCT",
@@ -1109,6 +1183,7 @@
         "pre_terrain" : "t_rock_wall_half",
         "post_terrain" : "t_rock_wall"
     },{
+		"id": "floor_wooden",
         "type" : "construction",
         "description" : "Build Roof",
         "category" : "CONSTRUCT",
@@ -1125,6 +1200,7 @@
         "pre_special" : "check_support",
         "post_terrain" : "t_floor"
     },{
+		"id": "floor_primitive",
         "type" : "construction",
         "description" : "Build Log & Sod Roof",
         "category" : "CONSTRUCT",
@@ -1139,6 +1215,7 @@
         "pre_special" : "check_support",
         "post_terrain" : "t_floor_primitive"
     },{
+		"id": "pallisade_gate_pulley",
         "type" : "construction",
         "description" : "Build Rope & Pulley System",
         "category" : "CONSTRUCT",
@@ -1155,6 +1232,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "t_palisade_pulley"
     },{
+		"id": "palisade_gate",
         "type" : "construction",
         "description" : "Build Palisade Gate",
         "category" : "CONSTRUCT",
@@ -1173,6 +1251,7 @@
         "pre_terrain" : "t_pit",
         "post_terrain" : "t_palisade_gate"
     },{
+		"id": "fence_wooden_post",
         "type" : "construction",
         "description" : "Build Fence Posts",
         "category" : "CONSTRUCT",
@@ -1192,6 +1271,7 @@
         "pre_flags" : "DIGGABLE",
         "post_terrain" : "t_fence_post"
     },{
+		"id": "fence_wooden",
         "type" : "construction",
         "description" : "Build Fence",
         "category" : "CONSTRUCT",
@@ -1207,6 +1287,7 @@
         "pre_terrain" : "t_fence_post",
         "post_terrain" : "t_fence"
     },{
+		"id": "fence_wooden_gate",
         "type" : "construction",
         "description" : "Build Fence Gate",
         "category" : "CONSTRUCT",
@@ -1229,6 +1310,7 @@
         "post_terrain" : "t_fencegate_c"
     },
     {
+		"id": "fence_rope",
         "type" : "construction",
         "description" : "Build Rope Fence",
         "category" : "CONSTRUCT",
@@ -1241,6 +1323,7 @@
         "post_terrain" : "t_fence_rope"
     },
     {
+		"id": "fence_wire",
         "type" : "construction",
         "description" : "Build Wire Fence",
         "category" : "CONSTRUCT",
@@ -1253,6 +1336,7 @@
         "post_terrain" : "t_fence_wire"
     },
     {
+		"id": "fence_barbwire",
         "type" : "construction",
         "description" : "Build Barbed Wire Fence",
         "category" : "CONSTRUCT",
@@ -1264,6 +1348,7 @@
         "pre_terrain" : "t_fence_post",
         "post_terrain" : "t_fence_barbed"
     },{
+		"id": "fence_chainlink_posts",
         "type" : "construction",
         "description" : "Build Chainlink Fence", "//": "Step 1: fence posts",
         "category" : "CONSTRUCT",
@@ -1279,6 +1364,7 @@
         "pre_flags" : "DIGGABLE",
         "post_terrain" : "t_chainfence_posts"
     },{
+		"id": "fence_chainlink",
         "type" : "construction",
         "description" : "Build Chainlink Fence", "//": "Step 2: chainlink",
         "category" : "CONSTRUCT",
@@ -1290,6 +1376,7 @@
         "pre_terrain" : "t_chainfence_posts",
         "post_terrain" : "t_chainfence"
     },{
+		"id": "fence_chainlink_gate",
         "type" : "construction",
         "description" : "Build Chainlink Gate",
         "category" : "CONSTRUCT",
@@ -1304,6 +1391,7 @@
         "pre_special" : "check_support",
         "post_terrain" : "t_chaingate_c"
     },{
+		"id": "furn_sealed_crate",
         "type" : "construction",
         "description" : "Seal Crate",
         "category" : "FURN",
@@ -1317,6 +1405,7 @@
         "pre_terrain" : "f_crate_o",
         "post_terrain" : "f_crate_c"
     },{
+		"id": "furn_crate",
         "type" : "construction",
         "description" : "Build Crate",
         "category" : "FURN",
@@ -1334,6 +1423,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_crate_o"
     },{
+		"id": "furn_sealed_coffin",
         "type" : "construction",
         "description" : "Seal Coffin",
         "category" : "FURN",
@@ -1346,6 +1436,7 @@
         "pre_terrain" : "f_coffin_o",
         "post_terrain" : "f_coffin_c"
     },{
+		"id": "furn_coffin",
         "type" : "construction",
         "description" : "Build Coffin",
         "category" : "FURN",
@@ -1364,6 +1455,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_coffin_o"
     },{
+		"id": "furn_bulletin_board",
         "type" : "construction",
         "description" : "Build Bulletin Board",
         "category" : "FURN",
@@ -1384,6 +1476,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_bulletin"
     },{
+		"id": "furn_dresser",
         "type" : "construction",
         "description" : "Build Dresser",
         "category" : "FURN",
@@ -1404,6 +1497,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_dresser"
     },{
+		"id": "furn_bookcase",
         "type" : "construction",
         "description" : "Build Bookcase",
         "category" : "FURN",
@@ -1424,6 +1518,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_bookcase"
     },{
+		"id": "furn_locker",
         "type" : "construction",
         "description" : "Build Locker",
         "category" : "FURN",
@@ -1444,6 +1539,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_locker"
     },{
+		"id": "furn_metal_rack",
         "type" : "construction",
         "description" : "Build Metal Rack",
         "category" : "FURN",
@@ -1464,6 +1560,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_rack"
     },{
+		"id": "furn_coatrack",
         "type": "construction",
         "description": "Build Coat Rack",
         "category": "FURN",
@@ -1474,6 +1571,7 @@
         "pre_special": "check_empty",
         "post_terrain": "f_rack_coat"
     },{
+		"id": "furn_cupboard",
         "type" : "construction",
         "description" : "Build Cupboard",
         "category" : "FURN",
@@ -1489,6 +1587,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_cupboard"
     },{
+		"id": "furn_counter",
         "type" : "construction",
         "description" : "Build Counter",
         "category" : "FURN",
@@ -1504,6 +1603,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_counter"
     },{
+		"id": "furn_table",
         "type" : "construction",
         "description" : "Build Table",
         "category" : "FURN",
@@ -1519,6 +1619,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_table"
     },{
+		"id": "furn_chair",
         "type" : "construction",
         "description" : "Build Chair",
         "category" : "FURN",
@@ -1534,6 +1635,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_chair"
     },{
+		"id": "furn_stool",
         "type": "construction",
         "description": "Build Stool",
         "category": "FURN",
@@ -1544,6 +1646,7 @@
         "pre_special": "check_empty",
         "post_terrain": "f_stool"
     },{
+		"id": "furn_bench",
         "type" : "construction",
         "description" : "Build Bench",
         "category" : "FURN",
@@ -1559,6 +1662,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_bench"
     },{
+		"id": "furn_makeshift_bed",
         "type" : "construction",
         "description" : "Build Makeshift Bed",
         "category" : "FURN",
@@ -1575,6 +1679,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_makeshift_bed"
     },{
+		"id": "furn_straw_bed",
         "type" : "construction",
         "description" : "Build Straw Bed",
         "category" : "FURN",
@@ -1588,7 +1693,8 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_straw_bed"
     },{
-        "type" : "construction",
+		"id": "furn_bed",
+		"type" : "construction",
         "description" : "Build Bed",
         "category" : "FURN",
         "required_skills" : [ [ "fabrication", 4 ], [ "tailor", 4 ] ],
@@ -1609,6 +1715,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_bed"
     },{
+		"id": "furn_armchair",
         "type" : "construction",
         "description" : "Build Armchair",
         "category" : "FURN",
@@ -1630,6 +1737,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_armchair"
     },{
+		"id": "furn_sofa",
         "type" : "construction",
         "description" : "Build Sofa",
         "category" : "FURN",
@@ -1651,6 +1759,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_sofa"
     },{
+		"id": "furn_sign",
         "type" : "construction",
         "description" : "Build Sign",
         "category" : "CONSTRUCT",
@@ -1666,6 +1775,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_sign"
     },{
+		"id": "fireplace_stone",
         "type" : "construction",
         "description" : "Build Stone Fireplace",
         "category" : "FURN",
@@ -1685,6 +1795,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_fireplace"
     },{
+		"id": "wood_stove",
         "type" : "construction",
         "description" : "Build Wood Stove",
         "category" : "FURN",
@@ -1700,6 +1811,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_woodstove"
     },{
+		"id": "fermenting_vat",
         "type" : "construction",
         "description" : "Build Fermenting Vat",
         "category" : "FURN",
@@ -1722,6 +1834,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_fvat_empty"
     },{
+		"id": "wooden_keg",
         "type" : "construction",
         "description" : "Build Wooden Keg",
         "category" : "FURN",
@@ -1745,6 +1858,7 @@
         "post_terrain" : "f_wood_keg"
     },
     {
+	    "id": "standing_tank",
         "type" : "construction",
         "description" : "Build Standing Tank", "//": "a freestanding metal tank, useful for holding liquids",
         "category" : "FURN",
@@ -1764,6 +1878,7 @@
         "post_terrain" : "f_standing_tank"
     },
     {
+	    "id": "place_forge",
         "type" : "construction",
         "description" : "Place Forge",
         "category" : "FURN",
@@ -1776,6 +1891,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_forge"
     },{
+		"id": "place_still",
         "type" : "construction",
         "description" : "Place Still",
         "category" : "FURN",
@@ -1788,6 +1904,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_still"
     },{
+		"id": "water_well",
         "type" : "construction",
         "description" : "Build Water Well",
         "category" : "CONSTRUCT",
@@ -1809,6 +1926,7 @@
         "pre_terrain" : "t_pit",
         "post_terrain" : "t_covered_well"
     },{
+		"id": "water_well_pump",
         "type" : "construction",
         "description" : "Build Water Well",
         "category" : "CONSTRUCT",
@@ -1829,6 +1947,7 @@
         "pre_terrain" : "t_covered_well",
         "post_terrain" : "t_water_pump"
     },{
+		"id": "wall_paint_red",
         "type" : "construction",
         "description" : "Paint Wall Red",
         "category" : "DECORATE",
@@ -1843,6 +1962,7 @@
         "pre_terrain" : "t_wall",
         "post_terrain" : "t_wall_r"
     },{
+		"id": "wall_paint_blue",
         "type" : "construction",
         "description" : "Paint Wall Blue",
         "category" : "DECORATE",
@@ -1857,6 +1977,7 @@
         "pre_terrain" : "t_wall",
         "post_terrain" : "t_wall_b"
     },{
+		"id": "wall_paint_white",
         "type" : "construction",
         "description" : "Paint Wall white",
         "category" : "DECORATE",
@@ -1871,6 +1992,7 @@
         "pre_terrain" : "t_wall",
         "post_terrain" : "t_wall_w"
     },{
+		"id": "wall_paint_green",
         "type" : "construction",
         "description" : "Paint Wall Green",
         "category" : "DECORATE",
@@ -1885,6 +2007,7 @@
         "pre_terrain" : "t_wall",
         "post_terrain" : "t_wall_g"
     },{
+		"id": "wall_paint_purple",
         "type" : "construction",
         "description" : "Paint Wall Purple",
         "category" : "DECORATE",
@@ -1899,6 +2022,7 @@
         "pre_terrain" : "t_wall",
         "post_terrain" : "t_wall_p"
     },{
+		"id": "wall_paint_yellow",
         "type" : "construction",
         "description" : "Paint Wall Yellow",
         "category" : "DECORATE",
@@ -1913,6 +2037,7 @@
         "pre_terrain" : "t_wall",
         "post_terrain" : "t_wall_y"
     },{
+		"id": "wall_paint_remove",
         "type" : "construction",
         "description" : "Take Paint Off Wall", "//": "For vertical walls",
         "category" : "DECORATE",
@@ -1924,6 +2049,7 @@
         "pre_flags" : "CHIP",
         "post_terrain" : "t_wall"
     },{
+		"id": "carpet_remove",
         "type" : "construction",
         "description" : "Remove Carpet",
         "category" : "DECORATE",
@@ -1935,6 +2061,7 @@
         "pre_flags" : "RUG",
         "post_terrain" : "t_floor"
     },{
+		"id": "carpet_red",
         "type" : "construction",
         "description" : "Carpet Floor Red",
         "category" : "DECORATE",
@@ -1950,6 +2077,7 @@
         "pre_terrain" : "t_floor",
         "post_terrain" : "t_carpet_red"
     },{
+		"id": "carpet_purple",
         "type" : "construction",
         "description" : "Carpet Floor Purple",
         "category" : "DECORATE",
@@ -1965,6 +2093,7 @@
         "pre_terrain" : "t_floor",
         "post_terrain" : "t_carpet_purple"
     },{
+		"id": "carpet_yellow",
         "type" : "construction",
         "description" : "Carpet Floor Yellow",
         "category" : "DECORATE",
@@ -1980,6 +2109,7 @@
         "pre_terrain" : "t_floor",
         "post_terrain" : "t_carpet_yellow"
     },{
+		"id": "carpet_green",
         "type" : "construction",
         "description" : "Carpet Floor Green",
         "category" : "DECORATE",
@@ -1995,6 +2125,7 @@
         "pre_terrain" : "t_floor",
         "post_terrain" : "t_carpet_green"
     },{
+		"id": "dig_stairs_down",
         "type" : "construction",
         "description" : "Dig Downstair",
         "category" : "DIG",
@@ -2014,6 +2145,7 @@
         "pre_flags" : "DIGGABLE",
         "post_special" : "done_dig_stair"
     },{
+		"id": "mine_stairs_down",
         "type" : "construction",
         "description" : "Mine Downstair",
         "category" : "DIG",
@@ -2034,6 +2166,7 @@
         "pre_terrain" : "t_rock_floor",
         "post_special" : "done_mine_downstair"
     },{
+		"id": "mine_stairs_up",
         "type" : "construction",
         "description" : "Mine Upstair",
         "category" : "DIG",
@@ -2058,6 +2191,7 @@
         "pre_terrain" : "t_rock",
         "post_special" : "done_mine_upstair"
     },{
+		"id": "start_vehicle",
         "type" : "construction",
         "description" : "Start Vehicle Construction", "//": "Rest of vehicle construction done in the vehicle construction menu",
         "category" : "OTHER",
@@ -2068,6 +2202,7 @@
         "post_special" : "done_vehicle",
         "vehicle_start" : true
     },{
+		"id": "road_barricade",
         "type" : "construction",
         "description" : "Build Road Barricade",
         "category" : "OTHER",
@@ -2083,6 +2218,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_barricade_road"
     },{
+		"id": "build_pontoon",
         "type" : "construction",
         "description" : "Build Pontoon Bridge", "//": "Set up pontoon bridge",
         "category" : "CONSTRUCT",
@@ -2099,6 +2235,7 @@
         "pre_terrain" : "t_water_dp",
         "post_terrain" : "t_pontoon_dp"
     },{
+		"id": "build_dock",
         "type" : "construction",
         "description" : "Build Dock/Shallow Bridge", "//": "Set up dock",
         "category" : "CONSTRUCT",
@@ -2115,6 +2252,7 @@
         "pre_terrain" : "t_water_sh",
         "post_terrain" : "t_dock"
     },{
+		"id": "gather_grass_long",
         "type" : "construction",
         "description" : "Cut Grass",
         "category" : "OTHER",
@@ -2126,6 +2264,7 @@
         [ [ "scythe", -1 ], [ "sickle", -1 ] ]
         ]
     },{
+		"id": "gather_grass_default",
         "type" : "construction",
         "description" : "Remove Grass",
         "category" : "OTHER",
@@ -2135,6 +2274,7 @@
         "pre_terrain" : "t_grass",
         "post_terrain" : "t_dirt"
     },{
+		"id": "gather_grass_long",
         "type" : "construction",
         "description" : "Remove Grass",
         "category" : "OTHER",
@@ -2144,6 +2284,7 @@
         "pre_terrain" : "t_grass_long",
         "post_terrain" : "t_dirt"
     },{
+		"id": "gather_grass_dead",
         "type" : "construction",
         "description" : "Remove Grass",
         "category" : "OTHER",
@@ -2153,6 +2294,7 @@
         "pre_terrain" : "t_grass_dead",
         "post_terrain" : "t_dirt"
     },{
+		"id": "gather_grass_golf",
         "type" : "construction",
         "description" : "Remove Grass",
         "category" : "OTHER",
@@ -2162,6 +2304,7 @@
         "pre_terrain" : "t_grass_golf",
         "post_terrain" : "t_dirt"
     },{
+		"id": "gather_grass_white",
         "type" : "construction",
         "description" : "Remove Grass",
         "category" : "OTHER",
@@ -2171,6 +2314,7 @@
         "pre_terrain" : "t_grass_white",
         "post_terrain" : "t_dirt"
     },{
+		"id": "gather_sand",
         "type" : "construction",
         "description" : "Extract Sand",
         "category" : "OTHER",
@@ -2180,6 +2324,7 @@
         "pre_terrain" : "t_sand",
         "post_special" : "done_extract_sand"
     },{
+		"id": "gather_clay",
         "type" : "construction",
         "description" : "Extract Clay",
         "category" : "OTHER",
@@ -2189,6 +2334,7 @@
         "pre_terrain" : "t_clay",
         "post_special" : "done_extract_clay"
     },{
+		"id": "charcoal_kiln",
         "type" : "construction",
         "description" : "Build Charcoal Kiln",
         "category" : "FURN",
@@ -2209,6 +2355,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_kiln_empty"
     },{
+		"id": "metal_charcoal_kiln",
         "type" : "construction",
         "description" : "Build Metal Charcoal Kiln",
         "category" : "FURN",
@@ -2229,6 +2376,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_kiln_metal_empty"
     },{
+		"id": "smoking_rack",
         "type" : "construction",
         "description" : "Build Smoking Rack",
         "category" : "FURN",
@@ -2248,6 +2396,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_smoking_rack"
     },{
+		"id": "rock_forge",
         "type" : "construction",
         "description" : "Build Rock Forge",
         "category" : "FURN",
@@ -2264,6 +2413,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_forge_rock"
     },{
+		"id": "clay_kiln",
         "type" : "construction",
         "description" : "Build Clay Kiln",
         "category" : "FURN",
@@ -2281,6 +2431,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "f_clay_kiln"
     },{
+		"id": "reinforced_frame",
         "type" : "construction",
         "description" : "Build Reinforced Glass Window", "//": "Step 1 : metal frame",
         "category" : "CONSTRUCT",
@@ -2301,6 +2452,7 @@
         "pre_special" : "check_empty",
         "post_terrain" : "t_m_frame"
     },{
+		"id": "reinforced_glass",
         "type" : "construction",
         "description" : "Build Reinforced Glass Window", "//": "Step 2 : Reinforced Glass",
         "category" : "CONSTRUCT",
@@ -2320,6 +2472,7 @@
         "pre_terrain" : "t_m_frame",
         "post_terrain" : "t_reinforced_glass"
     },{
+		"id":  "reinforce_glass_metal_shutters",
         "type" : "construction",
         "description" : "Build Reinforced Glass Window", "//": "Step 3 : Metal shutters",
         "category" : "CONSTRUCT",
@@ -2339,6 +2492,7 @@
         "pre_terrain" : "t_reinforced_glass",
         "post_terrain" : "t_reinforced_glass_shutter"
     },{
+		"id": "root_cellar",
         "type" : "construction",
         "description" : "Build Root Cellar",
         "category" : "CONSTRUCT",
@@ -2357,6 +2511,7 @@
         "pre_terrain": "t_pit",
         "post_terrain": "t_rootcellar"
     },{
+		"id": "mark_firewood_source",
         "type" : "construction",
         "description" : "Mark firewood source",
         "category" : "OTHER",
@@ -2365,6 +2520,7 @@
         "pre_special" : "check_no_trap",
         "post_special" : "done_mark_firewood"
     },{
+		"id": "butchering_rack",
         "type" : "construction",
         "description" : "Build Butchering Rack",
         "category" : "FURN",
