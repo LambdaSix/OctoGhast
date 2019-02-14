@@ -4,6 +4,8 @@ using OctoGhast.Framework;
 
 namespace OctoGhast.Cataclysm.RecipeLoader {
     public class RecipeType : TemplateType {
+        public override string NamespaceName { get; } = "recipe";
+
         [LoaderInfo("result")]
         public string Result { get; set; }
 

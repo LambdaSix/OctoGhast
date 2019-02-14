@@ -61,10 +61,31 @@ namespace OctoGhast {
         public bool Has(string key) => key != null && Data.ContainsKey(key);
     }
 
+    public interface IQualifiedTypeName {
+        string NamespaceName { get; }
+    }
+
     /// <summary>
     /// Base ancestor for any Template's used with RLObject, provides serialization primitives.
     /// </summary>
-    public class TemplateType {
+    public abstract class TemplateType : IQualifiedTypeName {
+
+        /// <summary>
+        /// The namespace identifier this template should register
+        /// against, for use in fully qualified names.
+        /// </summary>
+        public abstract string NamespaceName { get; }
+
+        /// <summary>
+        /// If this template is known by other namespace identifiers,
+        /// this should return true for those other namespaces.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public virtual bool IsAlias(string name) {
+            return false;
+        }
+
         [LoaderInfo("id")]
         public string Id { get; set; }
 

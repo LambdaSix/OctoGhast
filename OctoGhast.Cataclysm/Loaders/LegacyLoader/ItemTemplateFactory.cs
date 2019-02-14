@@ -217,10 +217,20 @@ namespace OctoGhast.Cataclysm.LegacyLoader {
             return loadOrder;
         }
 
-        protected override IEnumerable<string> LoadableTypes { get; } = new[]
+        public override IEnumerable<string> LoadableTypes { get; } = ItemNamespaces.LoadableTypes;
+    }
+
+    public static class ItemNamespaces {
+        public static IEnumerable<string> LoadableTypes { get; } = new[]
         {
             "ARMOR", "BIONIC_ITEM", "BOOK", "CONTAINER", "ENGINE", "FUEL", "GENERIC", "GUN", "GUNMOD", "MAGAZINE",
             "TOOL", "TOOL_ARMOR", "TOOLMOD", "WHEEL", "AMMO", "BIONIC", "COMESTIBLE"
         };
+    }
+
+    public class TemplateProviderAttribute : Attribute {
+        public TemplateProviderAttribute(params string[] types) {
+            
+        }
     }
 }

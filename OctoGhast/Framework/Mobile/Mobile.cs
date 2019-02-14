@@ -17,8 +17,12 @@ namespace OctoGhast.Framework.Mobile {
         public virtual void Die(Mobile<T> killer) { }
     }
 
-    public class PlayerData : TemplateType { }
-    public class CreatureData : TemplateType { }
+    public class PlayerData : TemplateType {
+        public override string NamespaceName { get; } = "player";
+    }
+    public class CreatureData : TemplateType {
+        public override string NamespaceName { get; } = "creature";
+    }
 
     /// <summary>
     /// A Player character instance.

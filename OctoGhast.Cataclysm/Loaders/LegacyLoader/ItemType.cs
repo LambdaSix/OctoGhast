@@ -11,6 +11,12 @@ using static OctoGhast.Translation.Translation;
 namespace OctoGhast.Cataclysm.LegacyLoader {
     [DebuggerDisplay("{Type}::{GetIdentifier()}")]
     public class ItemType : TemplateType {
+        public override string NamespaceName { get; } = "item";
+
+        public override bool IsAlias(string name) {
+            return ItemNamespaces.LoadableTypes.Contains(name);
+        }
+
         [LoaderInfo("container_data", TypeLoader = typeof(ContainerTypeLoader))]
         public SlotContainer Container { get; set; }
         
