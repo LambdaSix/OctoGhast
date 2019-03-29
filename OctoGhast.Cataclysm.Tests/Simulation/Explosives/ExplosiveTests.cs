@@ -6,6 +6,8 @@ using System.Text;
 using InfiniMap;
 using NUnit.Framework;
 using OctoGhast.Cataclysm.LegacyLoader;
+using OctoGhast.Cataclysm.Loaders.Item.DataContainers;
+using OctoGhast.Cataclysm.Loaders.Item.Types;
 using OctoGhast.Map;
 using OctoGhast.Units;
 

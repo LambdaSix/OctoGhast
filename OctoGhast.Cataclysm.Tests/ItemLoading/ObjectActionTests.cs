@@ -5,6 +5,7 @@ using InfiniMap;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using OctoGhast.Cataclysm.LegacyLoader;
+using OctoGhast.Cataclysm.Loaders.Item;
 using OctoGhast.Framework;
 using OctoGhast.Framework.Items.Actions;
 using OctoGhast.Framework.Mobile;

@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
-using OctoGhast.Cataclysm.RecipeLoader;
+using OctoGhast.Cataclysm.Loaders.Recipe;
 
 namespace OctoGhast.Cataclysm.Tests.RecipeLoading {
     [TestFixture]
@@ -114,5 +116,16 @@ namespace OctoGhast.Cataclysm.Tests.RecipeLoading {
             Assert.That(componentGroup.ElementAt(1).Quantity == 10);
             Assert.That(componentGroup.ElementAt(1).UseMaterialList == true);
         }
+    }
+
+    [TestFixture]
+    public class ConstructionLoaderTests {
+
+    }
+
+    [TestFixture]
+    public class DisassemblyLoaderTests
+    {
+
     }
 }

@@ -73,6 +73,7 @@
     <Compile Include="Extensions\LinqExtensions.cs" />
     <Compile Include="Framework\Data\Loading\BaseTemplateType.cs" />
     <Compile Include="Framework\Data\Loading\EntityNamespacing.cs" />
+    <Compile Include="Framework\Data\Loading\ITemplateTemplate.cs" />
     <Compile Include="Framework\Data\Loading\TemplateFactoryBase.cs" />
     <Compile Include="Framework\Items\Actions\DefaultItemUsage.cs" />
     <Compile Include="Framework\Items\Actions\ItemUse.cs" />

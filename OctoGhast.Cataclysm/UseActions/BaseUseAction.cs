@@ -1,6 +1,7 @@
 ﻿using InfiniMap;
 using OctoGhast.Cataclysm.Items;
 using OctoGhast.Cataclysm.LegacyLoader;
+using OctoGhast.Cataclysm.Loaders.Item;
 using OctoGhast.Entity;
 using OctoGhast.Framework.Items.Actions;
 using OctoGhast.Framework.Mobile;

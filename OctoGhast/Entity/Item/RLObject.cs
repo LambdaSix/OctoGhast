@@ -96,7 +96,7 @@ namespace OctoGhast {
         public string Type { get; set; }
 
         public virtual string GetIdentifier() => Id ?? Abstract;
-        public virtual string GetName(int amount = 1) => "NULL";
+        public virtual string GetName(int amount = 1) => "NULL";        
     }
 
     /// <summary>

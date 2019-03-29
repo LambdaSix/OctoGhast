@@ -3,6 +3,8 @@ using InfiniMap;
 using Newtonsoft.Json.Linq;
 using OctoGhast.Cataclysm.Items;
 using OctoGhast.Cataclysm.LegacyLoader;
+using OctoGhast.Cataclysm.Loaders.Item;
+using OctoGhast.Cataclysm.Loaders.Item.Types;
 using OctoGhast.Entity;
 using OctoGhast.Framework;
 using OctoGhast.Framework.Mobile;

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using InfiniMap;
 using OctoGhast.Cataclysm.LegacyLoader;
-using OctoGhast.Cataclysm.LegacyLoader.Mobiles;
+using OctoGhast.Cataclysm.Loaders.Item;
 using OctoGhast.Entity;
 using OctoGhast.Framework.Mobile;
 using OctoGhast.Units;

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using OctoGhast.Cataclysm.LegacyLoader;
+using OctoGhast.Cataclysm.Loaders.Item;
+using OctoGhast.Cataclysm.Loaders.Item.Types;
 using OctoGhast.Entity;
 using OctoGhast.Framework;
 using OctoGhast.Units;

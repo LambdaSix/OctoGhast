@@ -4,6 +4,8 @@ using System.Data.SqlTypes;
 using System.Numerics;
 using InfiniMap;
 using OctoGhast.Cataclysm.LegacyLoader;
+using OctoGhast.Cataclysm.Loaders.Item.DataContainers;
+using OctoGhast.Cataclysm.Loaders.Item.Types;
 using OctoGhast.Map;
 using OctoGhast.Spatial;
 using OctoGhast.Units;

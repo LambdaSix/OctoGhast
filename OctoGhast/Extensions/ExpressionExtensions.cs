@@ -3464,6 +3464,9 @@ namespace FastExpressionCompiler.LightExpression
                     (m.Name == "op_Implicit" || m.Name == "op_Explicit") &&
                     m.GetParameters()[0].ParameterType == sourceType);
 
+            internal static bool HasInterface(this Type type, Type interfaceType) =>
+                type.GetInterfaces().Contains(interfaceType);
+
             // todo: test what is faster? Copy and inline switch? Switch in method? Ors in method?
             internal static ExpressionType GetArithmeticFromArithmeticAssignOrSelf(ExpressionType arithmetic)
             {
