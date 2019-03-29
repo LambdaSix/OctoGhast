@@ -12,7 +12,7 @@ namespace OctoGhast {
         JObject Serialize();
     }
 
-    [DataObject("ObjectManager", "Manages Serial allocations for RLObject<>")]
+    [ServiceData("ObjectManager", "Manages Serial allocations for RLObject<>")]
     public class ObjectManager : IDataObject {
         public int CurrentSerial { get; private set; }
 

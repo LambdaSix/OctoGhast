@@ -23,11 +23,11 @@ namespace OctoGhast {
     /// <summary>
     /// Flags a class to be added to World::DataObjects.
     /// </summary>
-    public class DataObjectAttribute : Attribute {
+    public class ServiceDataAttribute : Attribute {
         public string Name { get; }
         public string Description { get; }
 
-        public DataObjectAttribute(string name, string description) {
+        public ServiceDataAttribute(string name, string description) {
             Name = name;
             Description = description;
         }
@@ -90,7 +90,7 @@ namespace OctoGhast {
             // TODO: Eventually just use a small DI framework?
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) {
                 foreach (var type in assembly.GetTypes().Where(s => s.IsClass())) {
-                    if (type.GetCustomAttribute<DataObjectAttribute>() is DataObjectAttribute attr) {
+                    if (type.GetCustomAttribute<ServiceDataAttribute>() is ServiceDataAttribute attr) {
                         if (Activator.CreateInstance(type) is IDataObject objInstance) {
                             objInstance.Deserialize(Configuration[type.Name]);
                             Insert(objInstance);
@@ -117,7 +117,7 @@ namespace OctoGhast {
         }
 
         /*
-         * Functions relating to DataObject, storage area for singleton-esque objects required.
+         * Functions relating to ServerDataObject, storage area for singleton-esque objects required.
          * Only allows Class objects, not value types.
          * One value per type.
          */

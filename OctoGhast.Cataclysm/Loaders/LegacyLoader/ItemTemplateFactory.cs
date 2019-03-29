@@ -7,7 +7,7 @@ using OctoGhast.Framework;
 using OctoGhast.Framework.Data.Loading;
 
 namespace OctoGhast.Cataclysm.LegacyLoader {
-    [DataObject("ItemTemplateFactory", "Provide hydration of template data from storage")]
+    [ServiceData("ItemTemplateFactory", "Provide hydration of template data from storage")]
     public class ItemTemplateFactory : TemplateFactoryBase<ItemType, ItemTypeLoader> {
         private Dictionary<string, IEnumerable<ItemType>> _itemGroups;
 
