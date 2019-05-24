@@ -8,7 +8,7 @@ namespace OctoGhast.Framework {
     [ItemUse("NULL")]
     public class DefaultItemUse : ItemUse<TemplateType> {
         /// <inheritdoc />
-        public override int Use(BaseCreature player, RLObject<TemplateType> item, bool turnTick, WorldSpace position) {
+        public override int Use(UseActionData actionData, BaseCreature player, RLObject<TemplateType> item, bool turnTick, WorldSpace position) {
             var msg = _($"You can't do anything interesting with your {item.GetName()}");
             player.SendMessage(msg);
             return 0;

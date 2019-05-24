@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using OctoGhast.Cataclysm.Loaders.Construction;
+using OctoGhast.Cataclysm.Loaders.Construction.TypeLoaders;
 
 namespace OctoGhast.Cataclysm.Tests.ConstructionLoader {
     [TestFixture]

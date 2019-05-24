@@ -7,6 +7,7 @@ using OctoGhast.Cataclysm.Loaders.Item;
 using OctoGhast.Cataclysm.Loaders.Item.Types;
 using OctoGhast.Entity;
 using OctoGhast.Framework;
+using OctoGhast.Framework.Items.Actions;
 using OctoGhast.Framework.Mobile;
 using static OctoGhast.Translation.Translation;
 
@@ -86,7 +87,7 @@ namespace OctoGhast.Cataclysm.UseActions {
         public string MenuText { get; set; }
     }
 
-    public class TransformUseAction : BaseUseAction {
+    public class TransformUseAction : ItemUseAction {
         public TransformUseActionData Data { get; set; }
 
         /// <inheritdoc />
@@ -94,7 +95,7 @@ namespace OctoGhast.Cataclysm.UseActions {
 
         
         /// <inheritdoc />
-        public override int Invoke(BaseCreature player, BaseItem item, bool turnTick, WorldSpace position) {
+        public override int Invoke(UseActionData actionData, BaseCreature player, BaseItem item, bool turnTick, WorldSpace position) {
 
             throw new NotImplementedException();
             /*

@@ -9,6 +9,7 @@ using OctoGhast.Cataclysm.Loaders.Item.Slots;
 using OctoGhast.Cataclysm.Loaders.Item.Types;
 using OctoGhast.Entity;
 using OctoGhast.Framework;
+using OctoGhast.Framework.Items.Actions;
 using OctoGhast.Units;
 
 namespace OctoGhast.Cataclysm.Loaders.Item {
@@ -282,35 +283,15 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
 
         public bool HasUse() => UseActions.Any();
 
-        public bool CanUse(string useName) => GetUse(useName) != null;
+        public bool CanUse(string useName) => GetUseData(useName) != null;
 
-        public UseActionData GetUse(string useName) {
-            return UseActions.SingleOrDefault(s => s.Name == useName);
+        public UseAction GetUse(string useName) {
+            var data = GetUseData(useName);
+            return new UseAction(data);
         }
-    }
 
-    public class UseActionData {
-        public string Name { get; set; }
-        
-        /// <summary>
-        /// Defines the type of the iuse.
-        /// Native is a built-in IUSE handler.
-        /// Otherwise it's the UseAction handler.
-        /// </summary>
-        public string Type { get; set; }
-        public JObject Data { get; set; }
-
-        public UseActionData(JToken data) {
-            if (data.Type == JTokenType.String) {
-                Name = data.Value<string>();
-                Type = "native";
-            }
-            else if (data.Type == JTokenType.Object) {
-                data = data as JObject;
-                Type = data.HasValues ? data["type"].Value<string>() : "NULL";
-                Name = Type;
-                Data = (JObject) data;
-            }
+        public UseActionData GetUseData(string useName) {
+            return UseActions.SingleOrDefault(s => s.Name == useName);
         }
     }
 }

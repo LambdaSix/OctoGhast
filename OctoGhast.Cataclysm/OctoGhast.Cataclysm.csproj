@@ -106,7 +106,7 @@
     <Compile Include="Loaders\Item\Types\SnippetCategory.cs" />
     <Compile Include="Loaders\Requirement\RequirementType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UseActions\BaseUseAction.cs" />
+    <Compile Include="UseActions\ItemUseAction.cs" />
     <Compile Include="UseActions\TransformUseAction.cs" />
   </ItemGroup>
   <ItemGroup>

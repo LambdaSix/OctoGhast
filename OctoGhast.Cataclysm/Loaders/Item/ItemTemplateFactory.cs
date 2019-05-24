@@ -7,6 +7,7 @@ using OctoGhast.Cataclysm.Loaders.Item.DataContainers;
 using OctoGhast.Cataclysm.Loaders.Item.Types;
 using OctoGhast.Framework;
 using OctoGhast.Framework.Data.Loading;
+using OctoGhast.Framework.Items.Actions;
 
 namespace OctoGhast.Cataclysm.Loaders.Item {
     [ServiceData("ItemTemplateFactory", "Provide hydration of template data from storage")]

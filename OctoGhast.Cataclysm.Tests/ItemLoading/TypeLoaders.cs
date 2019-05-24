@@ -2,7 +2,6 @@
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
-using OctoGhast.Cataclysm.LegacyLoader;
 using OctoGhast.Cataclysm.Loaders.Item;
 using OctoGhast.Cataclysm.Loaders.Item.DataContainers;
 using OctoGhast.Cataclysm.Loaders.Item.Enums;
@@ -21,9 +20,7 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
                     ? new GunModifierData(token[1].Value<string>(), token[2].Value<int>(), token[3].Value<IEnumerable<string>>())
                     : new GunModifierData(token[1].Value<string>(), token[2].Value<int>(), Enumerable.Empty<string>()));
             JsonDataLoader.RegisterConverter(typeof(GunType), (token, t) => new GunType(token.Value<string>()));
-
             JsonDataLoader.RegisterTypeLoader(typeof(GunModLocation), (token, t, v, _) => new GunModLocation(token.GetValue("location").Value<string>()));
-
         }
 
         [Test]

@@ -51,13 +51,13 @@ namespace OctoGhast.Framework {
 
         public static void RegisterTypeLoader(Type typeDef, Func<JObject, string, object, Type[], object> func) {
             if (_conversionMap.ContainsKey(typeDef))
-                throw new ArgumentException($"Type Loader already contains loader for {typeDef.Name}");
+                return;
             _conversionMap.Add(typeDef, func);
         }
 
         public static void RegisterConverter(Type typeDef, Func<JToken, Type, object> func) {
             if (_castingMap.ContainsKey(typeDef))
-                throw new ArgumentException($"Converter already contains conversion for {typeof(JToken)} -> {typeDef}");
+                return;
             _castingMap.Add(typeDef, func);
         }
 
@@ -516,7 +516,7 @@ namespace OctoGhast.Framework {
             Func<JToken, T> mapFunc = default;
 
             if (_castingMap.TryGetValue(OpenType<T>(), out var func)) {
-                mapFunc = (token) => (T) func(token.Value<string>(), typeof(T));
+                mapFunc = (token) => (T) func(token, typeof(T));
             }
             return ReadEnumerable(jObj, name, existingValue, mapFunc);
         }
@@ -545,6 +545,13 @@ namespace OctoGhast.Framework {
                         ? arr.Select(mapFunc)
                         : arr.Values<T>().ToList().AsEnumerable();
                 }
+
+                if (value.Type != JTokenType.Array && value.Type == JTokenType.Object) {
+                    return mapFunc != null
+                        ? new[] {mapFunc(value as JObject)}
+                        : throw new NotImplementedException($"Unable to deserialize type '{typeof(T)}");
+                }
+
 
                 if (value.Type != JTokenType.Array && value.Type != JTokenType.Object) {
                     return mapFunc != null
