@@ -7,36 +7,37 @@ using MiscUtil;
 using Newtonsoft.Json.Linq;
 using OctoGhast.Entity;
 using OctoGhast.Extensions.FastExpressionCompiler;
+using OctoGhast.Framework.Data.Loading;
 using OctoGhast.Units;
 
 namespace OctoGhast.Framework {
     public interface ITypeLoader {
-        object Load(JObject data, object existing);
+        object Load(JObject data, object existing, LoaderInfoAttribute attrInfo);
     }
 
     public static class JsonDataLoader {
-        private static Dictionary<Type, Func<JObject, string, object, Type[], object>> _conversionMap =
-            new Dictionary<Type, Func<JObject, string, object, Type[], object>>()
+        private static Dictionary<Type, Func<JObject, string, object, Type[], LoaderInfoAttribute, object>> _conversionMap =
+            new Dictionary<Type, Func<JObject, string, object, Type[], LoaderInfoAttribute, object>>()
             {
-                [typeof(int)] = (jObj, name, val, _) => ReadProperty(jObj, name, (int) val),
-                [typeof(long)] = (jObj, name, val, _) => ReadProperty(jObj, name, (long) val),
-                [typeof(double)] = (jObj, name, val, _) => ReadProperty(jObj, name, (double) val),
-                [typeof(float)] = (jObj, name, val, _) => ReadProperty(jObj, name, (float) val),
-                [typeof(bool)] = (jObj, name, val, _) => ReadProperty(jObj, name, (bool) val),
-                [typeof(string)] = (jObj, name, val, _) => ReadProperty(jObj, name),
-                [typeof(Volume)] = (jObj, name, val, _) => ReadProperty<Volume>(jObj, name, val as Volume),
-                [typeof(Mass)] = (jObj, name, val, _) => ReadProperty<Mass>(jObj, name, val as Mass),
-                [typeof(Energy)] = (jObj, name, val, _) => ReadProperty<Energy>(jObj, name, val as Energy),
-                [typeof(SoundLevel)] = (jObj, name, val, _) => ReadProperty<SoundLevel>(jObj, name, val as SoundLevel),
-                [typeof(TimeDuration)] = (jObj, name, val, _) => ReadProperty<TimeDuration>(jObj, name, val as TimeDuration),
-                [typeof(Nullable<>)] = (jObj, name, val, types) => ReadNullable(jObj, name, val, typeof(Nullable<>), types),
+                [typeof(int)] = (jObj, name, val, _, attr) => ReadProperty(jObj, name, (int) val),
+                [typeof(long)] = (jObj, name, val, _, attr) => ReadProperty(jObj, name, (long) val),
+                [typeof(double)] = (jObj, name, val, _, attr) => ReadProperty(jObj, name, (double) val),
+                [typeof(float)] = (jObj, name, val, _, attr) => ReadProperty(jObj, name, (float) val),
+                [typeof(bool)] = (jObj, name, val, _, attr) => ReadProperty(jObj, name, (bool) val),
+                [typeof(string)] = (jObj, name, val, _, attr) => ReadProperty(jObj, name),
+                [typeof(Volume)] = (jObj, name, val, _, attr) => ReadProperty<Volume>(jObj, name, val as Volume),
+                [typeof(Mass)] = (jObj, name, val, _, attr) => ReadProperty<Mass>(jObj, name, val as Mass),
+                [typeof(Energy)] = (jObj, name, val, _, attr) => ReadProperty<Energy>(jObj, name, val as Energy),
+                [typeof(SoundLevel)] = (jObj, name, val, _, attr) => ReadProperty<SoundLevel>(jObj, name, val as SoundLevel),
+                [typeof(TimeDuration)] = (jObj, name, val, _, attr) => ReadProperty<TimeDuration>(jObj, name, val as TimeDuration),
+                [typeof(Nullable<>)] = (jObj, name, val, types, attr) => ReadNullable(jObj, name, val, typeof(Nullable<>), types),
                 // Just handle all kinds of IEnumerable with an open type.
-                [typeof(IEnumerable<>)] = (jObj, name, val, types) => ReadEnumerable(jObj, name, val, typeof(IEnumerable<>), types),
-                [typeof(Dictionary<object, IEnumerable<object>>)] = (jObj, name, val, types) => ReadNestedDictionary(jObj, name, val, typeof(Dictionary<,>), types),
+                [typeof(IEnumerable<>)] = (jObj, name, val, types, attr) => ReadEnumerable(jObj, name, val, typeof(IEnumerable<>), types),
+                [typeof(Dictionary<object, IEnumerable<object>>)] = (jObj, name, val, types, attr) => ReadNestedDictionary(jObj, name, val, typeof(Dictionary<,>), types),
                 // Defined as an open type to handle most 'pure' dictionarys, string:string, string:int, etc.
-                [typeof(Dictionary<,>)] = (jObj, name, val, types) => ReadDictionary(jObj, name, val, typeof(Dictionary<,>), types),
+                [typeof(Dictionary<,>)] = (jObj, name, val, types, attr) => ReadDictionary(jObj, name, val, typeof(Dictionary<,>), types),
                 // Special case, string converts to a given StringID<>, so just make it open to not need a constructed type for every variant.
-                [typeof(StringID<>)] = (jObj, name, val, types) => ReadProperty(jObj, name, val, typeof(StringID<>), types)
+                [typeof(StringID<>)] = (jObj, name, val, types, attr) => ReadProperty(jObj, name, val, typeof(StringID<>), types)
             };
 
         private static Dictionary<Type,Func<JToken, Type, object>> _castingMap = new Dictionary<Type, Func<JToken, Type, object>>()
@@ -49,7 +50,7 @@ namespace OctoGhast.Framework {
             [typeof(TimeDuration)] = ConvertTimeDuration,
         };
 
-        public static void RegisterTypeLoader(Type typeDef, Func<JObject, string, object, Type[], object> func) {
+        public static void RegisterTypeLoader(Type typeDef, Func<JObject, string, object, Type[], LoaderInfoAttribute, object> func) {
             if (_conversionMap.ContainsKey(typeDef))
                 return;
             _conversionMap.Add(typeDef, func);
@@ -145,8 +146,8 @@ namespace OctoGhast.Framework {
             return jObject.TryGetValue(name, out var value) && (value.Type == JTokenType.Object || value.Type == JTokenType.Array);
         }
 
-        public static T ReadProperty<T>(this JObject jObject, string name, T val) {
-            (Func<JObject, string, object, Type[], object> func, Type type, Type[] arguments) args = (null, null, null);
+        public static T ReadProperty<T>(this JObject jObject, string name, T val, LoaderInfoAttribute attrInfo) {
+            (Func<JObject, string, object, Type[], LoaderInfoAttribute, object> func, Type type, Type[] arguments) args = (null, null, null);
 
             var tType = typeof(T);
             var isGeneric = tType.IsGenericType;
@@ -187,7 +188,7 @@ namespace OctoGhast.Framework {
             if (args == (null, null, null))
                 throw new ArgumentException($"Unable to deduce built-in loader for type: '{tType}");
 
-            var result = args.func(jObject, name, val, args.arguments);
+            var result = args.func(jObject, name, val, args.arguments, attrInfo);
 
             if (result == null)
                 return default;
@@ -412,7 +413,7 @@ namespace OctoGhast.Framework {
             return workingSet;
         }
 
-        private static bool ShouldLoad(JObject jObj, string propertyName) {
+        private static bool ShouldLoad(JObject jObj, string propertyName, LoaderInfoAttribute attrInfo) {
             if (jObj.ContainsKey(propertyName))
                 return true;
 
@@ -479,14 +480,13 @@ namespace OctoGhast.Framework {
 
             if (attr.TypeLoader != null) {
                 var loader = Activator.CreateInstance(attr.TypeLoader) as ITypeLoader;
-                return (T) loader?.Load(jObject, value);
-
+                return (T) loader?.Load(jObject, value, attr);
             }
 
-            if (!ShouldLoad(jObject, attr.FieldName))
+            if (!ShouldLoad(jObject, attr.FieldName, attr))
                 return value;
 
-            return ReadProperty(jObject, attr.FieldName, value);
+            return ReadProperty(jObject, attr.FieldName, value, attr);
         }
 
         public static string ReadProperty(this JObject jObject, string name) {
@@ -498,8 +498,17 @@ namespace OctoGhast.Framework {
             return default;
         }
 
-        public static object ReadEnumerable<T>(this JObject jObject, string name, T existingValue, Type realType, Type[] types) {
+        public static object ReadEnumerable<T>(this JObject jObject, string name, T existingValue, Type realType, Type[] types, LoaderInfoAttribute attrInfo) {
             var paramTypes = new[] {typeof(JObject), typeof(string), typeof(IEnumerable<>)};
+
+            if (attrInfo.ExpectedCount > 0) {
+                if (jObject.TryGetValue(name, out var value)) {
+                    if (value is JArray arr) {
+                        if (arr.Count > attrInfo.ExpectedCount)
+                            throw new LoaderException($"Expected {attrInfo.ExpectedCount} elements but found {arr.Count} elements");
+                    }
+                }
+            }
 
             if (realType.IsGenericTypeDefinition && types.Any()) {
                 // Construct a version of ReadEnumerable<T> : IEnumerable<T> where T == type
