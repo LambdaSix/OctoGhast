@@ -43,16 +43,12 @@ namespace CataSharp.Client.ViewModel
             ////}
 
             SimpleIoc.Default.Register<MainViewModel>();
+            SimpleIoc.Default.Register<NewCharacterViewModel>();
         }
 
-        public MainViewModel Main
-        {
-            get
-            {
-                return ServiceLocator.Current.GetInstance<MainViewModel>();
-            }
-        }
-        
+        public MainViewModel Main => ServiceLocator.Current.GetInstance<MainViewModel>();
+        public NewCharacterViewModel NewCharacter => ServiceLocator.Current.GetInstance<NewCharacterViewModel>();
+
         public static void Cleanup()
         {
             // TODO Clear the ViewModels

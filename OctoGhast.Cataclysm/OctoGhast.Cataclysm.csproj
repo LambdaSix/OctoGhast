@@ -57,13 +57,17 @@
     <Compile Include="Loaders\Construction\ConstructionType.cs" />
     <Compile Include="Loaders\Construction\TypeLoaders\SkillRequirementTypeLoader.cs" />
     <Compile Include="Loaders\Item\Enums\AddictionType.cs" />
-    <Compile Include="Loaders\Creature\CreatureType.cs" />
+    <Compile Include="Loaders\Item\CreatureType.cs" />
     <Compile Include="Loaders\Item\ItemTemplateFactory.cs" />
+    <Compile Include="Loaders\WorldOptions\WorldOptionsService.cs" />
     <Compile Include="Mechanics\Butchery\ButcherStages.cs" />
     <Compile Include="Mechanics\Butchery\ButcherType.cs" />
     <Compile Include="Loaders\Terrain\Harvestable\HarvestableData.cs" />
     <Compile Include="Loaders\Terrain\Harvestable\HarvestEntry.cs" />
     <Compile Include="Loaders\ButcherEntry\ButcheryData.cs" />
+    <Compile Include="Loaders\Terrain\Harvestable\SeasonHarvestData.cs" />
+    <Compile Include="Loaders\Terrain\Harvestable\SeasonHarvestDataTypeLoader.cs" />
+    <Compile Include="Loaders\Terrain\TerrainType.cs" />
     <Compile Include="Loaders\Recipe\RecipeComponent.cs" />
     <Compile Include="Loaders\Recipe\RecipeQuality.cs" />
     <Compile Include="Loaders\Recipe\RecipeTool.cs" />
@@ -1272,6 +1276,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Entities\" />
+    <Folder Include="Loaders\Creature\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

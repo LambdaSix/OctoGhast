@@ -1,0 +1,88 @@
+{
+    "ButcheryData": {
+        "steps": [
+            // Skinning 
+            // (timeFactor)seconds * (Volume / 250)
+            { 
+                "name": "Skinning", 
+                "description": "Skin this carcass, yielding usable hides or fur",
+                // What 'type' group this will yield from a HarvestEntry
+                "harvestType": {
+                    "types": [ "skin" ]
+                },
+                // Difficulty divisor
+                "timeFactor": 10, 
+                // What attribute (Mass|Volume) time taken is based on
+                "timeScalar": "volume", 
+                // Which of (Mass|Volume) to use for the harvest output scaling
+                "harvestScalar": "volume",
+                // How much to scale the scalar to the output
+                "harvestFactor": 1,
+                // Quality and optional minimum required
+                "qualityRequirements": [
+                    // Require a tool with Butchering quality of at least 10
+                    [ "butchering", 10 ]
+                ],
+                "prerequisites": [
+                    // For creatures (< 50KG & < 10L) && (> 1g & > 1L) there are no requirements.
+                    {
+                        "MinimumMass": "1g",
+                        "MaximumMass": "50KG",
+                        "MinimumVolume": "1L",
+                        "MaximumVolume": "10L",
+                        "Requirements": [ ]
+                    },
+                    // For creatures > 50KG & > 100L, require rope and a flat surface
+                    {
+                        "MinimumMass": "50KG",
+                        "MinimumVolume": "100L",
+                        "Requirements" : [
+                            "HOIST", "FLAT_SURFACE"
+                        ]
+                    }
+                ],
+                // Apply these flags while this step is running
+                "applyFlagsDuring": [ "SKINNING" ],
+                // After completing this, apply this flag (removes any in-progress flags)
+                "applyFlags": [ "SKINNED" ],
+                // If any of these flags are present, this action is unavailable
+                "blockedFlags": [ "QUARTERED" ] 
+            },
+            {
+                "name": "Field Dress",
+                "description": "Field dress the carcass, reducing weight by removing internal organs",
+                
+            },
+            {
+                "name": "Quartering",
+                "description": "Quarter this carcass for easier transport, will ruin any hides or fur if still present",
+                // No HarvestType for this
+                "timeFactor": 10,
+                "timeScalar": "volume",
+                "qualityRequirements": [
+                    // Quartering implies cutting through thicker bones
+                    [ "SAW", 2 ]
+                ],
+                "applyFlagsDuring": [ "QUARTERING" ],
+                "applyFlags": [ "QUARTERED" ],
+            },
+            {
+                "name": "Quick Butchery",
+                "harvestType": {
+                    "types": [ "flesh", "offal" ],
+                    // If 'QUARTERED'
+                    "flags": [
+                        { "flag": "QUARTERED", "removeTypes": [ "offal" ] },
+                        { "flag": "SKINNED", "removeTypes": [ "skin" ] }
+                    ],
+                },
+                "timeFactor": 30,
+                "timeScalar": "mass":
+            }
+        ]
+    }
+}
+
+/*
+    6 hours to skin a moose with 0 skill, ~1.5hours at 10 skill
+*/

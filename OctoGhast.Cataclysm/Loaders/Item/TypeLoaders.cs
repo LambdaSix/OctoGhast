@@ -173,7 +173,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as ItemType);
         }
     }
@@ -203,7 +203,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as SlotContainer);
         }
     }
@@ -227,7 +227,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as SlotTool);
         }
     }
@@ -260,7 +260,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as DamageInfo);
         }
     }
@@ -292,7 +292,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as SlotComestible);
         }
     }
@@ -310,7 +310,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as SlotBrewable);
         }
     }
@@ -336,7 +336,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as SlotArmor);
         }
     }
@@ -359,7 +359,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as SlotBook);
         }
     }
@@ -379,7 +379,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as SlotToolMod);
         }
     }
@@ -397,7 +397,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as SlotEngine);
         }
     }
@@ -415,7 +415,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as SlotWheel);
         }
     }
@@ -432,7 +432,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as SlotFuel);
         }
     }
@@ -474,7 +474,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as SlotGun);
         }
     }
@@ -520,7 +520,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as SlotGunMod);
         }
     }
@@ -541,7 +541,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as ExplosionData);
         }
     }
@@ -563,7 +563,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as ShrapnelData);
         }
     }
@@ -586,7 +586,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as SlotMagazine);
         }
     }
@@ -605,7 +605,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as SlotBionic);
         }
     }
@@ -637,7 +637,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as SlotAmmo);
         }
     }
@@ -659,7 +659,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as SlotSeed);
         }
     }

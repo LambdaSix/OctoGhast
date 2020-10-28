@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using OctoGhast.Cataclysm.Items;
 using OctoGhast.Cataclysm.Loaders.Item;
 using OctoGhast.Entity;
 using OctoGhast.Framework;
@@ -8,6 +9,17 @@ using OctoGhast.Framework.Mobile;
 using OctoGhast.Units;
 
 namespace OctoGhast.Cataclysm.Loaders.Creature {
+    public static class MobileExtensions {
+        public static Container GetInventory(this BaseCreature self) {
+            return self.RuntimeData.Get<Container>("inventory", null);
+        }
+
+        public static Container GetInventory<T>(this Mobile<T> self) where T : CreatureType
+        {
+            return self.RuntimeData.Get<Container>("inventory", null);
+        }
+    }
+
     public class MobileAttackEffectData {
         [LoaderInfo("id")]
         public string Id { get; set; }

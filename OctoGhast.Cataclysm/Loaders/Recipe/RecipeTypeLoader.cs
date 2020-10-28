@@ -71,7 +71,7 @@ namespace OctoGhast.Cataclysm.Loaders.Recipe {
         }
 
         /// <inheritdoc />
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as RecipeType);
         }
     }

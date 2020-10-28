@@ -20,7 +20,7 @@ namespace OctoGhast.Cataclysm.Tests.ItemLoading {
                     ? new GunModifierData(token[1].Value<string>(), token[2].Value<int>(), token[3].Value<IEnumerable<string>>())
                     : new GunModifierData(token[1].Value<string>(), token[2].Value<int>(), Enumerable.Empty<string>()));
             JsonDataLoader.RegisterConverter(typeof(GunType), (token, t) => new GunType(token.Value<string>()));
-            JsonDataLoader.RegisterTypeLoader(typeof(GunModLocation), (token, t, v, _) => new GunModLocation(token.GetValue("location").Value<string>()));
+            JsonDataLoader.RegisterTypeLoader(typeof(GunModLocation), (token, t, v, _, attr) => new GunModLocation(token.GetValue("location").Value<string>()));
         }
 
         [Test]

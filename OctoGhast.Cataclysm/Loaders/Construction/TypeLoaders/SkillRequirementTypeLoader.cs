@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using OctoGhast.Cataclysm.Loaders.Item;
+using OctoGhast.Framework;
 
 namespace OctoGhast.Cataclysm.Loaders.Construction.TypeLoaders {
     public class SkillRequirementTypeLoader : TypeLoader, ITypeLoader<IEnumerable<SkillRequirement>> {
@@ -14,7 +15,7 @@ namespace OctoGhast.Cataclysm.Loaders.Construction.TypeLoaders {
             }
         }
 
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as IEnumerable<SkillRequirement>);
         }
     }

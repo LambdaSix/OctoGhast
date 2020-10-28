@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,6 +33,7 @@ namespace OctoGhast.Server
 
             while (!_closing)
             {
+                CurrentTime = DateTime.UtcNow;
                 // Process game loop
                 World.Tick(worldTick);
 
@@ -54,7 +56,21 @@ namespace OctoGhast.Server
                     }
                 }
 
-                CurrentTime = DateTime.UtcNow;
+                Console.SetCursorPosition(0, 0);
+                
+                Console.WriteLine($"World time: Day {Calendar.Now.DayOfWeek()} - Season: {Calendar.Now.CurrentRealSeason.Name} - Year {2015 + Calendar.Now.TotalYears} - {Calendar.Now.ToTimeString(TimeFormat.Military)}");
+                Console.WriteLine($"\t Moon phase: {Calendar.GetMoonPhase(Calendar.Now)}                           ");
+                Console.WriteLine($"\t Game Turn: {Calendar.Now.Turns}");
+                Console.WriteLine($"\t Cycle Time: {(DateTime.Now - CurrentTime).Milliseconds}                             ");
+                Console.WriteLine("--------------------------------------------------------------");
+                Console.WriteLine($"DataObject Count: {World.DataObjects.Count}");
+                foreach (var dataObject in World.DataObjects) {
+                    Console.WriteLine($"------ {dataObject.Value.GetType().FullName} ------");
+                    var attrib = dataObject.Value.GetType().GetCustomAttribute<ServiceDataAttribute>();
+                    Console.WriteLine($"\t{attrib.Name} -- {attrib.Description}");
+                }
+
+                worldTick++;
             }
 
         }

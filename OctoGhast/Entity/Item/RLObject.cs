@@ -30,7 +30,10 @@ namespace OctoGhast {
 
         /// <inheritdoc />
         public JObject Serialize() {
-            throw new NotImplementedException();
+            return new JObject()
+            {
+                new JProperty("CurrentSerial", CurrentSerial),
+            };
         }
     }
 

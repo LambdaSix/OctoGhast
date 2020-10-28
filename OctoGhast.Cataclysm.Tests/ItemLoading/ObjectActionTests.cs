@@ -10,6 +10,7 @@ using OctoGhast.Cataclysm.UseActions;
 using OctoGhast.Framework;
 using OctoGhast.Framework.Items.Actions;
 using OctoGhast.Framework.Mobile;
+using OctoGhast.Map;
 
 namespace OctoGhast.Cataclysm.Tests.ItemLoading {
     [TestFixture]

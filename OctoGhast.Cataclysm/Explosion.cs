@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Numerics;
 using InfiniMap;
-using OctoGhast.Cataclysm.LegacyLoader;
 using OctoGhast.Cataclysm.Loaders.Item.DataContainers;
 using OctoGhast.Cataclysm.Loaders.Item.Types;
-using OctoGhast.Map;
 using OctoGhast.Spatial;
 using OctoGhast.Units;
 using static OctoGhast.Translation.Translation;
@@ -90,9 +87,35 @@ namespace OctoGhast.Cataclysm {
         public static bool operator !=(FragmentCloud left, FragmentCloud right) {
             return !(left == right);
         }
+
+        protected bool Equals(FragmentCloud other)
+        {
+            return Velocity.Equals(other.Velocity) && Density.Equals(other.Density);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((FragmentCloud)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (Velocity.GetHashCode() * 397) ^ Density.GetHashCode();
+            }
+        }
     }
 
-    public class Explosion {
+    public interface IExplosion {
+        void DoExplosion();
+        Map2D<FragmentCloud> CalculateFragments(WorldSpace2D origin);
+    }
+
+    public class Explosion : IExplosion {
         private readonly ExplosiveData _data;
 
         public Explosion(ExplosiveData data) {

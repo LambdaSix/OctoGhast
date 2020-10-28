@@ -35,18 +35,12 @@
             <RowDefinition Height="40px"></RowDefinition>
         </Grid.RowDefinitions>
 
+        <StackPanel ZIndex="100" Grid.Row="0" Grid.RowSpan="5" Name="ControlHost"/>
+
         <TextBlock Foreground="LightBlue" Background="Black" Text="{Binding CataLogo, Mode=OneWay}" FontFamily="Consolas" Grid.Row="0" HorizontalAlignment="Center"/>
         <TextBlock Foreground="DarkBlue" Background="Black" Text="{Binding CataLogo2, Mode=OneWay}" FontFamily="Consolas" Grid.Row="1" HorizontalAlignment="Center"/>
         <TextBlock Foreground="DarkBlue" Background="Black" Text="{Binding CataLogo3, Mode=OneWay}" FontFamily="Consolas" Grid.Row="2" HorizontalAlignment="Center"/>
         <TextBlock Foreground="DarkRed" Background="Black" Text="{Binding VersionNumber, Mode=OneWay}" FontFamily="Consolas" Grid.Row="3" HorizontalAlignment="Center"/>
-
-        <!-- Menu Expansions -->
-        <StackPanel Name="NewGamePanel" ZIndex="1" Grid.Row="4" HorizontalAlignment="Left" Orientation="Horizontal" Visibility="Collapsed">
-            <TextBlock Name="NewGame_Custom" Padding="20px,0px" Foreground="SlateGray" Text="[Custom Character]"></TextBlock>
-            <TextBlock Name="NewGame_Preset" Padding="20px,0px" Foreground="SlateGray" Text="[Preset Character]"></TextBlock>
-            <TextBlock Name="NewGame_Random" Padding="20px,0px" Foreground="SlateGray" Text="[Random Character]"></TextBlock>
-            <TextBlock Name="NewGame_Quickplay" Padding="20px,0px" Foreground="SlateGray" Text="[Play Now!]"></TextBlock>
-        </StackPanel>
 
         <!-- Menu -->
         <StackPanel Name="MainMenu"  Orientation="Horizontal" Grid.Row="5" HorizontalAlignment="Center"/>

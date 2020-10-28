@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
-using OctoGhast.Cataclysm.LegacyLoader;
 using OctoGhast.Cataclysm.Loaders.Item;
+using OctoGhast.Framework;
 
 namespace OctoGhast.Cataclysm.Loaders.Recipe.TypeLoaders {
     public class RecipeQualityTypeLoader : TypeLoader, ITypeLoader<IEnumerable<RecipeQualityGroup>> {
@@ -24,7 +24,7 @@ namespace OctoGhast.Cataclysm.Loaders.Recipe.TypeLoaders {
             }
         }
 
-        public object Load(JObject data, object existing) {
+        public object Load(JObject data, object existing, LoaderInfoAttribute info = null) {
             return Load(data, existing as IEnumerable<RecipeQualityGroup>);
         }
     }

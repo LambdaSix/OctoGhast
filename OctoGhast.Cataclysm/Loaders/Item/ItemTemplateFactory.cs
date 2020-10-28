@@ -30,7 +30,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
                 new GunType(token.Value<string>())
             );
 
-            JsonDataLoader.RegisterTypeLoader(typeof(GunModLocation), (token, t, v, _) =>
+            JsonDataLoader.RegisterTypeLoader(typeof(GunModLocation), (token, t, v, _, attr) =>
                 token.ContainsKey("location")
                     ? new GunModLocation(token.GetValue("location").Value<string>())
                     : null
@@ -58,7 +58,7 @@ namespace OctoGhast.Cataclysm.Loaders.Item {
                 throw new LoaderException($"Unable to process {token}");
             });
 
-            JsonDataLoader.RegisterTypeLoader(typeof(IEnumerable<UseActionData>), (jObj, name, val, types) => {
+            JsonDataLoader.RegisterTypeLoader(typeof(IEnumerable<UseActionData>), (jObj, name, val, types, attr) => {
                 // Raw object or string can be converted by the constructor
                 if (jObj.Type == JTokenType.Object || jObj.Type == JTokenType.String) {
                     return new[] {new UseActionData(jObj)};

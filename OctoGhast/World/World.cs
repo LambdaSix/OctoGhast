@@ -113,7 +113,7 @@ namespace OctoGhast {
         public void Tick(UInt64 gameTime) {
             Calendar.Advance(1);            
 
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         /*

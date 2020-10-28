@@ -18,7 +18,7 @@ namespace OctoGhast.Cataclysm.Loaders.Terrain {
         /// 
         /// Array of 2 floating point values.
         /// </summary>
-        [LoaderInfo("base_num", expectedCount: 2)]
+        [LoaderInfo("base_num", ExpectedCount = 2)]
         public IEnumerable<float> BaseNumber { get; set; }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace OctoGhast.Cataclysm.Loaders.Terrain {
         ///     Min: 5 * (0 * 5) = 5
         ///     Max: 10 * (0.6 * 5) = 30
         /// </example>
-        [LoaderInfo("skill_bonus", expectedCount: 2)]
+        [LoaderInfo("skill_bonus", ExpectedCount = 2)]
         public IEnumerable<float> SkillBonus { get; set; }
 
         /// <summary>

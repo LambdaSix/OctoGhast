@@ -236,10 +236,18 @@ namespace OctoGhast {
 
         public static int GetAverageSeasonLength() => (int)Math.Round(Seasons.Average(s => s.Length));
 
+        private static Dictionary<string, int> SeasonLengths = new Dictionary<string, int>();
         public static int GetSeasonLength(string seasonName) {
-            var monthsForSeason = MonthSeasons.Where(s => s.Value == seasonName);
+            if (SeasonLengths is null)
+                SeasonLengths = new Dictionary<string, int>();
 
-            return monthsForSeason.Sum(month => MonthLength[month.Key]);
+            if (SeasonLengths.TryGetValue(seasonName, out var val)) {
+                return val;
+            }
+
+            var monthsForSeason = MonthSeasons.Where(s => s.Value == seasonName);
+            SeasonLengths[seasonName] = monthsForSeason.Sum(month => MonthLength[month.Key]);
+            return SeasonLengths[seasonName];  
         }
 
         public static int GetSeasonLength(int seasonIndex) => GetSeasonLength(Seasons[seasonIndex].Name);

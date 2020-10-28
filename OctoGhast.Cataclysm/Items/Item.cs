@@ -2,10 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using InfiniMap;
 using OctoGhast.Cataclysm.LegacyLoader;
+using OctoGhast.Cataclysm.Loaders.Creature;
 using OctoGhast.Cataclysm.Loaders.Item;
+using OctoGhast.Cataclysm.Loaders.WorldOptions;
 using OctoGhast.Entity;
+using OctoGhast.Framework;
 using OctoGhast.Framework.Mobile;
 using OctoGhast.Units;
 
@@ -139,18 +143,43 @@ namespace OctoGhast.Cataclysm.Items {
     /// </summary>
     public class Corpse : BaseItem {
         public BaseCreature CreatureType { get; set; }
+        public int CorpseQuality { get; set; }
 
         /// <inheritdoc />
         public Corpse(StringID<ItemType> itemType, Time birthday) : base(itemType, birthday) { }
 
         public static Corpse MakeFrom(BaseCreature creature, Time birthday) {
-            // Set the weight from the creature
-            // Copy the creatures worn gear into this items inventory (it's still "wearing" that gear.)
-            // Set the birthday of the new item to determine rot-start for this item.
-            return new Corpse("corpse", Calendar.Now)
+            var corpse = new Corpse("corpse", Calendar.Now)
             {
-                CreatureType = creature
+                CreatureType = creature,
             };
+            
+            var worldOpts = World.Instance.Retrieve<WorldOptionsService>().Corpses;
+            if (worldOpts.ResurrectionEnabled) {
+                var resurrectionDelay = worldOpts.ResurrectionDelay;
+                corpse.RuntimeData.Set("resurrection_time", Calendar.Now.AddTime(resurrectionDelay));
+            }
+
+            // Move all the top-level containers over to this, any sub-container items will
+            // be moved due to being inside the top level stuff.
+            creature.GetInventory()?.CopyTo(new Container(corpse));
+
+            return corpse;
+        }
+
+        public void Resurrect() {
+            // Recreate the originating creatureType with the appropriate flags
+            // TODO: CreatureFlags.IsResurrected ? (Mod-support?)
+            var creature = new BaseCreature(CreatureType.TemplateData);
+            creature.RuntimeData.Set("isResurrected", true);
+            // Anything currently in the corpse-container should be considered worn/carried by the creature
+            var corpseContainer = new Container(this);
+            // Should be a fresh container, so just copy over
+            var creatureContainer = creature.GetInventory().AddRange(corpseContainer);
+            // TODO: Reduce resulting creature's health and status by the condition of the corpse
+            // TODO: Implement easier access to creature health, etc
+            (creature.TemplateData as CreatureType).Stats.HitPoints *= CorpseQuality;
+
         }
 
         public override Mass Weight() {
@@ -158,11 +187,13 @@ namespace OctoGhast.Cataclysm.Items {
             var currentWeight = container.ContentWeight();
 
             // TODO: Pull the Weight data from the creature we're the corpse for.
-            return (currentWeight + Mass.FromKilograms(100));
+            var creatureData = (CreatureType.TemplateData as CreatureType);
+            return (currentWeight + (creatureData.Weight));
         }
 
         public override Volume Volume() {
-            throw new NotImplementedException();
+            var creatureData = (CreatureType.TemplateData as CreatureType);
+            return (creatureData.Volume);
         }
     }
 

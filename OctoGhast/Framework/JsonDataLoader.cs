@@ -12,7 +12,7 @@ using OctoGhast.Units;
 
 namespace OctoGhast.Framework {
     public interface ITypeLoader {
-        object Load(JObject data, object existing, LoaderInfoAttribute attrInfo);
+        object Load(JObject data, object existing, LoaderInfoAttribute attrInfo = null);
     }
 
     public static class JsonDataLoader {
@@ -32,7 +32,7 @@ namespace OctoGhast.Framework {
                 [typeof(TimeDuration)] = (jObj, name, val, _, attr) => ReadProperty<TimeDuration>(jObj, name, val as TimeDuration),
                 [typeof(Nullable<>)] = (jObj, name, val, types, attr) => ReadNullable(jObj, name, val, typeof(Nullable<>), types),
                 // Just handle all kinds of IEnumerable with an open type.
-                [typeof(IEnumerable<>)] = (jObj, name, val, types, attr) => ReadEnumerable(jObj, name, val, typeof(IEnumerable<>), types),
+                [typeof(IEnumerable<>)] = (jObj, name, val, types, attr) => ReadEnumerable(jObj, name, val, typeof(IEnumerable<>), types, attr),
                 [typeof(Dictionary<object, IEnumerable<object>>)] = (jObj, name, val, types, attr) => ReadNestedDictionary(jObj, name, val, typeof(Dictionary<,>), types),
                 // Defined as an open type to handle most 'pure' dictionarys, string:string, string:int, etc.
                 [typeof(Dictionary<,>)] = (jObj, name, val, types, attr) => ReadDictionary(jObj, name, val, typeof(Dictionary<,>), types),

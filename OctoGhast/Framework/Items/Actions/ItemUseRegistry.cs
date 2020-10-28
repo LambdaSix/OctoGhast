@@ -16,7 +16,7 @@ namespace OctoGhast.Framework.Items.Actions {
             var dictionary = new Dictionary<string, ItemUseDelegate>();
 
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) {
-                foreach (var type in assembly.GetTypes().Where(s => Tools.IsClass(s))) {
+                foreach (var type in assembly.GetTypes().Where(s => s.IsClass())) {
                     if (type.GetCustomAttribute<ItemUseAttribute>() is ItemUseAttribute attr) {
                         if (Activator.CreateInstance(type) is ItemUse<TemplateType> usage) {
                             dictionary.Add(attr.UseName, usage.Use);
