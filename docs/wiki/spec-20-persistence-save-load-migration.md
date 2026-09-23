@@ -1,6 +1,6 @@
 # Spec 20 — Persistence, save/load, world state and migration
 
-Status: implementation-ready specification  
+Status: implementation-ready specification; authoritative-server/co-op architecture reviewed  
 Parent issue: #65  
 Spec issue: #85  
 Reference implementation: `LambdaSix/Cataclysm-DDA`  
@@ -76,8 +76,8 @@ A world manifest MUST include at least:
 - `snapshotId`;
 - game/content compatibility version;
 - selected mod/content IDs and ordering;
-- current character/save-slot ID;
-- current game time;
+- stable player/character roster and control-binding records required to resume the world (never connection/socket IDs);
+- canonical simulation tick/time and world chronology anchors;
 - last successful save timestamp;
 - schema/features flags needed to select readers/migrations.
 
@@ -89,10 +89,13 @@ Do not serialize assembly-qualified .NET type names as durable contracts.
 Owns world identity, selected content set, world-level options, save format metadata and current committed snapshot pointer. It does not own tactical entities.
 
 ### Global game state
-Owns calendar anchors/current turn, dimension/current active-map origin, global variables, global EOC/event queues, global trackers/achievements required for gameplay, and other singleton simulation state.
+Owns the authoritative server's canonical simulation tick/time, world chronology anchors, deterministic scheduler state, global variables, global EOC/event queues, global trackers/achievements required for gameplay, and other singleton simulation state. There is one world clock regardless of connected-player count. Host wall-clock time, render time and client interpolation time are not durable simulation state.
+
+### Player identity and controlled character
+A durable `PlayerId` identifies a player/account/slot within the world and is distinct from (a) transient connection/socket/session identity and (b) the stable `CharacterId` of the entity currently controlled. A persisted player record owns only durable gameplay associations and player-specific knowledge/settings that affect continuation. Control is an explicit durable relationship `PlayerId -> CharacterId` when a character is assigned; reconnecting establishes a new connection and rebinds it to the same `PlayerId`, then resumes control of the authoritative character if policy permits.
 
 ### Character/avatar
-Owns intrinsic character state: stable character ID, stats, anatomy/body state, needs/effects, skills/progression, inventory/worn/wielded item roots, activities, character-local variables and references to external entities by stable ID only.
+Owns intrinsic character state: stable character ID, stats, anatomy/body state, needs/effects, skills/progression, inventory/worn/wielded item roots, activities, character-local variables and references to external entities by stable ID only. The character remains server/world-owned whether or not its player is connected.
 
 ### Items
 Items are persisted by their current owner: character inventory, map tile/submap, vehicle cargo/part, NPC inventory, etc. Nested pocket/container contents are serialized recursively as part of the owning root. An item MUST have one persistence owner at commit time.
@@ -104,7 +107,7 @@ A submap is the durable unit for local terrain/furniture/traps/fields/items and 
 A vehicle is spatially owned by the persistent map/submap partition that contains its canonical origin/ownership record. Cross-submap footprint data must not create duplicate vehicle identities. References use stable vehicle IDs.
 
 ### Monsters
-Active monsters in the reality bubble may be represented in the active game snapshot as CDDA does; off-bubble creatures belong to persistent spatial/world records. The save coordinator MUST guarantee that a creature is committed exactly once during active/off-bubble transitions.
+Pinned CDDA may serialize active monsters with the local active game snapshot, but OctoGhast MUST NOT define persistence ownership by one avatar's reality bubble. Creatures are server/world-owned and persisted exactly once by their canonical entity/spatial ownership record. Server active-region membership is runtime lifecycle state and may change without changing durable identity or creating duplicate records.
 
 ### NPCs
 NPC identity is global and stable. Their authoritative state may move between active and overmap/world ownership, but a save transaction MUST produce one authoritative record per NPC ID. Relationship/mission/faction references use IDs.
@@ -144,12 +147,15 @@ Rules:
 Manual save, autosave and quit-save enter a save barrier at a safe game-loop boundary. The coordinator MUST NOT serialize while a turn mutation is partially applied.
 
 A save barrier:
-1. finishes the currently atomic action/turn phase;
-2. prevents new simulation mutation from beginning;
-3. captures the current logical snapshot;
-4. flushes dirty persistence units;
-5. commits the new manifest last;
-6. releases the barrier.
+1. is entered by the authoritative server at a deterministic canonical tick boundary after the current atomic simulation phase;
+2. stops admission/application of new world-mutating requests to the snapshot being captured (requests already received are either deterministically included before the barrier or remain queued for a later tick);
+3. prevents new simulation mutation from beginning while the logical snapshot is captured;
+4. captures one coherent world snapshot spanning every active region and all durable background/world partitions, independent of which clients currently subscribe to them;
+5. flushes dirty persistence units;
+6. commits the new manifest last;
+7. releases the barrier and resumes request/tick processing.
+
+Clients may remain connected during the barrier. They do not serialize their own authoritative world copies, and acknowledgements/replication packets are not part of the transaction.
 
 Long-running activities do **not** need to complete. Their resumable state is persisted. A save may therefore occur between activity turns but not halfway through one atomic activity step.
 
@@ -205,7 +211,9 @@ Migrate each persistence unit from its stored schema version to the current in-m
 Materialize calendar/time anchors, dimension/world identity, global counters and coordinate context needed to interpret spatial records.
 
 ### Phase 4 — spatial state
-Load the overmap/region containing the active area and the submaps needed for the reality bubble. Reconstruct terrain/furniture/fields/items/vehicles and spatial indexes.
+Load the persistent world/overmap/submap partitions required to bootstrap the server. Reconstruct terrain/furniture/fields/items/vehicles and authoritative spatial indexes. Initial active regions are then derived from connected/controlled players and server policy; no single saved "reality bubble" is authoritative.
+
+This deliberately adapts the pinned CDDA load ordering: CDDA's local active map remains evidence for spatial state that must survive, but OctoGhast may have zero, one, or many separated/overlapping active regions. Overlap is still one authoritative world region, not duplicated per player.
 
 This ordering reflects the pinned baseline, where the main game loader establishes time/dimension and loads the map before restoring later runtime state.
 
@@ -218,8 +226,8 @@ Resolve entity-to-entity, mission, faction, vehicle and other forward references
 ### Phase 7 — queued runtime state
 Restore activities, event/EOC queues, script variables, trackers and other resumable runtime state.
 
-### Phase 8 — derived caches
-Rebuild non-authoritative caches: visibility/light/transparency, pathing caches, creature occupancy indexes, crafting caches, UI-derived state, etc. Caches SHOULD generally not be serialized unless rebuilding them changes observable behavior or is prohibitively expensive.
+### Phase 8 — derived caches and projections
+Rebuild non-authoritative caches: active-region membership, client interest subscriptions, per-connection replication baselines, visibility/light/transparency caches, pathing caches, creature occupancy indexes, crafting caches and UI-derived state. Per-player durable knowledge/remembered-map data is restored where gameplay requires it, but current FOV, socket subscriptions and "what this connection was last sent" are recomputed. Caches SHOULD generally not be serialized unless rebuilding them changes observable behavior or is prohibitively expensive.
 
 ### Phase 9 — validation and publish
 Run post-load invariants. Only after validation succeeds is the loaded world published as the live game state. A failed load MUST NOT leave a half-loaded world active.
@@ -339,10 +347,10 @@ The domain-facing save coordinator depends on abstractions; JSON/file storage is
 ## 12. Cross-system requirements
 
 ### Spec 01 — time/game loop
-Save barriers occur at deterministic game-loop boundaries. Save/load itself consumes no turns/moves and does not perturb RNG.
+Save barriers occur at deterministic canonical tick boundaries. Persist canonical tick/time, world chronology, actor action budgets, scheduler/deadline state, resumable activities and every deterministic/RNG stream seed/counter/state required for continuation. Save/load itself consumes no ticks/moves and does not perturb RNG. Host elapsed-time accumulators used only to pace catch-up are not persisted; after load the server resumes from the saved canonical time under a fresh host-clock baseline.
 
 ### Spec 12 — local map
-Absolute coordinate and submap ownership contracts are authoritative. Loading/unloading the reality bubble is a cache/lifecycle operation, not a change in durable identity.
+Absolute integer/grid coordinate and submap ownership contracts are authoritative. Multi-player active regions are server/world-owned runtime lifecycle state: separated regions may coexist and overlapping regions simulate once. Activation/deactivation itself is not client save state. Persist only semantic world state and any durable timestamps/deadlines needed for deterministic background catch-up; derive active-region membership and client interest after load.
 
 ### Spec 18 — data loading
 Persisted content IDs resolve only after registry finalization. Obsolete-ID mapping is shared, not reimplemented by each persistence codec.
@@ -457,6 +465,86 @@ Fault-inject a late fixup failure. Assert the currently running/menu state is no
 ### P20-25 Pinned-CDDA semantic fixture
 Construct a representative scenario in the pinned CDDA baseline containing avatar inventory, map mutation, vehicle, NPC, monster, mission/faction state and queued EOC. Record observable state before/after CDDA save/reload. Recreate the fixture in OctoGhast and assert the same state categories survive with equivalent behavior. This is semantic parity; direct CDDA file ingestion is not required.
 
+
+## 15A. Authoritative-server/co-op persistence adaptation
+
+This section is an **intentional OctoGhast adaptation**, not a claim about upstream CDDA multiplayer behavior.
+
+### Authority and world-save ownership
+
+The authoritative server is the sole writer/owner of world state in both deployment modes. "Single-player" means exactly one logical player connected to that server through the in-process transport; multiplayer changes connection count/transport, not persistence authority. Clients may persist local presentation preferences outside the world save, but cannot commit authoritative entities, time, RNG, maps, activities or narrative state.
+
+A committed save represents the world, not a connected-client session. It remains loadable with zero clients connected and may later accept the same or different set of authorized players.
+
+### Connection lifecycle
+
+- **Connect:** authenticate/resolve a durable `PlayerId`; create a transient connection/session; bind it to the permitted `CharacterId`; derive interest/FOV/replication state from authoritative world state.
+- **Disconnect:** destroy transport/session state only. Do not delete, clone or serialize a socket identity into the character. The controlled character remains authoritative world state.
+- **Reconnect:** a new connection resolves the same durable `PlayerId`, re-establishes the control binding, and receives a fresh projection/snapshot. No old replication sequence/buffer state is resumed from disk.
+- **Simultaneous duplicate control:** server policy MUST reject or explicitly transfer an existing control lease; two connections MUST NOT independently command one character.
+
+### Disconnected player characters
+
+Default OctoGhast policy is **world continuity**: disconnect does not pause the global clock and does not remove the character from the world. A disconnected player character remains an authoritative entity and continues to be affected by world simulation. It submits no new player intents while disconnected. An already-started activity may continue according to normal activity/interruption rules; autonomous defensive/AI behavior, if desired later, is a separate explicit gameplay policy and MUST NOT be invented by persistence.
+
+If no active region would otherwise cover the disconnected character, the normal server active/background lifecycle applies. Deactivation must first externalize enough state/timestamps/deadlines for the same background catch-up semantics used by non-player world state. Reconnect activates the required region and catches it up before publishing a playable projection.
+
+### Durable versus transient state
+
+**Persist:** canonical world time/tick; chronology; actor action budgets and scheduling eligibility/deadlines; resumable activities; queued events/EOCs; authoritative entities/components; stable player and character IDs/control association; durable per-player knowledge/remembered-map state; world partitions; RNG state/seeds/counters needed for deterministic continuation; background-simulation timestamps/deadlines.
+
+**Do not persist in the world save:** socket handles; connection IDs; authentication challenge/session tokens; packet sequence numbers; retransmit queues; network buffers; RPC/request objects; pending presentation acknowledgements; replication baselines; current interest subscriptions; current FOV result caches; render transforms; interpolation history; camera/UI state; host wall-clock timestamps used only for pacing.
+
+An accepted gameplay request that has crossed the deterministic server admission boundary before the save barrier must be reflected either in committed authoritative state/command scheduling or in an explicitly durable deterministic command queue. Merely received transport bytes are not durable.
+
+### Multi-region persistence
+
+Persistent spatial state is world-partitioned by canonical coordinates/IDs, never by client interest. Multiple separated active regions and overlapping active regions are transient server lifecycle views over the same durable world. A save captures each authoritative entity/partition exactly once. Overlap MUST NOT duplicate state. Current subscriptions, FOV and interest sets are rebuilt after load.
+
+Activation status itself is persisted only when it has semantic meaning beyond optimization. Normally the durable contract is the partition's authoritative state plus its last-simulated/catch-up anchors and scheduled deadlines, allowing the server to derive activation and perform background catch-up after load.
+
+### Save quiescence with clients and requests
+
+Save is server-coordinated and tick-consistent. At the barrier, simulation mutation is quiescent across all active regions. The server establishes a deterministic cut for command admission: commands applied through tick T are in the snapshot; commands not yet admitted remain outside it and are processed only after the barrier. Transport receive/send loops may continue buffering, but those buffers are not serialized.
+
+If an implementation chooses a durable admitted-command queue, queue entries require stable player/entity IDs, canonical target tick/order keys and idempotency identifiers; socket/session references are forbidden. The first implementation MAY instead require the queue to be drained to the deterministic boundary before snapshot capture.
+
+### One-player and multiplayer equivalence
+
+For identical world seed/state and identical admitted command sequence, a one-player in-process server and a network server with one player MUST round-trip the same authoritative state. Adding another player changes only additional player/entity/world interactions and active-region coverage; it does not select a different save format, clock, ownership model or persistence path.
+
+## 15B. Additional architecture-review conformance scenarios
+
+### P20-26 One-player-server round trip
+Run single-player through the in-process transport, save at canonical tick T, destroy server and client, reload server, reconnect the same `PlayerId`, and assert world/character/activity/scheduler/RNG state matches uninterrupted execution. Assert no transport identity is required to load.
+
+### P20-27 Multiplayer separated-region round trip
+Two players occupy separated active regions with independently mutated maps/entities. Save once, destroy all processes, reload, reconnect both in reverse order, and assert both regions and players restore from one coherent snapshot with no dependence on which player reconnects first.
+
+### P20-28 Multiplayer overlapping-region deduplication
+Two players share/overlap an active region containing the same vehicle, monster and item graph. Save/reload and assert each authoritative runtime ID is materialized exactly once and both players' projections reference the same resulting world state.
+
+### P20-29 Visibility and interest are not authority
+Give two players different FOV/knowledge in one area. Save/reload. Assert durable remembered knowledge required by gameplay is restored per player, while current FOV, replication subscriptions/baselines and presentation state are recomputed. No player gains another player's private knowledge because it was present in a server snapshot.
+
+### P20-30 Disconnect/reconnect identity
+Player A disconnects; its socket/session is destroyed while its character remains in-world. Advance time, save, reload, reconnect A with a new connection, and assert the same `PlayerId` controls the same `CharacterId` at the authoritative post-advance state. Assert old connection IDs/buffers are absent.
+
+### P20-31 Disconnected activity continuation
+Start a resumable activity, disconnect its player, advance according to normal active/background policy, save/reload, reconnect, and compare against uninterrupted server execution. Assert persistence neither cancels nor invents activity progress.
+
+### P20-32 Save with concurrent clients and in-flight requests
+With two clients sending commands, request a save. Record the deterministic admission boundary T. Assert all commands admitted through T are represented exactly once, later/unadmitted transport requests are not accidentally serialized as world state, and reload produces the same state as a reference execution cut at T.
+
+### P20-33 Multi-region activation/background transition
+With one player in region A and another in region B, disconnect/move so B deactivates, advance world time, save/reload while B is inactive, then reactivate B. Assert catch-up uses persisted semantic timestamps/deadlines and yields the same result as the documented background policy; no saved client interest set is needed.
+
+### P20-34 Transport/presentation exclusion
+Populate socket buffers, connection IDs, replication sequence state, interpolation transforms and camera/UI state, then save. Inspect the persistence DTO/save set and reload. Assert none of those values are present or required; authoritative integer/grid positions and simulation state are preserved.
+
+### P20-35 Network/in-process persistence equivalence
+Execute the same deterministic one-player command trace once over in-process transport and once over loopback network transport. Save at the same canonical tick. After excluding permitted non-gameplay metadata, assert semantically identical save state and identical continuation after reload.
+
 ## 16. Implementation sequence
 
 1. Define persistence DTO/version conventions and stable runtime IDs.
@@ -491,5 +579,5 @@ This specification is satisfied when:
 - load/migration/fixup ordering is explicit and implemented;
 - autosave/manual save share the same correctness guarantees;
 - existing CDDA file compatibility is explicitly scoped as optional import/export rather than a prerequisite for behavioral parity;
-- round-trip, migration, corruption, interruption and deterministic-continuation tests P20-01 through P20-25 pass;
+- round-trip, migration, corruption, interruption, deterministic-continuation and authoritative-server/co-op tests P20-01 through P20-35 pass;
 - evidence remains pinned to CDDA commit `e262adb299a7613b4aedc5f12c08fe0413c56a84`.
