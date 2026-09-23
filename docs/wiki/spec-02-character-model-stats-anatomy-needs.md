@@ -1,6 +1,6 @@
 # Spec 02 — Character model, stats, anatomy and needs
 
-Status: investigated / specification complete  
+Status: investigated / specification complete; real-time/co-op architecture review complete  
 Tracking issue: #67  
 Parent epic: #65  
 Reference implementation: `LambdaSix/Cataclysm-DDA` @ `e262adb299a7613b4aedc5f12c08fe0413c56a84`
@@ -62,6 +62,8 @@ A Character is a persistent creature with:
 ### 1.2 Avatar-only layer
 
 The avatar layer may own player-only interaction state, messages, interruption prompts, UI preferences, character-creation/session state and player-specific daily bookkeeping. Core formulas must not require UI access. Any current CDDA function that emits messages while changing physiology must be decomposed in OctoGhast into domain state transition + optional presentation event.
+
+There is no privileged runtime avatar in the reusable Character domain. Player control is an external ownership/session relationship: zero, one, or several Characters may be player-controlled at the same canonical simulation time, and the same Character physiology/capability APIs apply to player-controlled Characters and NPC Characters. Connection/socket identity, client UI state, camera/FOV state and input queues are not Character state.
 
 ### 1.3 NPC policy
 
@@ -278,6 +280,20 @@ Important five-minute ordering is: reduce weariness -> check need extremes -> up
 
 Scheduling must use the shared time/tick semantics from Spec 01. Catch-up must use elapsed tick counts, not "run once because time advanced".
 
+### 14.1 OctoGhast authoritative-time adaptation
+
+The cadence table and all pinned-CDDA formulas above remain normative rules evidence; only their scheduling/context changes for OctoGhast. The authoritative server owns one canonical clock (Spec 01: 10 simulation ticks per world second, 10 ticks = one pinned-CDDA turn = 100 moves). Physiology is advanced from authoritative elapsed simulation time for every simulated Character. No Character's needs/effects/temperature processing waits for that Character to submit an action, and no player's input turn is the clock source.
+
+Per-turn work is integrated over elapsed authoritative turns/ticks. Minute/five-minute/30-minute/12-hour/24-hour work is triggered by crossed canonical deadlines or equivalent elapsed-interval tick counting. Implementations may batch mathematically equivalent work, but must preserve cadence boundaries, ordering, deterministic RNG consumption and intermediate state transitions where the pinned rule depends on them. Render frames, socket latency and client-local clocks never drive Character physiology.
+
+Several player-controlled Characters may therefore accrue needs, digest, recover stamina, change temperature, gain/expire effects and cross thresholds simultaneously. Same-tick ordering follows Spec 01's deterministic server ordering; Character formulas are not specialized according to which player owns the actor.
+
+### 14.2 Sleep, incapacity and continued world time
+
+Sleep, unconsciousness, restraint and other incapacitating states alter a Character's action eligibility/capabilities; they do not pause canonical world time. A sleeping or incapacitated player-controlled Character continues receiving authoritative physiology/effect/temperature updates while other players, NPCs and world systems continue normally.
+
+Sleeping/waiting by one player never performs CDDA's implicit single-avatar global time jump. Any accelerated/timewarp progression is a server-wide policy governed by Spec 01 and cannot be requested unilaterally by one Character. Waking, death, threshold crossings, damage and effect changes caused while the owner cannot act are authoritative transitions and must be available to the projection/event layer subject to visibility rules.
+
 ## 15. Persistence contract
 
 Character persistence must preserve enough state that save/load followed by the same future inputs produces equivalent physiology.
@@ -316,6 +332,17 @@ OctoGhast should expose domain-level operations rather than mutable field access
 - emit domain events for significant transitions (death, limb disabled/recovered, need threshold crossed, sleep/wake, effect added/removed) without requiring a UI.
 
 Combat, inventory, environment, activities and UI must depend on these interfaces rather than duplicate formulas.
+
+## 16.1 Client projection and Character-state visibility
+
+Authoritative Character state is not synonymous with replicated client state. The server projects the minimum state needed for permitted gameplay/presentation and derives views from authoritative state rather than exposing arbitrary ECS/components.
+
+- **Private/server-only:** deterministic RNG/scheduling bookkeeping, hidden effect internals, hidden traits/conditions, AI/internal policy state and any state whose disclosure would reveal information the observing client has not legitimately learned.
+- **Owner-visible:** the controlled Character's detailed needs, stored-resource/status detail, body-part HP/wounds/treatment, pain, stamina/oxygen, sleepiness, morale/addiction detail, effects and derived capability/status information needed by the player's own UI. Owner visibility does not imply write authority.
+- **Party-visible:** only information explicitly allowed by co-op policy or an in-world sharing/observation mechanic. Party membership alone must not automatically expose the owner's private physiological internals; coarse teammate status may be projected where product policy permits.
+- **World-visible:** externally observable state required for other clients to render/interact correctly, such as stable actor identity appropriate to the observer, position/posture/movement mode, alive/dead/incapacitated or sleeping presentation when observable, and visible manifestations/events of wounds/effects. This remains constrained by per-player FOV/knowledge/interest rules from the spatial/projection specs.
+
+A datum can have a more restrictive classification than its gameplay consequence: for example, a hidden effect may be private while an observable posture, animation cue or emitted event caused by it is world-visible. Projection policy must be testable independently from the Character formula that produced the state.
 
 ## 17. RNG and determinism
 
@@ -405,3 +432,21 @@ Each slice should land with the corresponding parity fixtures before dependent f
 ## Open implementation decisions (not parity ambiguity)
 
 These may differ internally without violating parity: concrete C# class hierarchy; ECS vs aggregate implementation; cache representation; event-bus implementation; numeric wrapper types; and whether individual physiology subsystems are separate services. The acceptance boundary is the observable state transition, stable data contract and timing behavior above.
+
+
+## Architecture review — continuous authoritative time and co-op
+
+This review does **not** replace or reinterpret the pinned-CDDA Character investigation. Sections 2–13 retain the pinned formulas, thresholds, modifier composition and physiological rules. OctoGhast intentionally changes only the execution context: one continuously advancing authoritative server clock, actor-generic Character behavior, multiple simultaneous player-controlled Characters, and explicit per-observer projection.
+
+### Conformance scenarios added by the architecture review
+
+1. **Cadence independent of player input.** Given two equivalent Characters and the same authoritative elapsed interval/environment, one submitting no commands and one submitting commands, physiological cadence work occurs at the same canonical boundaries and produces equivalent needs/metabolism/temperature/effect progression except for consequences of the commands themselves.
+2. **Two simultaneous players.** Given two player-controlled Characters in the same world, advancing N canonical ticks updates both through the same Character APIs. Neither Character is selected as a privileged avatar or clock owner, and deterministic results are independent of client render/update frequency.
+3. **Separated players.** Given player-controlled Characters in distinct active regions, each receives the cadence appropriate to authoritative elapsed time and its local environmental inputs; processing one player's region must not suppress or duplicate the other's Character update.
+4. **Sleeping player while peer acts.** Put Character A to sleep while Character B remains active. Advance world time through B's actions/server progression. A continues digestion, needs, sleep recovery, temperature and effect-duration/periodic processing and can wake from an authoritative wake condition without pausing B or the world.
+5. **Incapacitated player while peer acts.** Incapacitate A and continue simulation with B. A cannot issue actions forbidden by capability state but continues authoritative damage/healing/effect/need processing; death or recovery transitions occur at their canonical times.
+6. **No unilateral sleep time jump.** A sleeping/waiting Character cannot advance the global clock faster solely because its owner is waiting. Any acceleration is server-wide policy and preserves Character cadence/order for all actors.
+7. **Projection isolation.** With A and B connected, A receives its detailed owner-visible physiology. B receives only world-visible state plus explicitly enabled party-visible state for A, further restricted by B's FOV/knowledge/interest. Hidden effects/internal counters are not replicated merely because both are players or party members.
+8. **Single-player/multiplayer equivalence.** Run the same one-Character input/environment/tick trace through a one-player in-process server and through the multiplayer server path with no interacting peer. Character-authoritative outcomes are identical; only transport/projection envelopes may differ.
+9. **Catch-up equivalence.** Advancing an interval through normal fixed ticks versus permitted deterministic catch-up yields equivalent Character state and threshold/event ordering, including five-minute ordering and RNG-sensitive work.
+10. **Formula preservation.** Golden fixtures for healing, stamina, needs, temperature, effects, vitamins and other Character rules remain pinned to the existing CDDA evidence; architecture adaptation tests may change scheduling/context assertions but must not silently alter those formulas.
