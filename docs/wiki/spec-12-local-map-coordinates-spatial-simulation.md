@@ -400,13 +400,31 @@ Optional bounded view over a portion of the world-owned active set for algorithm
 
 Own per-z derived transparency/light/outside/floor/pathfinding/vehicle/visibility data. Caches are disposable and reconstructible.
 
-### AuthoritativeSpatialIndex and SpatialQuery
+### Authoritative spatial position, cell membership, index and query
 
-The server owns spatial indexes keyed by authoritative absolute integer/grid coordinates. They cover **all currently active regions**, including multiple separated regions, and support entity-at-coordinate, blockers, region/radius queries, spawn/move/despawn, and player/AI queries without ECS-wide scans. Position mutation and index mutation are one atomic authoritative operation as required by #58.
+OctoGhast must not make "precise authoritative position", "map cell membership", and "render transform" synonyms.
+
+The generic Core spatial contract therefore separates:
+
+- **WorldPosition** — the authoritative logical position of an entity in simulation space. The exact numeric representation is deliberately not fixed by this spec. It must be deterministic, serialization-stable and independent of Godot types. The initial Cataclysm parity profile constrains actors/items that use tile occupancy to exact grid-aligned positions.
+- **SpatialCell** — the discrete typed map-square/submap/chunk bucket used for CDDA tile rules, dense map storage, activation and fast spatial indexing.
+- **PresentationTransform** — client-only Godot/render-space state used for interpolation, animation, camera and visual offsets; never authoritative.
+
+For the initial Cataclysm profile, `WorldPosition -> SpatialCell` is trivial because authoritative actors are grid aligned. Core APIs must nevertheless express the mapping explicitly rather than assume all future authoritative positions are integer tuples. A future rules profile may permit sub-cell positions while deriving the containing/overlapping `SpatialCell` set deterministically.
+
+Any future non-grid authoritative position representation must avoid renderer-owned floating-point state as the persistence/network authority. Fixed-point, rational/integer subunits, or another deterministic representation may be selected later.
+
+The server owns spatial indexes keyed/bucketed by authoritative `SpatialCell` values (and, if later required, a secondary precise-position structure). They cover **all currently active regions**, including multiple separated regions, and support entity-at-cell, blockers, region/radius queries, spawn/move/despawn, and player/AI queries without ECS-wide scans.
+
+Position mutation, derived cell-membership mutation and index mutation are one atomic authoritative operation as required by #58:
+
+`WorldPosition change -> derive SpatialCell membership -> validate occupancy/rules -> commit position + index membership atomically`
+
+No system may independently write the position while leaving stale cell membership.
 
 Indexes may be partitioned by submap/chunk/region internally, but a query crossing a partition or overlap boundary observes one coherent world. Overlapping player interests do not create duplicate index entries.
 
-`SpatialQuery` exposes passability, movement cost, LOS, transparency, occupancy and neighborhood/radius queries to combat, AI, activities and projection code.
+`SpatialQuery` exposes CDDA cell semantics (passability, movement cost, LOS, transparency, occupancy and neighborhood/radius queries) to combat, AI, activities and projection code. Generic Core may additionally expose precise-position/range primitives later without forcing Cataclysm rules to adopt them.
 
 This decomposition preserves behavior while avoiding a direct port of the large CDDA `map` class.
 
@@ -439,20 +457,28 @@ Each authoritative tick/snapshot boundary must:
 
 When two players' interests overlap, shared visible entities refer to the same authoritative entity/state revision. Replication may send separate per-client encodings, but it must not imply two simulation instances. When players are separated, no ECS-wide scan is required to build either interest set.
 
-## Authoritative grid coordinates versus Godot 2D presentation
+## Authoritative position versus spatial cell versus Godot 2D presentation
 
-All gameplay authority uses typed integer/grid coordinates described above. Terrain occupancy, collision, LOS, range, pathfinding, FOV, persistence, activation and replication identity are resolved from those coordinates.
+The architecture deliberately has three layers:
 
-Godot 2D transforms are client presentation state only:
+1. **Authoritative WorldPosition** — simulation-owned logical position.
+2. **Authoritative SpatialCell membership** — discrete map/index membership derived from WorldPosition according to the active rules profile.
+3. **PresentationTransform** — Godot/client visual transform.
 
-- clients map authoritative grid coordinates to render-space transforms;
-- interpolation may visually move a sprite between the previous and latest authoritative positions;
-- interpolation/animation never creates intermediate authoritative occupancy and cannot alter collision, LOS, range or activation;
-- client floating-point transforms are never sent back as authoritative positions;
-- intents identify discrete actions/targets using protocol-safe grid coordinates or stable entity IDs;
-- correction/reconciliation snaps or re-interpolates presentation toward the latest server state without rewriting server history.
+For the pinned CDDA parity profile, WorldPosition is constrained to grid-aligned tactical positions and therefore maps one-to-one to a single integer map-square cell for ordinary actors/items. Terrain occupancy, collision, LOS, movement costs, traps, fields, melee adjacency, pathfinding, FOV and persistence continue to use the pinned CDDA cell semantics.
 
-Thus a creature may be rendered halfway between tiles while the server still authoritatively occupies exactly one integer tile.
+Godot 2D transforms remain client presentation state only:
+
+- clients map authoritative projected position/cell state to render-space transforms;
+- interpolation may visually move a sprite between previous and latest authoritative states;
+- interpolation/animation never creates authoritative occupancy and cannot alter collision, LOS, range or activation;
+- client floating-point transforms are never accepted as authoritative simulation positions;
+- current Cataclysm intents identify discrete actions/targets using protocol-safe grid coordinates or stable entity IDs;
+- correction/reconciliation snaps or re-interpolates presentation toward latest server state without rewriting server history.
+
+The generic Core contracts must not require `WorldPosition == SpatialCell == PresentationTransform`. This preserves an escape hatch for future authoritative sub-tile movement without changing the transport, ECS ownership, active-region or presentation boundaries.
+
+If a future OctoGhast rules mode permits non-grid positions, that mode must explicitly define creature/vehicle geometry, cell overlap/membership, terrain-boundary cost application, collision, melee reach, trap/field triggering, FOV/range semantics and persistence. Those are gameplay-rule changes, not renderer changes, and are outside the pinned-CDDA parity contract.
 
 ## State and invariants
 
@@ -480,7 +506,10 @@ The implementation must maintain these invariants:
 20. Authoritative spatial indexes cover all active regions and never require an ECS-wide scan for normal coordinate/region queries.
 21. FOV, knowledge and remembered-map state are player-specific projections and cannot leak between players by virtue of shared region activation.
 22. Replication interest is per player/connection and is not identical to the global active simulation set.
-23. Authoritative positions are typed integer/grid coordinates; Godot transforms/interpolation are non-authoritative presentation only.
+23. Authoritative simulation position, derived spatial-cell membership and Godot presentation transforms are distinct concepts.
+24. For the pinned CDDA parity profile, actor/item WorldPosition is grid aligned and maps deterministically to the same single map-square SpatialCell.
+25. Core spatial APIs must not require future authoritative WorldPosition values to be integer/grid tuples, but any future precise representation must be deterministic and serialization-stable.
+26. Godot transforms/interpolation are non-authoritative presentation only and can never supply authoritative WorldPosition.
 
 ## Failure and edge behavior
 
@@ -554,7 +583,11 @@ Failures must be deterministic and diagnosable. Debug logging may differ from CD
 
 25. **Coverage handoff without deactivation** — while A covers R, B enters R; A then leaves while B remains. Assert R never deactivates, persists one authoritative state/index, receives no background catch-up, and continues exactly-once active simulation.
 
-26. **Presentation-coordinate isolation** — server places an entity at authoritative integer tile P and replicates P. A Godot client interpolates its visual transform toward P from a previous tile. Assert server occupancy/LOS/range queries use P throughout and no fractional/client transform can mutate authoritative position.
+26. **Presentation-coordinate isolation** — server places an entity at grid-aligned authoritative WorldPosition P, derives SpatialCell P and replicates the permitted state. A Godot client interpolates its visual transform toward P from a previous tile. Assert server occupancy/LOS/range queries use authoritative cell membership throughout and no fractional/client transform can mutate WorldPosition.
+
+27. **Position/cell abstraction** — construct a test spatial topology in Core where a deterministic precise WorldPosition maps to a SpatialCell through the mapping contract. Assert spawn/move/despawn updates WorldPosition and derived cell/index membership atomically. The Cataclysm profile fixture then constrains positions to grid alignment and proves its WorldPosition/SpatialCell mapping is one-to-one.
+
+28. **No integer-position leakage in generic Core contracts** — conformance/API tests ensure generic entity-position mutation and projection code uses the WorldPosition/cell-mapping abstraction rather than requiring Cataclysm map-square tuples everywhere. Cataclysm-specific rules may continue to use typed grid cells explicitly.
 
 ## Dependency and sequencing notes
 
@@ -601,11 +634,11 @@ The #77 spec is satisfied when an OctoGhast implementation can demonstrate:
 - whole-submap bubble shifting without changing absolute identity;
 - checked vertical-level behavior;
 - save/load round-trip preservation of local-map state;
-- the 26 black-box scenarios above as automated tests or equivalent stronger coverage;
+- the 28 black-box scenarios above as automated tests or equivalent stronger coverage;
 - server/world-owned active-region union semantics for separated and overlapping players;
 - activation/deactivation with chronology-based background catch-up and no duplicate actualization;
 - authoritative spatial indexing across all active regions without ECS-wide scans;
 - per-player FOV, knowledge, remembered-map and replication-interest isolation;
-- authoritative integer/grid coordinates kept strictly separate from Godot 2D transforms/interpolation.
+- authoritative WorldPosition, derived SpatialCell membership and Godot PresentationTransform kept strictly separate; the pinned Cataclysm profile remains grid-aligned while generic Core does not structurally forbid deterministic sub-cell positioning.
 
 At that point dependent systems can implement against OctoGhast spatial interfaces without rediscovering CDDA's local-map semantics.
