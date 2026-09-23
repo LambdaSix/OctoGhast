@@ -111,6 +111,21 @@ Out-of-bounds terrain access behaves as null/nonexistent rather than aliasing a 
 
 ## Loaded map and ownership model
 
+### Upstream evidence versus OctoGhast multiplayer adaptation
+
+The pinned CDDA baseline exposes one loaded `map`/reality bubble centered around the local avatar. That 11×11-submap shape, its coordinate conversions, loading order and spatial rules remain evidence for local-map semantics, but **single-avatar ownership is not an OctoGhast server contract**.
+
+OctoGhast adapts this as follows:
+
+- the authoritative server/world owns loaded spatial state;
+- each connected player contributes a required active footprint in absolute coordinates; single-player is exactly one such connected player;
+- the server derives a normalized **union of active regions** from all required player footprints (plus any explicitly server-required simulation regions);
+- separated players may therefore produce disjoint active regions in the same world;
+- intersecting/touching player footprints may coalesce operationally, but a world tile/submap belongs to one authoritative loaded instance and is simulated once regardless of how many players require it;
+- player-local “reality-bubble” coordinates are projections/views only and never persistence keys, entity identity, or ownership boundaries.
+
+The implementation may retain the pinned 11×11-submap footprint as the default compatibility radius around each player, but it must not allocate independent authoritative bubbles that duplicate overlapping world state.
+
 ### Persistent owner: world submap store
 
 The reference `mapbuffer` is the world-wide owner/cache of submaps, keyed by `tripoint_abs_sm`. A lookup:
@@ -125,9 +140,9 @@ For OctoGhast, define an interface equivalent to:
 
 and separate persistence from the active map view. The loaded reality bubble should reference/lease world submaps rather than becoming their independent authoritative copy.
 
-### Active reality bubble
+### Pinned-CDDA active reality bubble
 
-The active map is a rectangular XY window over absolute submaps plus either all supported z levels or a selected z level, depending on world/runtime mode.
+In the pinned baseline, the active map is a rectangular XY window over absolute submaps plus either all supported z levels or a selected z level, depending on world/runtime mode. The following load/shift behavior is upstream evidence to preserve semantically inside each OctoGhast activation transition, not a requirement that the server have one global avatar-owned rectangle.
 
 A full load:
 
@@ -141,7 +156,37 @@ A full load:
 
 This ordering is observable for edge-crossing entities and should be preserved semantically.
 
-### Bubble shifting
+### OctoGhast server/world-owned active regions
+
+The server maintains an `ActiveRegionSet` in absolute submap/map-square coordinates. It is derived from player interest anchors and explicit simulation leases, normalized so every authoritative submap/tile has one active-state record independent of the number of requesting players.
+
+For every server step:
+
+1. derive each player's required footprint from that player's authoritative position and the configured compatibility/interest radius;
+2. compute the absolute union and compare it with the previous active set;
+3. load/actualize newly activated submaps before systems may query them;
+4. retain already-active submaps and their authoritative entities/caches without duplication;
+5. simulate each active world cell/entity exactly once through world-owned scheduler/spatial indexes;
+6. after simulation, build each player's visibility/knowledge projection from the same resulting world state;
+7. deactivate submaps no longer covered by any player or server lease only after persistence/background-transition obligations are satisfied.
+
+Two disjoint footprints remain independently active and queryable. If they later overlap, no merge copies state: both interests point at the already unique absolute world state. If an overlap separates again, state likewise is not split or cloned.
+
+Reference-counting, interval/chunk sets, merged rectangles, or another representation are implementation choices; externally the invariant is set-union semantics over absolute world coordinates.
+
+### Activation, deactivation and background catch-up
+
+Active simulation and inactive/background world progression are distinct modes over the same persistent world identity.
+
+- **Activate:** acquire/load the absolute submaps, reconstruct authoritative spatial indexes and derived caches, then actualize/catch up elapsed background time before exposing the region to active systems or client projection.
+- **Remain active:** advance under canonical authoritative server time exactly once, even if multiple players cover the region.
+- **Deactivate:** remove the last active/lease requirement, flush authoritative persistent state as required, record the chronology needed for later catch-up, remove active-only indexes/caches, and release the loaded lease when safe.
+- **Reactivate:** compute elapsed authoritative world time since the region's last processed timestamp and apply the owning subsystem's deterministic catch-up/actualization rules before ordinary active ticks resume.
+- **Crossing/merging:** a region already active because of another player does not deactivate/reactivate and receives no duplicate catch-up when a second player enters it.
+
+This spec owns the lifecycle and timestamp/index invariants. Environment/monster/vehicle/etc. specs own their detailed catch-up algorithms. Catch-up must be based on authoritative world chronology (#66), never client wall-clock time.
+
+### Pinned-CDDA bubble shifting
 
 Horizontal shifting is in whole submap increments. Existing loaded submaps are reused where possible, outgoing submaps are unloaded/saved as required, incoming submaps are loaded, and bubble-local indexes are translated by the opposite map-square offset:
 
@@ -339,19 +384,75 @@ Own persistent 12×12 tile layers and submap-local metadata. Expose controlled m
 
 Own/load/save submaps by absolute submap position. Hide disk packing/compression. Permit deterministic in-memory implementation for tests.
 
-### ActiveMap
+### ActiveRegionManager
 
-Own the reality-bubble window, absolute origin, loaded-submap references, bubble/absolute conversion, shifting, tile queries/mutations and cache invalidation.
+World/server-owned service that derives and maintains the union of active absolute regions from all player footprints and server simulation leases. Own activation/deactivation transitions, loaded-submap leases, active-only cache lifecycle, and coordination of background catch-up. It must never duplicate authoritative state for overlapping interests.
+
+### PlayerSpatialProjection
+
+Own per-player conversion from absolute authoritative coordinates into player-relative/local view coordinates where useful. Bubble-local coordinates are presentation/query conveniences only; they never own simulation state.
+
+### ActiveMapView
+
+Optional bounded view over a portion of the world-owned active set for algorithms that benefit from CDDA-like local indexing. It references authoritative submaps and cannot create an independent copy of overlapping world state.
 
 ### SpatialCaches
 
 Own per-z derived transparency/light/outside/floor/pathfinding/vehicle/visibility data. Caches are disposable and reconstructible.
 
-### SpatialQuery
+### AuthoritativeSpatialIndex and SpatialQuery
 
-Expose passability, movement cost, LOS, transparency, occupancy and neighborhood/radius queries to combat, AI, activities and UI.
+The server owns spatial indexes keyed by authoritative absolute integer/grid coordinates. They cover **all currently active regions**, including multiple separated regions, and support entity-at-coordinate, blockers, region/radius queries, spawn/move/despawn, and player/AI queries without ECS-wide scans. Position mutation and index mutation are one atomic authoritative operation as required by #58.
+
+Indexes may be partitioned by submap/chunk/region internally, but a query crossing a partition or overlap boundary observes one coherent world. Overlapping player interests do not create duplicate index entries.
+
+`SpatialQuery` exposes passability, movement cost, LOS, transparency, occupancy and neighborhood/radius queries to combat, AI, activities and projection code.
 
 This decomposition preserves behavior while avoiding a direct port of the large CDDA `map` class.
+
+## Per-player FOV, knowledge and remembered-map projection
+
+CDDA's LOS/transparency/light rules remain simulation evidence, but OctoGhast evaluates and projects them per player.
+
+For each connected player, the authoritative server maintains or derives:
+
+- current FOV/visibility from that player's authoritative position, senses, lighting and world state;
+- player-specific knowledge/discovery state that is not shared merely because another player can see the same tile/entity;
+- remembered-map state representing what that player previously knew, including the last-known representation required by the UI contract;
+- an interest/replication set constrained by active-region membership **and** that player's visibility/knowledge permissions.
+
+A player entering an area cannot receive another player's hidden FOV, unexplored map knowledge, unseen creatures/items, or private remembered-map updates unless a separate gameplay rule explicitly shares that information. Remembered map data may be persisted per player; it is not authoritative current world state.
+
+Replication must distinguish at least: currently visible authoritative state, known-but-not-currently-visible remembered state, and unknown state. Server events with spatial content are filtered/projected under the same player-specific interest rules rather than broadcast merely because recipients occupy the same active region.
+
+## Replication and interest-management contract
+
+Active simulation coverage is a server concern; replication coverage is per connection. The server may simulate world state that no particular client is entitled to receive.
+
+Each authoritative tick/snapshot boundary must:
+
+1. accept validated player intents independently of render frame rate;
+2. resolve simulation against the world-owned active set;
+3. update authoritative spatial indexes;
+4. compute each connection's interest set from its player identity, spatial relevance, FOV/knowledge and protocol policy;
+5. emit only permitted snapshots/deltas/events with stable entity identifiers and authoritative integer positions.
+
+When two players' interests overlap, shared visible entities refer to the same authoritative entity/state revision. Replication may send separate per-client encodings, but it must not imply two simulation instances. When players are separated, no ECS-wide scan is required to build either interest set.
+
+## Authoritative grid coordinates versus Godot 2D presentation
+
+All gameplay authority uses typed integer/grid coordinates described above. Terrain occupancy, collision, LOS, range, pathfinding, FOV, persistence, activation and replication identity are resolved from those coordinates.
+
+Godot 2D transforms are client presentation state only:
+
+- clients map authoritative grid coordinates to render-space transforms;
+- interpolation may visually move a sprite between the previous and latest authoritative positions;
+- interpolation/animation never creates intermediate authoritative occupancy and cannot alter collision, LOS, range or activation;
+- client floating-point transforms are never sent back as authoritative positions;
+- intents identify discrete actions/targets using protocol-safe grid coordinates or stable entity IDs;
+- correction/reconciliation snaps or re-interpolates presentation toward the latest server state without rewriting server history.
+
+Thus a creature may be rendered halfway between tiles while the server still authoritatively occupies exactly one integer tile.
 
 ## State and invariants
 
@@ -371,6 +472,15 @@ The implementation must maintain these invariants:
 12. Out-of-bounds queries cannot alias valid storage.
 13. Actor/vehicle occupancy indexes agree with their owners' absolute positions.
 14. A save/load round trip cannot change map query results except intentionally time-dependent actualization.
+15. Active spatial state is owned by the server/world, not by any player or connection.
+16. The active set is the union of all player/server-required regions; separated regions are supported.
+17. Every absolute tile/submap/entity is simulated at most once per authoritative step regardless of overlapping player interests.
+18. Activation/deactivation is reference/coverage driven; entering an already-active overlap cannot trigger duplicate actualization or catch-up.
+19. Background catch-up uses authoritative world chronology and completes before a reactivated region is exposed as current.
+20. Authoritative spatial indexes cover all active regions and never require an ECS-wide scan for normal coordinate/region queries.
+21. FOV, knowledge and remembered-map state are player-specific projections and cannot leak between players by virtue of shared region activation.
+22. Replication interest is per player/connection and is not identical to the global active simulation set.
+23. Authoritative positions are typed integer/grid coordinates; Godot transforms/interpolation are non-authoritative presentation only.
 
 ## Failure and edge behavior
 
@@ -432,6 +542,20 @@ Failures must be deterministic and diagnosable. Debug logging may differ from CD
 19. **Outgoing/incoming shift** — edits in an outgoing submap persist and reappear when shifted back.
 20. **Derived rebuild** — discard all caches before reload and prove public movement/LOS/occupancy results match pre-save values.
 
+### Multiplayer active-region and projection adaptation
+
+21. **Separated players** — connect players A and B farther apart than two default active footprints. Assert two disjoint regions are active simultaneously; actors/environment in both advance under the same server chronology; authoritative spatial queries find entities in either region without ECS-wide scanning; neither player's movement shifts or unloads the other's region.
+
+22. **Overlapping regions simulated once** — place A and B so their required footprints overlap around a deterministic counter/effect/actor. Advance N authoritative ticks. Assert the overlapped state advances exactly N times, not 2N; both players reference the same entity IDs/state revisions; moving B into/out of overlap neither clones state nor causes activation catch-up while A keeps it active.
+
+23. **Visibility and knowledge isolation** — give A LOS to a creature/tile mutation that B cannot currently see, while both occupy the same active simulation region. Assert A receives current state; B receives no hidden current state/event and does not gain map discovery/knowledge. After B later gains LOS, B receives the then-current authoritative state. After LOS is lost, each player's remembered-map projection reflects only that player's own prior observations unless an explicit sharing rule is invoked.
+
+24. **Activation/background transition** — A is the sole coverage for region R, leaves until R deactivates, authoritative world time advances, then B enters R. Assert R is loaded once, catch-up from its recorded last-processed chronology is applied once before B's first current projection, active indexes are rebuilt consistently, and no stale pre-catch-up snapshot is replicated.
+
+25. **Coverage handoff without deactivation** — while A covers R, B enters R; A then leaves while B remains. Assert R never deactivates, persists one authoritative state/index, receives no background catch-up, and continues exactly-once active simulation.
+
+26. **Presentation-coordinate isolation** — server places an entity at authoritative integer tile P and replicates P. A Godot client interpolates its visual transform toward P from a previous tile. Assert server occupancy/LOS/range queries use P throughout and no fractional/client transform can mutate authoritative position.
+
 ## Dependency and sequencing notes
 
 This spec depends on #83 for stable IDs/registries and #66 for global turn semantics. Implementation should precede or provide the substrate for:
@@ -477,6 +601,11 @@ The #77 spec is satisfied when an OctoGhast implementation can demonstrate:
 - whole-submap bubble shifting without changing absolute identity;
 - checked vertical-level behavior;
 - save/load round-trip preservation of local-map state;
-- the 20 black-box scenarios above as automated tests or equivalent stronger coverage.
+- the 26 black-box scenarios above as automated tests or equivalent stronger coverage;
+- server/world-owned active-region union semantics for separated and overlapping players;
+- activation/deactivation with chronology-based background catch-up and no duplicate actualization;
+- authoritative spatial indexing across all active regions without ECS-wide scans;
+- per-player FOV, knowledge, remembered-map and replication-interest isolation;
+- authoritative integer/grid coordinates kept strictly separate from Godot 2D transforms/interpolation.
 
 At that point dependent systems can implement against OctoGhast spatial interfaces without rediscovering CDDA's local-map semantics.
