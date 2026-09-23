@@ -3,7 +3,7 @@
 **Tracking issue:** #82  
 **Parent:** #65  
 **Reference baseline:** `LambdaSix/Cataclysm-DDA@e262adb299a7613b4aedc5f12c08fe0413c56a84`  
-**Status:** investigation/specification complete; implementation not started
+**Status:** investigation/specification and real-time/co-op architecture review complete; implementation not started
 
 ## 1. Purpose and parity boundary
 
@@ -85,7 +85,7 @@ Reactivation scans inactive recurring EOCs. When their deactivate condition beco
 
 A newly created Character queues applicable recurring EOCs. Existing saves reconcile definitions with saved active/inactive state: invalid/removed IDs disappear, global/local ownership changes are reconciled, and newly introduced recurring definitions are scheduled.
 
-Global recurring EOCs are processed on the avatar turn. Non-global recurring EOCs are Character-owned. A global EOC with `run_for_npcs` evaluates the same rule separately for NPCs using NPC talkers.
+At the pinned CDDA baseline, global recurring EOCs are processed on the avatar turn and non-global recurring EOCs are Character-owned; a global EOC with `run_for_npcs` evaluates the same rule separately for NPCs using NPC talkers. **OctoGhast adaptation:** the lifecycle/content semantics are preserved, but no authoritative scheduling path is owned by a privileged avatar. Global recurring EOCs are world-owned scheduler jobs; actor-owned recurring EOCs are keyed by stable authoritative actor identity. `run_for_npcs` expands into deterministic actor-scoped invocations selected by the server, and player-controlled Characters participate by the same Character/talker rules as other eligible actors.
 
 ### EVENT
 
@@ -231,17 +231,20 @@ Actor resolution failure must not prevent non-actor payload conditions from runn
 
 ## 11. Scheduling and time semantics
 
-Scheduling is expressed in game-time durations and absolute due times using the time model from Spec 01.
+Scheduling is expressed in game-time durations and absolute due times using the authoritative canonical simulation-time model from Spec 01. CDDA's game-time recurrence/duration rules remain the rules baseline; OctoGhast changes only the scheduling owner and progression context. The server advances canonical time continuously at fixed simulation steps independent of render/network frame rate, and EOC due checks occur at deterministic simulation boundaries rather than on a local player's turn.
 
 Required properties:
 
 - due when `due_time <= current_time`;
-- stable deterministic ordering is required for jobs with equal due time (define insertion sequence as OctoGhast's tie-breaker);
+- stable deterministic ordering is required for jobs with equal due time; the authoritative scheduler assigns a persisted monotonic schedule sequence/order key at enqueue time, and equal-due work orders by that key rather than connection arrival, container iteration or client identity;
 - recurrence is re-evaluated when scheduling the next occurrence;
-- next due time is based on current processing time plus evaluated recurrence;
+- next due time is based on the canonical processing time plus evaluated recurrence; host wall-clock delay or render lag never changes the logical due time;
 - context captured for a queued EOC survives until execution;
 - reentrant EOC execution may enqueue additional EOCs without corrupting the queue iteration;
-- newly requeued recurring work must not be lost during nested processing.
+- newly requeued recurring work must not be lost during nested processing;
+- when a fixed step advances across multiple due times, all due EOCs are drained in deterministic due-time/order-key order at that canonical boundary; catch-up must not skip a recurrence merely because no player input occurred;
+- an EOC executes at most once for each authoritative scheduled occurrence, even when several players observe or overlap the affected region;
+- client requests may cause authoritative EOC activation only after normal server admission/order assignment; clients never advance, dequeue or execute authoritative EOCs locally.
 
 A zero/negative recurrence can create pathological same-turn loops. The loader/runtime must match pinned accepted data where possible while retaining the global recursion/work budget safety mechanism.
 
@@ -251,6 +254,7 @@ Persistence is shared with Spec 20.
 
 Durable state includes:
 
+- canonical due times plus scheduler order keys needed to preserve deterministic pending-work order;
 - global variable map;
 - actor-owned dialogue values;
 - per-Character queued EOCs: ID, due time and captured context;
@@ -261,7 +265,9 @@ EOC definitions themselves come from loaded content and are referenced by stable
 
 On load, reconcile saved IDs against the current pinned/content registry. Removed invalid EOCs are discarded diagnostically. Newly added recurring EOCs are scheduled. Ownership changes between global/local queues are reconciled as described in section 4.
 
-Round-trip tests must prove no change in due time, context value types, inactive state, or variable scopes.
+Round-trip tests must prove no change in due time, deterministic queue order, context value types, inactive state, or variable scopes. Scheduled EOCs remain world/actor state across disconnect: a connection disappearing neither cancels nor pauses them. Reconnect creates a new transport session and projection only; it does not create a new player variable namespace or duplicate queued work. Stable `PlayerId`/`CharacterId` ownership comes from Spec 20, never socket/session identity.
+
+For OctoGhast, **global** variables are world-scoped and shared by all actors by definition. **Actor/talker** variables are stored on the authoritative entity identified by stable entity/Character ID. **Context** variables remain invocation-local or captured queue context. Any product-level "player-scoped" variable that is not a CDDA actor variable must be explicitly keyed by stable `PlayerId` in the owning system; it must not be silently mapped to global scope or connection identity.
 
 ## 13. Host integration points
 
@@ -272,13 +278,12 @@ The EOC runtime must expose explicit host APIs rather than letting feature syste
 - `publishEvent(event, optionalAlpha, optionalBeta)`
 - `processDue(character)`
 - `reactivate(character/global)`
-- `runAvatarDeath()`
-- `runNpcDeath(npc)`
-- `runPreventDeath()`
+- `runDeathHooks(actor, actorKind)`
+- `runPreventDeath(actor)`
 
 Items, recipes, mutations, bionics, activities, attacks/deaths, mapgen updates and later feature specs bind to these APIs. Inline EOC loading should return a registry ID so callers do not own compiled rule objects.
 
-Mapgen-update and world-mutating effects must route through the local-map/world APIs from Specs 12/13; the scripting runtime is orchestration, not a second world model.
+Mapgen-update and world-mutating effects must route through the local-map/world APIs from Specs 12/13; the scripting runtime is orchestration, not a second world model. These host APIs are server-internal authoritative operations. A client may request an action whose accepted resolution invokes an EOC, but it never receives a mutable invocation frame or permission to apply EOC effects directly.
 
 ## 14. Error and diagnostic behavior
 
@@ -291,6 +296,20 @@ Separate three classes:
 **Runtime errors:** invalid dynamic conversion, unavailable required runtime object, expression runtime error, recursion/work-budget breach. Report EOC ID, operator/expression and call stack. The engine must return to a valid state; partial effects already executed are not automatically transactional unless the specific upstream operation is transactional.
 
 Debug tracing should record at least EOC ID, whether the true branch activated, elapsed runtime and nesting depth. This mirrors useful baseline observability without requiring identical UI.
+
+## 14A. Authoritative multiplayer execution and projection
+
+This section is an **intentional OctoGhast adaptation**, not a claim about upstream CDDA multiplayer behavior.
+
+The authoritative server is the sole executor of EOC conditions, effects, variable mutation, RNG consumption, scheduling and world mutation in both one-player and cooperative operation. Clients may predict presentation, but predicted EOC results are never authoritative and cannot commit variables, inventory/map state, actor effects, event publication or follow-up schedules.
+
+Talker resolution is invocation-scoped. Alpha/beta mean the actors bound by the triggering rule/event, not "the local player" and "the NPC". Any player-controlled Character can occupy either role where the pinned operator permits a Character talker. Actor IDs in event payloads resolve through the authoritative identity map at execution time. Missing/despawned actors use the pinned missing-talker fallback; the runtime MUST NOT substitute whichever player happens to be local/connected.
+
+Each invocation owns an isolated context map. Concurrent invocations for Players A and B cannot see or overwrite one another's context values unless both intentionally address the same global or authoritative entity-scoped variable. Mutations of shared state are serialized by the deterministic server execution order; later invocations observe earlier committed mutations.
+
+EOC output is separated into **authoritative results** and **client projection**. State changes first mutate server state. Messages/events then carry an explicit audience derived from their semantic source: owner/private actor, addressed participants, party/team where a later domain rule explicitly permits it, spatial/world-visible observers satisfying interest/visibility rules, or global broadcast for genuinely global announcements. The server MUST NOT broadcast invocation context, hidden variable values, unseen actor state or internal EOC traces merely because an EOC executed. Per-client DTOs/events contain only the minimum player-visible result; ECS/talker internals remain server-only. Debug/admin tracing is a separate privileged channel.
+
+A single authoritative event/EOC may therefore produce different projections for different clients. Projection filtering does not change whether the EOC ran, its RNG consumption, its effects, or its schedule. Joining/reconnecting clients receive current permitted authoritative state plus durable player knowledge; they do not replay private messages that were never defined as durable history.
 
 ## 15. Determinism and ordering
 
@@ -337,7 +356,7 @@ The implementation is conformant when automated tests demonstrate all of the fol
 7. Seeded random expressions are deterministic and short-circuited branches do not consume RNG.
 8. Recurring EOCs fire at due time, recompute recurrence, preserve queued context, deactivate when required, and reactivate when the deactivate condition becomes false.
 9. New-character and existing-save reconciliation adds new recurring definitions and removes/re-homes invalid or ownership-changed entries.
-10. Global recurring EOCs process on the avatar time path; `run_for_npcs` separately evaluates NPC frames.
+10. Global recurring EOCs preserve pinned recurrence semantics while running as world-owned authoritative scheduled work with no privileged-avatar dependency; `run_for_npcs` separately evaluates eligible NPC frames in deterministic actor order.
 11. EVENT EOCs receive the exact required event only, payload fields appear in context with correct types, explicit talkers are preserved, and actor IDs resolve where supported.
 12. Actor-resolution failure still permits payload-only EVENT EOCs to run.
 13. Character/NPC/monster/item/vehicle/furniture/zone/topic talkers pass representative supported queries/effects and return safe baseline-compatible fallbacks for unsupported capabilities.
@@ -347,12 +366,26 @@ The implementation is conformant when automated tests demonstrate all of the fol
 17. Invalid referenced EOC IDs are reported by post-load consistency validation.
 18. At least one end-to-end fixture drives each major host family: item use, mutation/bionic hook, activity completion, attack/death, event payload, NPC dialogue, and map/world mutation.
 19. Differential fixtures against the pinned CDDA executable/content produce equivalent externally observable state for the representative scenarios above.
+20. Two simultaneous player-controlled Characters trigger the same EOC family with distinct alpha/beta bindings and context; each invocation resolves its own actors/context, and neither inherits a privileged/local avatar.
+21. Two player invocations use the same context-variable names concurrently; context writes remain isolated, while deliberate writes to one shared global variable serialize in deterministic authoritative order.
+22. A scheduled recurring EOC becomes due while no controlling player submits input. Advancing canonical simulation time alone fires it at the deterministic simulation boundary and schedules its next recurrence from canonical processing time.
+23. Advance one fixed step across several overdue EOCs with equal and unequal due times. Assert deterministic due-time/order-key execution, exactly-once processing, stable RNG consumption and identical results after replay/save-load.
+24. Two players have overlapping interest in an actor/world effect caused by one EOC. Assert the server executes the EOC once; each client receives only its permitted projection, with no duplicate world mutation.
+25. An EOC emits an owner-private message, a participant-visible interaction event and a spatially visible world event. Assert only the intended clients receive each result and no invocation context/hidden variable store is leaked.
+26. Disconnect a player whose Character owns queued EOCs and actor variables, advance canonical time, save/reload, then reconnect through a new session. Assert the same stable actor/player identity, variables and schedule continue without pause, duplication or socket identity in persistence.
+27. Queue a global EOC and actor-owned EOCs, save before equal-time execution, reload and advance. Assert due times and persisted order keys reproduce the uninterrupted authoritative execution order.
+28. Deliver an EVENT payload naming Player A's Character while Player B is also connected. Assert actor resolution binds A by stable authoritative ID; failure to resolve A never substitutes B, while payload-only conditions retain pinned missing-talker behavior.
+29. Compare one-player in-process transport and network/co-op execution for the same admitted EOC-triggering command/event trace. Assert identical authoritative EOC state, RNG/schedule results and only transport-appropriate projection differences.
 
 ## 18. Non-goals and decisions deferred to dependent specs
 
 This spec does not enumerate every individual CDDA condition/effect operator. The implementation must inventory and port the operators needed by the pinned core-data/mod compatibility target; that operator coverage matrix belongs beside implementation/conformance work and should be generated from pinned JSON plus the condition/effect registries.
 
 NPC conversation UI belongs to Spec 11/21. Event producers belong to their domain systems. Mapgen semantics belong to Spec 13. This spec owns the common invocation/evaluation contract those systems call.
+
+## 18A. Architecture-review decision summary
+
+The pinned-CDDA investigation above remains evidence for EOC definitions, lifecycle, talker capabilities, variable semantics, expression behavior and recurrence rules. OctoGhast deliberately adapts only execution context: canonical continuous server time replaces avatar-turn scheduling; stable world/actor identities replace local-avatar/session assumptions; the server exclusively owns side effects/RNG/schedules; and results cross the client boundary only through audience-filtered projections. These adaptations do not redefine CDDA condition/effect semantics.
 
 ## 19. Definition of done for #82
 
@@ -366,6 +399,7 @@ NPC conversation UI belongs to Spec 11/21. Event producers belong to their domai
 - event payload and actor propagation;
 - persistence/reconciliation behavior;
 - failure/diagnostic expectations; and
-- black-box parity fixtures.
+- black-box parity fixtures; and
+- the authoritative real-time/co-op scheduling, talker isolation, persistence and audience/projection contract plus scenarios 20–29 above.
 
 Implementation completion is separate from specification completion.
