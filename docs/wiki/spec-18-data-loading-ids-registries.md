@@ -1,0 +1,582 @@
+# Spec 18 — Data loading, typed IDs, registries, JSON inheritance and validation
+
+Status: investigation complete / implementation specification  
+Parent: [#65](https://github.com/LambdaSix/OctoGhast/issues/65)  
+Ticket: [#83](https://github.com/LambdaSix/OctoGhast/issues/83)  
+Reference implementation: `LambdaSix/Cataclysm-DDA`  
+Pinned parity baseline: `e262adb299a7613b4aedc5f12c08fe0413c56a84`
+
+## Purpose
+
+This page defines the foundational OctoGhast contract for loading Cataclysm:DDA-style declarative content into runtime definitions. It is intentionally about externally observable data semantics, not a requirement to reproduce CDDA's C++ class layout.
+
+The contract covers JSON type dispatch, typed IDs, registries, `copy-from`, abstract definitions, mutation operators, load ordering, deferred resolution, finalization, consistency checks, duplicate/override behavior, diagnostics, migrations, and mod precedence.
+
+## Authoritative evidence at the pinned baseline
+
+The main evidence inspected for this specification is:
+
+- `src/init.cpp`: `DynamicDataLoader`, type dispatch, path loading, deferred loading, ordered finalization and consistency verification.
+- `src/generic_factory.h`: registry behavior, inheritance, abstract definitions, duplicate replacement, string/int ID conversion, cache invalidation, mandatory/optional member loading, and mutation operators.
+- `src/string_id.h` and `src/int_id.h`: stable string identity versus session-local integer identity.
+- `src/type_id.h`: concrete typed-ID aliases used across game domains.
+- `src/mod_manager.cpp`: mod metadata, dependencies, mod migrations/removals and active mod order.
+- `tests/generic_factory_test.cpp`: registry validity, overwrite behavior, reset invalidation, null IDs and cached ID behavior.
+- `tests/json_test.cpp`: JSON deserialization and diagnostic behavior.
+
+All source links below are pinned to the baseline commit so later upstream changes do not silently alter this contract.
+
+## 1. Loader architecture
+
+### 1.1 Input shape
+
+A content file may contain either:
+
+1. one JSON object, or
+2. an array of JSON objects.
+
+Any other top-level JSON value is an error.
+
+Every content object handled by the dynamic loader has a string `type`. The loader looks that type up in a registered handler table. An unknown type is a JSON error at the `type` member.
+
+OctoGhast MUST therefore expose a loader registry equivalent to:
+
+```text
+type string -> content loader
+```
+
+Registration of a second handler for the same type MUST be diagnosed. Implementations may reject duplicate handler registration outright; silently replacing a handler is not parity-compatible.
+
+### 1.2 Loading phases
+
+The observable phase model is:
+
+```text
+register loaders
+    ↓
+load core/content paths
+    ↓
+load active mods in resolved order
+    ↓
+load applicable mod-interaction content
+    ↓
+resolve deferred definitions during registry finalization
+    ↓
+ordered finalization / cross-link construction
+    ↓
+global consistency verification
+    ↓
+runtime use
+```
+
+Once global finalization has completed, additional content loading is not permitted without unloading/resetting the data model first.
+
+OctoGhast SHOULD model this as an explicit loader state machine rather than a loose set of booleans:
+
+```text
+Empty -> Loading -> Finalizing -> Validated
+  ^                                |
+  +------------- Reset ------------+
+```
+
+Calls that violate the state machine MUST fail deterministically.
+
+### 1.3 File ordering versus semantic ordering
+
+CDDA recursively enumerates JSON files and dispatches objects as encountered, but the semantic contract must not depend on arbitrary filesystem enumeration for references that are designed to be deferred.
+
+A loaded content folder is expected to be internally consistent with itself and all previously loaded folders. Later mods may depend on earlier content; earlier content must not depend on a later mod.
+
+OctoGhast MUST preserve **content-source order** (core, then active mods in dependency/load order), while allowing same-registry `copy-from` dependencies to be deferred until their base exists.
+
+## 2. Typed IDs and identity
+
+### 2.1 String IDs are the durable identity
+
+A `string_id<T>` is a string identifier parameterized by domain type. IDs from different domains are not interchangeable even when their text is identical.
+
+Required OctoGhast properties:
+
+- equality is type-safe;
+- the serialized/persistent identity is the string form;
+- string IDs may survive reload/reset cycles;
+- lookup of a missing ID is distinguishable from a valid ID;
+- lookup failure is diagnosable;
+- IDs are suitable for cross-reference fields before finalization.
+
+A practical C# shape is a strongly typed value object or generic wrapper rather than passing raw strings throughout the runtime.
+
+### 2.2 Integer IDs are session-local indexes
+
+CDDA's `int_id<T>` is an efficient index into a finalized registry. Its meaning depends on the currently loaded content/mod set and therefore cannot safely persist across reloads.
+
+OctoGhast MUST NOT serialize registry indexes as durable identity.
+
+If OctoGhast introduces compact numeric IDs, they are caches only. They MUST be invalidated when a registry is reset or structurally mutated.
+
+### 2.3 Registry generations
+
+CDDA's generic factory maintains a modification/version count. A `string_id` can cache its resolved integer index together with that version. Any insertion or reset advances the version, invalidating previous cached hits **and cached misses**.
+
+Parity requirement: a lookup that was missing before an insertion must be able to become valid immediately after insertion. Negative-result caching must therefore participate in registry generation invalidation.
+
+### 2.4 Invalid lookup
+
+A missing string ID:
+
+- reports invalid from validity checks;
+- converts to a caller-provided null integer ID when requested;
+- emits a diagnostic when object access/conversion is requested in warning mode;
+- must not accidentally resolve to another object.
+
+OctoGhast MAY use exceptions, diagnostics plus a sentinel, or a Result type internally, but conformance tests must verify the same observable distinction between valid, null and missing references.
+
+## 3. Registry semantics
+
+A registry stores one runtime definition per typed string ID and supports:
+
+- insert/load;
+- string ID lookup;
+- optional compact-ID lookup;
+- validity checks;
+- iteration over all real definitions;
+- reset;
+- finalization;
+- consistency checking.
+
+### 3.1 Duplicate IDs and override behavior
+
+In `generic_factory::insert`, loading an object whose ID already exists replaces the existing object **in the same registry slot**. It does not append a second definition.
+
+Before replacement CDDA calls its duplicate-entry tracking logic, so source provenance can decide whether a diagnostic is appropriate.
+
+OctoGhast contract:
+
+- the latest permitted definition for an ID is the effective definition;
+- overriding must preserve one logical registry identity;
+- provenance (source/core/mod/file where practical) MUST be retained;
+- suspicious duplicates MUST be diagnosable;
+- replacement MUST invalidate cached resolutions.
+
+This replacement behavior is what makes later content/mod layers able to override earlier definitions.
+
+### 3.2 Abstract definitions
+
+A generic-factory JSON definition may use `abstract` instead of `id`.
+
+Abstract definitions:
+
+- can be targets of `copy-from`;
+- are held separately from real runtime definitions;
+- are not returned as ordinary real registry entries;
+- are cleared after factory finalization;
+- cannot specify both `abstract` and the registry's real ID member.
+
+Specifying both is an error.
+
+### 3.3 Multiple IDs
+
+A generic factory can accept an ID member that is either a string or an array. With an array, the definition is loaded once per listed ID into distinct real registry identities.
+
+## 4. `copy-from` inheritance
+
+### 4.1 Base lookup
+
+When a definition contains:
+
+```json
+{ "id": "child", "copy-from": "base" }
+```
+
+the loader resolves `base` first against real definitions, then against abstract definitions in the same registry/domain.
+
+If found, the base object becomes the initial state of the child before the child's members and mutation operators are applied.
+
+Types may provide specialized inheritance handling; otherwise ordinary value copying is used.
+
+### 4.2 Deferred inheritance
+
+If the requested base does not yet exist, the object is deferred rather than immediately rejected.
+
+During factory finalization, deferred JSON is retried. Retry continues while progress is made.
+
+If a complete retry pass resolves nothing, the remaining objects form an unresolved/circular dependency set. Each is diagnosed as a circular dependency and discarded.
+
+OctoGhast MUST implement equivalent fixed-point behavior:
+
+```text
+pending = unresolved definitions
+repeat:
+    resolved_this_pass = 0
+    retry every pending definition
+    remove successful definitions
+until pending empty OR resolved_this_pass == 0
+if pending remains:
+    diagnose every remaining definition as unresolved/circular
+```
+
+The diagnostic SHOULD distinguish "base never existed" from a true cycle where possible, but both must fail deterministically.
+
+## 5. Member loading and inheritance mutation
+
+CDDA's generic member loaders use a `was_loaded` concept: after `copy-from`, the child starts with inherited values. Missing members therefore retain inherited values rather than receiving new defaults.
+
+### 5.1 Direct member value has precedence
+
+For an optional member, the effective precedence is:
+
+1. if the normal member is present, read it as a replacement;
+2. otherwise, if supported and present, apply `proportional`;
+3. otherwise, if supported and present, apply `relative`;
+4. if this is not inherited and none of the above supplied a value, apply the declared/default value;
+5. after that, apply `extend`;
+6. after that, apply `delete`.
+
+Thus a direct member suppresses `relative` and `proportional` for that member, while `extend` and `delete` are still processed afterwards by the generic optional loader.
+
+### 5.2 `relative`
+
+Example:
+
+```json
+{
+  "id": "child",
+  "copy-from": "base",
+  "relative": { "weight": 5 }
+}
+```
+
+For supported values, the relative value is added to the inherited value.
+
+Conceptually:
+
+```text
+child.weight = base.weight + 5
+```
+
+Relative mutation is only valid for member types that support the required additive operation or a specialized reader. Unsupported use is diagnosed.
+
+### 5.3 `proportional`
+
+Example:
+
+```json
+{
+  "id": "child",
+  "copy-from": "base",
+  "proportional": { "weight": 1.5 }
+}
+```
+
+For ordinary supported numeric/unit-like values:
+
+```text
+child.weight = base.weight * 1.5
+```
+
+The generic implementation requires a numeric scalar greater than zero and rejects `1` as an invalid/no-op scalar. Types may provide specialized proportional handling.
+
+Unsupported proportional use is diagnosed.
+
+### 5.4 `extend`
+
+`extend` mutates an inherited container/member after ordinary loading. Generic typed readers add the specified values to the inherited collection; specialized types may provide their own extension behavior.
+
+Example:
+
+```json
+{
+  "id": "child",
+  "copy-from": "base",
+  "extend": { "flags": [ "EXTRA_FLAG" ] }
+}
+```
+
+The resulting collection contains the inherited entries plus the extension, subject to the collection's duplicate rules.
+
+### 5.5 `delete`
+
+`delete` is processed after `extend` and removes requested entries from the resulting collection/member.
+
+Example:
+
+```json
+{
+  "id": "child",
+  "copy-from": "base",
+  "delete": { "flags": [ "OLD_FLAG" ] }
+}
+```
+
+Attempting to delete a value that is not present is diagnosable in the generic handlers.
+
+### 5.6 Mutation without inheritance
+
+For generic optional members, using `relative`, `proportional`, `extend` or `delete` when the object has no inherited base is diagnosed as "no copy-from" usage. OctoGhast SHOULD reject or warn consistently rather than silently treating these as ordinary assignment syntax.
+
+### 5.7 Mandatory members
+
+Generic mandatory members do not accept the four inheritance mutation features. Missing mandatory data is an error for a fresh object. For an inherited object, a missing mandatory member is permitted because the base has already supplied it.
+
+## 6. Mod and core precedence
+
+The world stores an explicit active mod order. Mod metadata includes dependencies and conflicts, and the dependency tree is built from declared dependencies.
+
+The content loading rule to preserve is:
+
+- core/base content is loaded before dependent mod content;
+- active mods are loaded in resolved world order;
+- later definitions can replace earlier registry definitions with the same ID;
+- a mod may depend on content from earlier/core sources;
+- earlier sources must not depend on later mods;
+- mod-interaction files are conditional on the associated mod being active.
+
+OctoGhast MUST expose source provenance at least as:
+
+```text
+source id (core/mod)
+file or logical resource
+load-order position
+```
+
+This is necessary both for diagnostics and for future mod-compatibility work.
+
+## 7. Finalization and cross-reference resolution
+
+Parsing is not the end of loading. CDDA has an explicit ordered finalization list spanning flags, body parts, items, requirements, vehicle parts, terrain, overmap data, recipes, monsters, factions, professions, mutations and many other domains.
+
+Important consequences:
+
+1. a definition may be syntactically loaded before all referenced definitions are finalized;
+2. derived caches and compact IDs are constructed during finalization;
+3. finalization order is a dependency contract;
+4. consistency checking occurs after finalization unless verification is explicitly skipped.
+
+OctoGhast SHOULD represent finalizers as named dependency-aware stages rather than one monolithic method. The minimum API should support:
+
+```text
+Load -> ResolveDeferred -> Finalize(stage order) -> Validate
+```
+
+Cross-registry references SHOULD remain typed string IDs during parse and resolve to runtime handles/indexes only when the referenced registry is ready.
+
+A missing cross-reference discovered during finalization/validation MUST produce a source-aware diagnostic.
+
+## 8. Validation and diagnostics
+
+### 8.1 JSON structure diagnostics
+
+Required failures include:
+
+- top-level value is neither object nor array;
+- content object has no recognized `type`;
+- required member missing;
+- member exists but has an invalid JSON type/value;
+- real ID and `abstract` both supplied;
+- unsupported inheritance mutation;
+- invalid proportional scalar;
+- unresolved/circular `copy-from`;
+- invalid cross-reference discovered during finalization/checking.
+
+Diagnostics SHOULD carry:
+
+- source/mod ID;
+- file/resource path;
+- JSON member where available;
+- content type;
+- content ID/abstract ID where known;
+- actionable message.
+
+### 8.2 Unconsumed members
+
+CDDA's JSON object machinery tracks visited members and reports unvisited members unless the loader explicitly permits omissions. This catches misspelled/unsupported properties.
+
+OctoGhast SHOULD provide equivalent strict-member validation. A loader must explicitly mark intentionally ignored metadata rather than making unknown properties globally permissive.
+
+### 8.3 Duplicate type-handler registration
+
+Registering a second loader for an existing `type` is a diagnostic. This protects the global dispatch contract.
+
+### 8.4 Consistency pass
+
+After ordered finalization, a global consistency pass validates domain-specific invariants and references. OctoGhast MUST retain a distinct validation phase so "parsed successfully" never implies "content graph is valid."
+
+## 9. Migration and obsoletion
+
+Migration is not one universal registry feature in the baseline; multiple domains register explicit migration content types, including examples such as item `MIGRATION`, traits, bionics, proficiencies, fields, terrain/furniture, traps, vehicle parts, effects, spells, overmap terrain and mods.
+
+The foundational loader therefore needs to support migration definitions as first-class content handlers, but migration semantics remain domain-owned.
+
+For mods specifically:
+
+- a `mod_migration` maps an old mod ID to a new ID, or records a removal reason;
+- when a world's active mod list contains a missing ID, the migration may replace it;
+- removed/missing mods require an explicit resolution path rather than silently disappearing.
+
+OctoGhast design rule: the loader provides the mechanism (typed handler, source order, diagnostics); each domain owns the meaning and application of its migration records.
+
+## 10. Recommended OctoGhast interfaces
+
+The following is a behavioral shape, not a required class layout.
+
+```text
+IDataTypeLoader
+  TypeName
+  Load(JsonObject, LoadContext)
+
+IContentRegistry<TDefinition, TId>
+  InsertOrReplace(definition, provenance)
+  TryGet(stringId)
+  IsValid(stringId)
+  Finalize(registryContext)
+  Validate(validationContext)
+  Reset()
+  Generation
+
+ContentLoader
+  Register(type, handler)
+  LoadSource(source)
+  ResolveDeferred()
+  FinalizeAll()
+  ValidateAll()
+  Reset()
+
+LoadContext
+  SourceId
+  ResourcePath
+  LoadOrder
+  Diagnostics
+```
+
+Strongly typed IDs should be cheap value types. Registry indexes/handles should never cross a save-file or reload boundary.
+
+## 11. Conformance fixture suite
+
+The following black-box tests are required before #83 can be considered implemented.
+
+| ID | Fixture | Expected result |
+|---|---|---|
+| DL-01 | top-level object with registered type | handler invoked once |
+| DL-02 | top-level array with two objects | handlers invoked in array order |
+| DL-03 | scalar top-level JSON | load error |
+| DL-04 | unknown `type` | member-localized load error |
+| DL-05 | duplicate type-handler registration | diagnostic/rejection |
+| ID-01 | same text in two typed ID domains | IDs are not interchangeable |
+| ID-02 | missing string ID | invalid; no accidental object |
+| ID-03 | cached miss then insert same ID | subsequent lookup succeeds |
+| ID-04 | compact ID then registry reset | old compact ID is invalid |
+| REG-01 | duplicate real ID later in load order | later definition is effective, one logical entry |
+| REG-02 | reset registry | all prior IDs/handles invalidated |
+| INH-01 | child copies earlier real base | child begins with base values |
+| INH-02 | child copies abstract base | child resolves; abstract is not a real entry |
+| INH-03 | object has both `id` and `abstract` | load error |
+| INH-04 | child appears before base in same load set | deferred child resolves at finalization |
+| INH-05 | A copies B and B copies A | both diagnosed/discarded |
+| INH-06 | child copies nonexistent base | unresolved definition fails deterministically |
+| MUT-01 | inherited scalar + `relative` | inherited value plus delta |
+| MUT-02 | inherited scalar + `proportional` | inherited value multiplied by scalar |
+| MUT-03 | proportional scalar <= 0 | diagnostic/no mutation |
+| MUT-04 | proportional scalar == 1 | diagnostic/no mutation |
+| MUT-05 | inherited collection + `extend` | entries added |
+| MUT-06 | inherited collection + `delete` | entries removed |
+| MUT-07 | same member in `extend` and `delete` | extension occurs first, deletion second |
+| MUT-08 | direct member plus `relative` | direct member wins; relative not applied |
+| MUT-09 | direct member plus `extend` | direct replacement then extension |
+| MUT-10 | mutation syntax without `copy-from` | diagnostic |
+| VAL-01 | missing mandatory fresh member | load error |
+| VAL-02 | inherited object omits mandatory member | inherited value retained |
+| VAL-03 | unknown/unconsumed property | strict-member diagnostic |
+| FIN-01 | cross-reference becomes valid before validation | validation succeeds |
+| FIN-02 | cross-reference remains missing | source-aware validation error |
+| MOD-01 | core ID then mod overrides same ID | mod definition effective |
+| MOD-02 | mod A depends on core/A-earlier content | references resolve |
+| MOD-03 | earlier source references later mod-only content | validation fails |
+| MIG-01 | registered migration content type | migration handler receives record |
+
+### Golden inheritance fixture
+
+A compact fixture should exercise precedence in one definition:
+
+```json
+[
+  {
+    "type": "TEST_DEF",
+    "abstract": "base",
+    "power": 10,
+    "flags": [ "A", "B" ]
+  },
+  {
+    "type": "TEST_DEF",
+    "id": "child",
+    "copy-from": "base",
+    "relative": { "power": 5 },
+    "extend": { "flags": [ "C" ] },
+    "delete": { "flags": [ "B" ] }
+  }
+]
+```
+
+Expected effective child:
+
+```json
+{
+  "id": "child",
+  "power": 15,
+  "flags": [ "A", "C" ]
+}
+```
+
+The test should assert semantics, not collection iteration order unless the domain itself promises ordering.
+
+## 12. Implementation slices
+
+A dependency-friendly implementation sequence is:
+
+1. typed string ID primitives and registry generation semantics;
+2. registry insert/replace/reset/lookup plus provenance;
+3. JSON parser facade with strict member visitation;
+4. global `type` dispatch registry;
+5. abstract + `copy-from` inheritance and deferred fixed-point resolution;
+6. generic optional/mandatory member helpers;
+7. `relative`, `proportional`, `extend`, `delete` mutation support;
+8. explicit loader lifecycle and finalization stages;
+9. cross-registry reference validation;
+10. mod source/dependency/load-order inputs;
+11. migration handler plumbing;
+12. fixture/golden conformance suite above.
+
+## 13. Acceptance criteria mapping for #83
+
+- **Loading phases and ordering guarantees explicit:** sections 1, 6 and 7.
+- **ID type, registry, lookup, invalid/missing ID and lifetime semantics:** sections 2 and 3.
+- **JSON inheritance/mutation operations with precedence examples:** sections 4 and 5.
+- **Deferred resolution/finalization and cross-reference validation:** sections 4.2 and 7.
+- **Duplicate/override/error behavior and diagnostics:** sections 3.1 and 8.
+- **Obsoletion/migration behavior mapped:** section 9.
+- **Mod/core precedence and dependency inputs:** section 6.
+- **Schema/fixture conformance suite:** section 11.
+
+## 14. Findings that constrain later specs
+
+Later feature specs should assume the following shared rules instead of rediscovering them:
+
+- persistent references use typed string IDs, never session-local registry indexes;
+- content may legally reference a same-registry `copy-from` base that is loaded later, provided it resolves by finalization;
+- abstract definitions are inheritance templates, not runtime entities;
+- later permitted definitions replace earlier definitions with the same ID;
+- direct member assignment takes precedence over relative/proportional mutation;
+- extend is applied before delete;
+- finalization and validation are separate from parsing;
+- source/mod provenance is part of the diagnostic contract;
+- a successful parse is not proof of a valid content graph.
+
+## Pinned source links
+
+- [DynamicDataLoader / init.cpp](https://github.com/LambdaSix/Cataclysm-DDA/blob/e262adb299a7613b4aedc5f12c08fe0413c56a84/src/init.cpp)
+- [generic_factory.h](https://github.com/LambdaSix/Cataclysm-DDA/blob/e262adb299a7613b4aedc5f12c08fe0413c56a84/src/generic_factory.h)
+- [string_id.h](https://github.com/LambdaSix/Cataclysm-DDA/blob/e262adb299a7613b4aedc5f12c08fe0413c56a84/src/string_id.h)
+- [int_id.h](https://github.com/LambdaSix/Cataclysm-DDA/blob/e262adb299a7613b4aedc5f12c08fe0413c56a84/src/int_id.h)
+- [type_id.h](https://github.com/LambdaSix/Cataclysm-DDA/blob/e262adb299a7613b4aedc5f12c08fe0413c56a84/src/type_id.h)
+- [mod_manager.cpp](https://github.com/LambdaSix/Cataclysm-DDA/blob/e262adb299a7613b4aedc5f12c08fe0413c56a84/src/mod_manager.cpp)
+- [generic_factory_test.cpp](https://github.com/LambdaSix/Cataclysm-DDA/blob/e262adb299a7613b4aedc5f12c08fe0413c56a84/tests/generic_factory_test.cpp)
+- [json_test.cpp](https://github.com/LambdaSix/Cataclysm-DDA/blob/e262adb299a7613b4aedc5f12c08fe0413c56a84/tests/json_test.cpp)
