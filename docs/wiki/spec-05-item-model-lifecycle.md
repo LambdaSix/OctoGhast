@@ -14,6 +14,16 @@ The detailed algorithms for choosing pockets, ownership/location transitions, pi
 
 Parity is behavioral and data-contract parity. OctoGhast does not need to mirror the C++ class hierarchy, but the same JSON fixtures and equivalent state must produce the same externally observable capabilities and lifecycle results.
 
+### 1.1 Architecture-review boundary
+
+The pinned-CDDA investigation above remains the rules oracle. The real-time/co-op review changes **when and where** those rules are scheduled and **who may mutate/project** item state; it does not replace CDDA item formulas, thresholds, action costs, rot/temperature rules, countdown semantics, stacking rules, or subtype behavior.
+
+OctoGhast therefore distinguishes:
+
+1. **Pinned CDDA rule:** lifecycle calculations and observable item behavior described by this spec.
+2. **OctoGhast scheduling/authority adaptation:** a continuously advancing authoritative server clock, world-owned active regions, background catch-up, server-owned item identity/mutation, deterministic request ordering, and explicit per-client projection.
+3. **Presentation:** Godot may create/destroy/recycle arbitrary client objects for projected items. Those objects have no simulation identity or mutation authority.
+
 ## 2. Authoritative evidence at the pinned baseline
 
 Primary source anchors:
@@ -53,6 +63,10 @@ Each runtime item instance SHALL have a persistent unique identifier equivalent 
 References that must survive relocation or save/load SHALL target stable item identity/location semantics rather than process memory addresses. Exact cross-location reference behavior is specified by #71; serialization requirements are shared with the persistence spec.
 
 Copying an item for gameplay purposes must have explicit identity semantics. A clone that represents a newly created item receives a new UID; deserialization of an existing saved item restores its saved identity. Implementations must prevent accidental identity duplication through ordinary object copying.
+
+The authoritative server owns allocation, lookup, mutation and retirement of `ItemUid`. An ECS entity ID/component address, managed-object reference, socket/session ID, Godot node/resource instance ID, scene path or client-generated token MUST NOT be the persistent item identity. Internal ECS handles may index an item while it is loaded, but any handle that crosses a persistence, transport, unload/reload or client boundary resolves through stable domain identity and current authoritative location/ownership.
+
+Clients never create authoritative item identity by instantiating a presentation object. Creation, split, merge, conversion, destruction and transfer are server mutations; the server returns resulting stable identities/projections as appropriate.
 
 ### 3.3 Contents as composition
 
@@ -120,7 +134,15 @@ An item may be inactive or active. Activation/deactivation is an explicit state 
 
 Active/ticking items SHALL participate in the shared active-item processing mechanism. Processing cadence uses the reference time model, never wall-clock timers. A tick may mutate charges, temperature, rot, countdown, faults, contents or type; invoke an action; emit effects; or destroy/remove the item.
 
-Countdown expiry and periodic processing must be save/load stable: saving and reloading cannot reset a timer or duplicate a one-shot effect. Where unloaded/background simulation catches up elapsed time, observable results must match reference elapsed-time semantics. Active state is serialized instance state.
+For OctoGhast, all lifecycle due-times, countdowns and periodic predicates are evaluated against the canonical authoritative `WorldTime` from #66. The server's fixed simulation ticks are scheduling opportunities; they do not redefine CDDA durations or formulas. A render frame, client clock, network arrival time or local Godot timer cannot advance an item.
+
+While an item's owning world region is active, the server processes due item work exactly once even if several players' active/interest regions overlap. Character-owned or container-nested active items follow the authoritative owner/context scheduling path and likewise cannot be ticked once per observing client.
+
+When an item leaves active simulation, the authoritative state records enough lifecycle timing context (for example last-processed absolute time and any absolute due/wakeup time) to resume correctly. On load/reactivation, background catch-up computes elapsed canonical simulation time and applies the same pinned-CDDA lifecycle rules. Implementations MAY batch or analytically advance periods when that is observationally equivalent; they MUST step through boundaries when ordering, environmental inputs, RNG, transformations, one-shot effects, or interactions make batching non-equivalent. Catch-up ends at the activation boundary before ordinary active processing, preventing both skipped time and double processing.
+
+Background/unloaded state is still authoritative world state. It is not a client approximation and does not freeze merely because no player observes it. If an exact environmental input is unavailable while unloaded, the owning world/environment subsystem must provide the deterministic historical/aggregate input contract required by the pinned item rule; #70 does not substitute a constant client-visible temperature.
+
+Countdown expiry and periodic processing must be save/load stable: saving and reloading cannot reset a timer or duplicate a one-shot effect. Active state and lifecycle scheduling anchors are serialized authoritative instance state.
 
 ## 9. Use, drop and processing extension contracts
 
@@ -148,7 +170,7 @@ Action IDs are data-facing compatibility contracts. Unsupported action IDs must 
 
 Perishable/comestible/corpse state must track the time/temperature inputs required to reproduce freshness and spoilage. The lifecycle supports birthday/age, accumulated rot, temperature state, pocket/container spoilage multipliers, frozen/cold/hot transitions where behaviorally relevant, transformation/removal at thresholds, and elapsed-time catch-up after unloaded periods/save-load.
 
-Exact environmental temperature production belongs to the environment spec; #70 owns applying supplied conditions to item state. Golden tests use fixed timestamps and controlled temperatures.
+Exact environmental temperature production belongs to the environment spec; #70 owns applying supplied conditions to item state. Rot and temperature progression consume authoritative elapsed `WorldTime` plus authoritative environmental history/current conditions; they never consume client/render elapsed time. Active processing and unloaded catch-up must converge on the same observable freshness/temperature state when given equivalent environmental inputs and RNG history. Golden tests use fixed timestamps and controlled temperatures.
 
 ## 12. Stacking, splitting and instance equivalence
 
@@ -167,6 +189,10 @@ Migration may use migration pockets/logic, but normalized runtime items must sat
 Construction/spawn may randomize default charges, faults, snippets, variants or other explicitly random fields. All randomness SHALL flow through the shared seedable RNG service.
 
 Given identical definitions, starting state, time inputs and RNG seed, construction and lifecycle processing must be reproducible. Serialization persists the resulting state rather than re-rolling it during load.
+
+All item mutations occur on deterministic authoritative simulation boundaries. Requests received from multiple players are admitted into the common command pipeline and assigned the server's deterministic ordering key before validation/mutation. A request validates against the latest authoritative item identity, location/owner, quantity and state at its resolution point. If an earlier ordered request moved, consumed, destroyed, merged, split or otherwise invalidated the target, a later request fails/revalidates according to the action contract and MUST NOT mutate a stale client snapshot. Network packet arrival callbacks do not mutate item state asynchronously.
+
+For a fixed initial state and the same ordered command stream, item outcomes and emitted events must be identical independent of transport backend, render rate or which clients observe the item.
 
 ## 15. Failure and edge behavior
 
@@ -188,6 +214,23 @@ A suitable C# design is a deep item module with a small public surface:
 
 Avoid exposing mutable internals or making callers switch on concrete item classes.
 
+### 16.1 Client projection contract
+
+The server projects item state through explicit DTOs/events rather than serializing ECS components or the full `Item` aggregate. The minimum projection is purpose-specific and may contain, when the receiving player is entitled to know it:
+
+- stable opaque item reference/UID suitable for subsequent commands;
+- type/variant and display identity needed to render/name the item;
+- authoritative location/ownership reference only to the precision the client is allowed to know;
+- visible quantity/charges/ammo/energy and condition state needed by the current UI;
+- visible active/countdown/freshness/temperature/fault state where gameplay/UI exposes it;
+- visible nested-content summary or child projections required by inventory/container UI;
+- interaction/capability affordances the client needs to present, without exposing hidden rule data;
+- a projection revision/version or equivalent command precondition token where useful for stale-request detection.
+
+Projection MUST exclude arbitrary ECS component bags, server object references, internal scheduler/index handles, hidden contents, secret variables, undiscovered state and implementation-only caches. The server remains responsible for validating every command even when a client was previously projected an affordance.
+
+World visibility/knowledge from #77 and owner/private/party/world policy from the protocol/player-state specs gate whether an item or field is projected at all. A projected item disappearing from interest does not destroy the authoritative item; a later projection may bind the same `ItemUid` to a completely different Godot presentation object.
+
 ## 17. Acceptance/conformance suite
 
 1. **Generic identity round trip:** two instances have distinct UIDs; save/load preserves one UID/state.
@@ -205,6 +248,15 @@ Avoid exposing mutable internals or making callers switch on concrete item class
 13. **Use-action dispatch:** representative action IDs match validation, costs, mutation and consume/destroy outcomes.
 14. **Subtype matrix:** representative armor, gun, ammo, magazine, tool, comestible, book, bionic, seed/brewable, corpse and relic/artifact fixtures expose expected capabilities.
 15. **Deterministic spawn:** randomized charges/faults/variants under fixed seed produce matching complete state.
+16. **Authoritative active cadence:** run a representative active/countdown item under canonical server time at different render/network frame rates; identical authoritative tick history produces identical item state and one-shot timing.
+17. **Overlapping observers tick once:** two players' active/interest regions overlap an active map item; advancing N canonical turns processes the item exactly N rule opportunities, never once per player.
+18. **Unload/reactivate catch-up:** process an item actively to T1, unload its region while world time advances to T2, reactivate, and compare against an equivalent continuously active oracle. Countdown, charges, rot and temperature match where supplied environmental history is equivalent and one-shot effects occur once.
+19. **Background threshold crossing:** an unloaded perishable/countdown item crosses a transform/destruction/expiry boundary; activation materializes the correct post-boundary state/events without replaying the transition twice.
+20. **Server identity vs Godot identity:** destroy/recreate/recycle the client's presentation node and reconnect/reproject; commands still address the same server `ItemUid`, while a stale UID for a destroyed/merged item cannot retarget a new item.
+21. **Minimum projection:** inspect a visible item projection and prove it contains only the documented DTO fields needed by that view; ECS component collections, scheduler/index handles, hidden contents and server object identities are absent.
+22. **Visibility isolation:** two clients with different visibility/knowledge permissions receive different projections of the same authoritative world without duplicating or mutating the item.
+23. **Concurrent contention:** two players submit valid requests against the same item in the same simulation interval. Pin the deterministic server ordering key; the first resolved request succeeds, the second is revalidated against resulting state and either succeeds on the remainder or fails explicitly. Reversing the authoritative order reverses the eligible outcome, independent of socket callback order.
+24. **Single-player transport equivalence:** execute the same item command/lifecycle trace through in-process one-player transport and network transport; authoritative mutations and projections are equivalent.
 
 Where upstream behavior is ambiguous, execute the pinned implementation/test fixture and retain a differential golden result as the conformance oracle.
 
@@ -226,3 +278,11 @@ Direct dependents include #71 inventory/pockets/transfers, crafting, constructio
 - [x] Item flags, qualities, materials and variants have defined semantics.
 - [x] Serialization and stable item-reference requirements are defined.
 - [x] Parity fixtures cover representative subtype combinations and lifecycle transitions.
+
+### Architecture review required — minor
+
+- [x] Active/ticking/countdown/rot/temperature progression is expressed against authoritative simulation time, including active and unloaded/background handling.
+- [x] Item mutation/identity is server-authoritative and independent of ECS storage and Godot/client object identity.
+- [x] Minimum purpose-specific client item projection is defined without exposing arbitrary ECS/internal state.
+- [x] Deterministic concurrent-player contention against the same item is specified and covered by conformance scenarios.
+- [x] Affected specification text and tests/scenarios are updated; pinned-CDDA rules are preserved and the OctoGhast scheduling/replication adaptation is explicit.
