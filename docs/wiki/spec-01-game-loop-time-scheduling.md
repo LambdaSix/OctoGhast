@@ -389,3 +389,188 @@ All links below are pinned to the programme baseline:
 - https://github.com/LambdaSix/Cataclysm-DDA/blob/e262adb299a7613b4aedc5f12c08fe0413c56a84/src/timed_event.cpp
 - https://github.com/LambdaSix/Cataclysm-DDA/blob/e262adb299a7613b4aedc5f12c08fe0413c56a84/src/player_activity.h
 - https://github.com/LambdaSix/Cataclysm-DDA/blob/e262adb299a7613b4aedc5f12c08fe0413c56a84/src/player_activity.cpp
+
+
+---
+
+# Architecture review — authoritative real-time/co-op adaptation
+
+Review basis: #52, #57, #64 and #65. The completed pinned-CDDA investigation above remains authoritative evidence for `LambdaSix/Cataclysm-DDA@e262adb299a7613b4aedc5f12c08fe0413c56a84`. This section records the intentional OctoGhast adaptation and resulting implementation contract; it does not rewrite the reference findings.
+
+## 1. Pinned CDDA reference behaviour
+
+Preserve these rules as parity evidence:
+
+- world time is integer turns: 1 turn = 1 second;
+- duration conversion is 100 moves per second/turn; moves are action/work currency, not milliseconds;
+- speed controls move opportunity, actions/activities consume moves, and negative move balance is valid;
+- calendar cadence is absolute-phase from the world epoch/turn zero;
+- timed events, activity state, interruption and relevant ordering are persistent/deterministic gameplay state;
+- the detailed global-turn ordering, first-turn exception, autosave/game-over placement and activity hooks documented above remain reference behaviour.
+
+OctoGhast targets these rules, not literal local-avatar input gating.
+
+## 2. Intentional OctoGhast adaptation
+
+- One authoritative server owns one continuously advancing canonical simulation clock.
+- The world does not normally stop because one player has no input.
+- Multiple players, NPCs and monsters progress independently during the same world-time interval.
+- Single-player is a one-player authoritative server over in-process transport; multiplayer changes transport, not simulation semantics.
+- Godot sends requests and consumes projections/events. Render/interpolation rate is never authoritative.
+
+## 3. Canonical time and move mapping
+
+`SimulationTick` is a monotonically increasing integer server coordinate. Initial contract:
+
+- `SimulationTicksPerSecond = 10`;
+- one tick = 100 ms of nominal real-time pacing;
+- 10 ticks = 1 pinned-CDDA turn = 1 world second = 100 moves;
+- a baseline speed-100 actor therefore accrues 10 moves per tick.
+
+10 TPS is selected because it maps exactly into CDDA's 100-move-per-second economy while allowing sub-second eligibility and without copying Ghast's 20 TPS by assumption. Tick rate is world/protocol compatibility data; changing it later requires explicit versioning/migration.
+
+Chronology is derived from canonical ticks and persisted epoch/calendar configuration. There is no independently advancing calendar clock.
+
+## 4. Action-budget contract
+
+Each actor owns signed action budget plus deterministic fractional remainder.
+
+For elapsed ticks, earn `speed * elapsedTicks / 10` moves. Retain fractional remainder rather than rounding it away per tick. Actions subtract the Cataclysm rule layer's pinned-CDDA-compatible cost. Negative balance delays that actor's next action while other actors continue. Positive unused budget may carry; any anti-burst cap must be explicit policy in #57/#67 and must not alter individual action costs.
+
+Speed/cost formulas are Cataclysm policy. Budget accumulation, remainder accounting and eligibility are generic scheduling infrastructure.
+
+## 5. Fixed-step progression and ordering
+
+The server exposes an operation equivalent to `AdvanceOneSimulationTick()`. Each tick uses a fixed delta and a deterministic phase pipeline:
+
+1. establish canonical tick N;
+2. admit previously received client requests at the defined boundary;
+3. accrue actor budgets and identify due absolute-time work;
+4. run due scheduler/world cadence;
+5. progress activities;
+6. resolve eligible player/AI work;
+7. settle due environment/world systems;
+8. publish authoritative events/projections;
+9. pump transport at the defined boundary for later admission.
+
+Dependent specs may refine sub-phases, but pinned observable ordering constraints remain binding.
+
+Same-tick work must never depend on ECS/hash iteration, thread scheduling, socket callback timing or Godot node order. Order by: explicit phase; due tick; subsystem stable priority where required; stable actor/entity ID; then monotonic server enqueue sequence. Player and AI requests use the same authoritative resolution path. Same initial state + RNG state + admitted input sequence must yield the same trace.
+
+## 6. Host pacing and catch-up
+
+A host runner converts monotonic host elapsed time into owed fixed ticks with an accumulator.
+
+- gameplay never receives variable render-frame delta as authoritative simulation time;
+- late hosts execute owed fixed ticks sequentially;
+- bound catch-up work per host pump to avoid an unresponsive spiral;
+- retain excess tick debt for later pumps: never drop authoritative ticks and never stretch tick duration;
+- network I/O may be pumped between ticks only at the defined deterministic boundary and cannot mutate an already-running tick;
+- headless tests can step ticks directly without sleeping or consulting wall time.
+
+Thus 30/60/144 FPS, irregular frames and a headless host produce the same result after the same canonical tick/input sequence.
+
+## 7. Activities
+
+Activities are actor-owned persistent work, not global clock controls.
+
+- speed-based work consumes that actor's earned move budget;
+- time-based work advances from canonical elapsed time using the pinned 100-moves-per-world-second basis plus Cataclysm modifiers;
+- one player's long activity never blocks another player/actor/world system;
+- completion/cancellation/replacement/backlog/EOC ordering preserves the pinned evidence above;
+- activity progress never uses render frames.
+
+Prefer absolute deadlines or elapsed-interval formulas for large advances. Systems requiring intermediate collisions/interactions/RNG must declare a timewarp barrier and be deterministically stepped/settled rather than skipped.
+
+## 8. Pause, acceleration and timewarp
+
+Pause is server clock policy.
+
+Single-player may explicitly pause the one-player server. While paused, canonical tick, chronology, budgets, activities and due events do not advance; transport/UI may still pump. A client panel pauses only if explicit single-player UI policy says so.
+
+In multiplayer, one client cannot pause global time. Default policy with multiple active players is no unilateral pause. An optional unanimous/admin policy may pause the one global server clock. Disconnect/lag does not create a pause or second clock.
+
+Acceleration changes host pacing, not tick/move/second meaning. One client cannot locally accelerate global time. Initial multiplayer policy requires unanimous consent and all active players in compatible states (sleep/wait/long activity); return to 1x on the first deterministic withdrawal, threat/interrupt, or incompatible request.
+
+A future leap optimization may jump canonical time only across systems declared leap-safe. Absolute deadlines and elapsed-interval state are leap-friendly; intermediate-simulation systems are barriers. Optimized timewarp must be observationally equivalent to ordinary accelerated fixed stepping for in-scope gameplay.
+
+## 9. Persistence
+
+Persist timing state required for phase-correct deterministic continuation:
+
+- canonical tick and tick-rate/version;
+- calendar/world epoch anchors/options;
+- actor move budgets and fractional remainders;
+- stable actor/entity IDs;
+- scheduler due ticks and same-tick order/enqueue sequence where relevant;
+- activity progress/interruption/resume state;
+- required RNG state/streams.
+
+Do not persist transient host accumulator debt. Loading restores a simulation boundary, not a render frame.
+
+## 10. Headless/client/server boundary
+
+Authoritative clock, scheduler, budgets, activities, RNG and chronology are non-Godot server/Core concerns.
+
+`client input -> transport request -> deterministic server admission -> authoritative resolution -> projection/event -> client presentation`
+
+The client never writes world/ECS state or advances time. It may interpolate/animate projections. A plain .NET/headless host must be able to load, advance and save the simulation. In-process single-player and network multiplayer use the same logical protocol.
+
+Ghast is reference evidence here: ADR-0017 demonstrates a sole monotonic canonical tick and absolute deadlines; ADR-0019 demonstrates a hostable fixed-step server with deterministic network pumping and in-process/network transports; ADR-0011 keeps interpolation/presentation outside authoritative simulation. OctoGhast deliberately does not inherit Ghast's 20 TPS or exact networking implementation.
+
+## 11. Ownership
+
+Generic Core/server: canonical tick, fixed-step runner/host accumulator, deterministic scheduler/order keys, budget accumulation/remainders, time-policy state machine, transport admission boundary, persistence primitives and replay tracing.
+
+Cataclysm: speed modifiers, action/movement costs, activity basis/modifiers, calendar interpretation/cadence, gameplay interruption rules, and classification of systems requiring intermediate simulation.
+
+Godot client: input-to-request translation, projection rendering, interpolation/animation, and pause/acceleration request/consent UI.
+
+## 12. Acceptance tests
+
+19. Ten canonical ticks advance chronology exactly one second and give a speed-100 idle actor exactly 100 moves.
+20. A speed not divisible by 10 retains fractional accrual with no systematic rounding loss.
+21. Representative movement/actions subtract the pinned baseline move cost despite non-turn-gated input.
+22. An expensive action may leave actor A negative while actor B continues acting.
+23. Identical admitted inputs/RNG at 30, 60, 144 FPS and irregular host frames yield identical state hashes/event traces at the same tick.
+24. Direct headless stepping and in-process hosted stepping yield the same authoritative trace.
+25. Same-tick player/NPC/monster work remains identical despite different ECS insertion/hash iteration order.
+26. Vary asynchronous packet callback timing while preserving boundary admission; authoritative result is unchanged.
+27. A late host catching up N fixed ticks matches N on-time ticks exactly.
+28. Catch-up above the per-pump bound retains debt until simulated; no ticks are dropped/stretched.
+29. Rendering may stop while a running server continues canonical progression.
+30. Player A performs a long activity while player B moves/acts independently; A progresses from A's budget/canonical time.
+31. Save/load mid-activity including fractional budget remainder completes on the same tick/result as uninterrupted execution.
+32. An authoritative interrupt cancels/pauses an interruptible activity at a deterministic tick while peers continue.
+33. Single-player pause for arbitrary wall time changes no canonical simulation state.
+34. A non-pausing client UI does not stop the server.
+35. One of two players cannot unilaterally pause global time under default policy.
+36. Approved global pause freezes the single shared clock for every actor.
+37. N ticks at accelerated host pacing equal N ticks at normal pacing for identical inputs/RNG.
+38. One multiplayer client cannot unilaterally accelerate global time.
+39. Unanimous compatible acceleration returns to 1x on the first deterministic interrupt/incompatible request.
+40. A leap-safe absolute expiry crossed by approved timewarp is settled correctly without every skipped tick.
+41. A declared intermediate-simulation barrier prevents unsafe skipping; optimized timewarp matches accelerated stepping observably.
+42. One-player in-process and loopback network transports produce matching admitted commands, authoritative traces and projections.
+43. Two players with different speeds accrue/spend independent budgets against one chronology.
+44. A representative simulation can load/advance/save with no Godot runtime or scene tree.
+45. Client interpolation cannot alter collision, action cost, FOV, scheduler state or the next authoritative position.
+
+## 13. Review decisions and dependent work
+
+Resolved by #66: 10 TPS canonical fixed step; exact CDDA move mapping; deterministic explicit same-tick order; non-dropping bounded catch-up; actor-independent activities; one-global-clock pause/acceleration/timewarp; Godot/render independence; one logical server contract for single/multiplayer.
+
+Still owned by dependent specs: #67 exact speed formula/modifier order; #69 full activity state machine; #79 environment cadence/timewarp barriers; #82 EOC/event scheduling detail; #85 persistence schema/migration; #86 UI surfaces; #57 implementation decomposition of time/scheduling infrastructure.
+
+Changing tick rate, same-tick ordering keys or the one-global-clock rule is an architectural compatibility change and must update #52/#57/#64/#65 and this spec before implementation diverges.
+
+## Architecture-review status
+
+- [x] Separate pinned CDDA turn/move/calendar semantics from OctoGhast's continuously advancing authoritative server clock.
+- [x] Define canonical fixed-step progression and mapping between simulation ticks, CDDA move/action budget and chronology.
+- [x] Define deterministic same-tick ordering and host catch-up independent of render frame rate.
+- [x] Define single-player pause semantics and multiplayer pause/acceleration/timewarp policy.
+- [x] Define long-activity progression when other players/world actors continue acting.
+- [x] Ensure the loop is headless and Godot-free; Godot consumes projections and supplies requests only.
+- [x] Add one-player in-process-server and multi-player timing acceptance scenarios.
+- [x] Repository spec updated; architecture review complete.
