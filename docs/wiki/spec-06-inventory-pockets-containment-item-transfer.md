@@ -115,6 +115,66 @@ A transfer is permitted only when its source can be obtained/reached under the c
 
 Invalid/stale item locations resolve as invalid and must not mutate a coincidentally matching item. Recursive containment must reject cycles/self-containment and should impose a safe nesting/depth strategy for persistence and traversal.
 
+## OctoGhast authoritative real-time/co-op adaptation
+
+This section is an **OctoGhast architecture adaptation**, not a claim about pinned-CDDA networking. The pinned-CDDA containment, capacity, selection, quantity-conservation, reachability and move-cost rules above remain the rules-parity baseline. OctoGhast changes who may request a transfer, when it resolves, and what state is projected across the transport boundary.
+
+### Authoritative transfer commands and activities
+
+Clients never mutate authoritative item ownership, pocket contents, charges, worn/wielded state, map stacks or vehicle cargo. A client submits a transfer intent/command identifying the acting Character, operation, source reference, requested quantity and destination selector/reference. The server resolves it at a deterministic simulation boundary through the same validation/transfer path used by AI and in-process single-player clients.
+
+A transfer that is instantaneous under the relevant CDDA rule resolves atomically when the actor is eligible and can pay its CDDA move cost. A transfer represented by CDDA as pickup/fill/haul or other persistent work becomes or advances an actor-owned activity; intermediate client UI state is not authoritative ownership. Completion/repetition revalidates the authoritative source, destination, reachability and quantities before each ownership mutation.
+
+Single-player uses the same command/result contract through in-process transport. Network latency and render frame timing must not change simulation ordering or bypass validation.
+
+### Continuous server time and CDDA move costs
+
+Per #57/#66, authoritative time advances at 10 canonical ticks per world second/turn and speed-100 accrues 10 moves per tick. Inventory operations retain the pinned-CDDA move/action/access costs described above; costs remain move currency rather than being converted into wall-clock milliseconds.
+
+The server schedules/resolves a transfer only when the actor has the required action budget or according to the activity contract. A successful mutation and its cost accounting belong to one authoritative resolution. A request rejected because its preconditions became stale before resolution does not debit the successful-transfer cost; any explicit attempted-action cost must be separately specified by the underlying CDDA action rule rather than invented as a networking penalty.
+
+### Deterministic contention and stale requests
+
+Transfer commands carry stable actor/item/location identifiers plus enough expected-source context to detect staleness (for example source owner/location, quantity/stack identity and destination identity where relevant). Client sequence/request IDs provide idempotent result correlation but are not simulation authority.
+
+Commands admitted for the same canonical boundary are ordered by the shared deterministic command/scheduler ordering contract, never socket arrival race, thread timing or client frame timing. The first ordered command that validates may mutate the item/container. Every later contender revalidates against the resulting authoritative state.
+
+Consequences are fail-closed:
+
+- two actors targeting the same indivisible item: at most one succeeds; later requests receive a stable rejection such as source-missing/source-changed/not-reachable;
+- competing partial transfers from one charge stack: each ordered command sees the remaining authoritative quantity and may succeed only for a quantity permitted by the command contract; no overdraw or duplication is possible;
+- a moved parent container invalidates a request whose reachability/location precondition depended on its old parent/root, even if the nested item UID still exists;
+- a destination that fills, seals, moves, becomes inaccessible or otherwise ceases to accept the item before resolution causes rejection/recalculation only where the command explicitly permits server-side destination selection;
+- retries with the same request ID return/associate with the already-determined result and must not repeat the mutation.
+
+Rejection returns a reason and current permitted projected state sufficient for the client to refresh, but never silently retargets a stale reference to a different item or hidden location.
+
+### Stable references across persistence and DTO boundaries
+
+The server owns stable item identity and canonical item-location resolution. Persisted references use the save/load contract described above and in #85. Transport DTOs may carry opaque stable item IDs/reference tokens and projected locator context, but they are capabilities to *request resolution*, not serialized ECS object references, memory addresses, collection indices, Godot node IDs or permission to mutate state.
+
+A stable item UID surviving a move does not mean an old location assertion remains valid: identity and expected location are separate preconditions. On reconnect/save-load, the server may resolve a persisted stable reference to the same item, while a previously issued client DTO must still be revalidated against current visibility, reachability and location before use.
+
+Godot/client object identity is presentation-only. A client may replace/recycle view models without affecting authoritative item identity.
+
+### Visibility and client projection
+
+Projection is least-authority and viewer-specific. The server exposes only item/container information the viewer is entitled to know under FOV/knowledge, ownership/access and interaction rules; it never sends arbitrary ECS components or all nested contents merely because a root container is replicated.
+
+- **Character inventory/worn/wielded:** the controlling player receives the detail needed for inventory actions. Other players receive only world/party-visible equipment or summaries required by gameplay; private pocket contents are not implicitly replicated.
+- **Map stacks:** projected only when the viewer's current visibility/knowledge policy permits that tile/item information. Remembered knowledge is distinct from live authoritative contents and cannot authorize a transfer.
+- **Vehicle cargo:** projected when the vehicle/cargo interaction is visible/known and accessible under the applicable rules; hidden/unobserved cargo is not globally replicated.
+- **Nested contents:** disclosure is recursive only through containers/pockets the viewer may inspect. A visible outer item does not automatically reveal every nested item. Closed/sealed/otherwise non-inspectable contents remain omitted or summarized as required by gameplay.
+- **Activities/reservations:** clients may receive owner-visible progress/result state needed to present an in-flight transfer, but internal scheduler/ECS data and other players' private targets are not exposed.
+
+A command may reference only identifiers/tokens previously projected or otherwise legitimately available to that player, but possession of such a token is never sufficient: authoritative resolution still checks current visibility where required, reachability, ownership and containment rules.
+
+### Atomic mutation and results
+
+A successful transfer is one authoritative transaction from the perspective of observers: validate current source/destination, determine quantity/destination/cost, mutate ownership/charges/pocket state, debit/schedule the actor cost, update stable-reference state, then publish result/domain events and fresh projections. Clients must not observe a durable duplicated or ownerless intermediate state.
+
+Failure before commit is non-destructive as in the pinned-CDDA rule. If an internal failure occurs while committing, the authoritative operation must roll back/fail atomically rather than exposing partial source removal. Transport disconnect after submission does not undo a command already admitted/resolved; reconnect observes authoritative outcome via state/result reconciliation.
+
 ## Proposed OctoGhast implementation boundary
 
 Use separate concepts for:
@@ -148,6 +208,17 @@ The following black-box scenarios should gate completion:
 - Advanced-inventory transfer between reachable map/vehicle/character locations obeys carrying and destination capacity.
 - Invalid source/destination or stale handle is non-destructive.
 - Save/load preserves pocket contents, seal/settings state required for behavior, stable item references and charge quantities.
+- Two players request the same map item for the same simulation boundary; deterministic server ordering allows exactly one ownership transfer, the loser receives a stale/source-changed rejection, and replaying the same inputs yields the same winner.
+- Two actors concurrently request charges from one stack; ordered authoritative resolution conserves quantity and never permits total successful quantity to exceed the source amount.
+- A player queues a nested-item transfer, then another actor moves the parent container before resolution; the queued request fails closed because its expected location/reachability is stale even though the nested item identity still exists.
+- A requested destination pocket becomes full/sealed or moves out of reach before resolution; the server rejects without source mutation or successful-transfer move debit unless the command explicitly requested automatic destination reselection.
+- Re-sending an already resolved transfer request ID is idempotent and does not duplicate, split or move the item twice.
+- Single-player in-process and networked co-op transports given the same canonical command sequence produce equivalent ownership, quantities, move-budget debits and transfer results.
+- A speed-100 actor performing a costed transfer under continuous 10-TPS server time becomes eligible according to accumulated CDDA moves; changing client FPS/network delay does not change the rule cost or authoritative outcome.
+- An inventory owner can receive actionable nested-content projection while another nearby player receives only permitted visible equipment/container summaries; the second client cannot infer private nested contents from DTOs.
+- A map stack or vehicle cargo leaving a player's live visibility is no longer authoritative live client state; remembered presentation cannot be used to transfer an item without server revalidation.
+- A client DTO containing a stable item token survives presentation/view-model replacement, but after the item moves its old location assertion is rejected until refreshed; no Godot node/object identity participates in resolution.
+- Save/load or reconnect can restore/resolve canonical stable item identity while stale pre-save/pre-disconnect transfer assertions are still revalidated against current authoritative location and visibility.
 
 ## Dependencies and follow-on work
 
