@@ -33,7 +33,7 @@ This specification consumes, rather than reopens:
 - #86 / Spec 21 — Godot interaction/projection boundary and stale-UI handling;
 - #88 / Spec 23 — deterministic in-process/loopback conformance testing;
 - #89 / Spec 24 — host/platform/runtime resource layout;
-- #91 — cross-world profile/account/meta-progression identity and persistence where required.
+- #91 — cross-world profile/account/meta-progression identity and persistence where required.\n- #92 — authentication, credential/provider and public-server security policy.
 
 ### Ownership table
 
@@ -41,7 +41,7 @@ This specification consumes, rather than reopens:
 | --- | --- |
 | Socket accept/connect, framing, bytes, buffer pools | transport backend |
 | Connection lifecycle and parser state | networking Core |
-| Authentication-provider integration | follow-up security/auth architecture; not gameplay |
+| Authentication-provider integration | #92 security/auth architecture; not gameplay |
 | Live connection -> stable PlayerId binding | server session layer |
 | PlayerId -> controlled CharacterId binding | authoritative server/world policy |
 | Gameplay validation and mutation | simulation/domain systems |
@@ -284,7 +284,7 @@ Resource promotion occurs only after session policy has accepted world join.
 
 ### 8.3 Authentication ownership
 
-#90 does not define user-account credential storage. Internet-facing authentication, credential recovery, trust providers and abuse/security policy are a distinct cross-cutting concern. M1 in-process tests may use a trusted synthetic/local provider. LAN/friend and public-dedicated authentication MUST be specified by the follow-up security/auth ticket before public networking is considered production-ready.
+#90 does not define user-account credential storage. Internet-facing authentication, credential recovery, trust providers and abuse/security policy are a distinct cross-cutting concern. M1 in-process tests may use a trusted synthetic/local provider. LAN/friend and public-dedicated authentication MUST be specified by the #92 before public networking is considered production-ready.
 
 This does not weaken server authority: even a trusted local session still binds through PlayerId and uses normal request validation.
 
@@ -702,6 +702,6 @@ Run a representative new-game-to-movement flow with exactly one player. The same
 6. Implement the initial TCP backend/framing/parser behind the same interfaces.
 7. Run NET25 in-process/loopback equivalence and hostile-input tests.
 8. Integrate Godot through Spec 21 without direct ECS access.
-9. Resolve the separate auth/security ticket before public internet deployment.
+9. Resolve the #92 before public internet deployment.
 
 No gameplay/runtime implementation is performed by this specification.
