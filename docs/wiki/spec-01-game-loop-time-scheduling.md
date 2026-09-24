@@ -574,3 +574,123 @@ Changing tick rate, same-tick ordering keys or the one-global-clock rule is an a
 - [x] Ensure the loop is headless and Godot-free; Godot consumes projections and supplies requests only.
 - [x] Add one-player in-process-server and multi-player timing acceptance scenarios.
 - [x] Repository spec updated; architecture review complete.
+
+
+## 2026-09-24 re-evaluation against current programme architecture
+
+This section re-evaluates the completed pinned-CDDA investigation against #52, #57, #58, #64, #65 and the completed dependent contracts in #69, #77, #82 and #85. The original source evidence above remains valid. The changes here are architectural interpretation and implementation contract refinements; they do not reclassify OctoGhast adaptations as upstream behaviour.
+
+### Reference behaviour, Cataclysm profile, Core contract and evolution seam
+
+| Concern | Pinned CDDA reference behaviour | OctoGhast Cataclysm profile | Generic Core contract / evolution seam |
+| --- | --- | --- | --- |
+| World clock | One integer-second global turn; ordinary `do_turn()` increments one second after the new-game special case. | Preserve one CDDA world second = 100 moves. The selected parity host mapping is **10 canonical ticks per Cataclysm world second**, therefore 10 moves/tick at speed 100 before profile modifiers/remainders. | Core owns a monotonic fixed-step simulation coordinate and deterministic rate conversion. **10 TPS is not a permanent Core invariant**; the rules/profile supplies the mapping between canonical steps, chronology and action currency. A different future profile may choose a different exact rate without replacing scheduler/network/persistence abstractions. |
+| Action economy | Moves are signed actor action budget; action/activity costs are not wall-clock milliseconds. | Preserve pinned move costs, speed effects and negative-budget behaviour. | Core supports deterministic actor budgets/cost currencies; Cataclysm's 100 moves/second is profile policy. |
+| Periodic cadence | `calendar::once_every` phase-locks to absolute `turn_zero`; many world hooks are invoked once per CDDA second or on absolute multiples. | Cataclysm cadence predicates are evaluated against profile chronology; one-second hooks are phase-locked to each 10-tick boundary rather than being called once per host/render frame. | Core provides absolute deadlines/cadence scheduling against canonical time. Calendar seasons, CDDA `turn_zero`, and 100-move conversion remain profile concepts. |
+| Actor orchestration | `do_turn()` is structurally privileged around the local avatar; environment, monsters, NPCs and avatar replenishment occur in a fixed global order. | Preserve observable causal ordering required by the rules, but replace the privileged-avatar input loop with deterministic scheduling of all eligible authoritative actors. Multiple player-controlled actors may act in the same chronology interval. | Core has no distinguished avatar. Actor/control ownership is data, and equal-time work uses explicit stable ordering rather than ECS/hash iteration order. |
+| Active world | Upstream work is centred on the local reality bubble/avatar. | Server-owned active-region union from #77; overlapping regions are simulated once and separated players can keep disjoint regions active. | Core owns spatial activation/indexing independent of clients and Godot. No player owns the authoritative reality region. |
+| Game over | Death/suicide of the single avatar invokes cleanup and returns to the shell, with world retention/reset/delete policy. | **A controlled-character death does not terminate a shared server/world merely because that actor was a player character.** It ends or changes that player's control/life state; other players/world simulation continue. In a one-player Cataclysm-profile server, the shell may offer the pinned world-end flow when no playable controlled character remains. | Core separates character life state, player/session binding, and world/server lifecycle. World termination is an explicit server/session transition, never an implicit consequence of one arbitrary entity's death. |
+| Autosave | Avatar-centred gate checks autosave cadence and suppresses autosave when the avatar is dead. | Autosave is server/world-owned per #85. In multiplayer, one dead player character does not suppress a due world save. The one-player profile may preserve user-facing reference timing where compatible, but save safety/atomicity is the authoritative persistence contract. | Core exposes deterministic save barriers/hooks at simulation boundaries; persistence owns quiescence/atomicity. |
+| Presentation/input | Upstream turn loop directly pumps UI/input and redraws while waiting for the avatar. | UI never owns time. Requests are admitted at deterministic simulation boundaries; Godot receives explicit player-specific projections/events. | Host pacing, sockets and presentation are outside authoritative ECS/world state. |
+
+### Pinned-CDDA authoritative evidence retained
+
+The exact baseline `LambdaSix/Cataclysm-DDA@e262adb299a7613b4aedc5f12c08fe0413c56a84` confirms:
+
+- `src/do_turn.cpp::game::do_turn()` performs the new-game special case or increments `calendar::turn`, processes timed events/item wakeups/missions and other global work, runs avatar activities/input, then environment, monsters/NPCs, and finally `u.process_turn()`. This is evidence for CDDA causal ordering, **not** evidence that Core must contain a privileged avatar.
+- `src/calendar.h/.cpp` stores `time_duration`/ `time_point` in integer turns and converts moves at 100 moves per turn/second; calendar interpretation remains distinct from actor move budget.
+- `src/player_activity.cpp::do_turn()` distinguishes time-based and speed-based activity progress and consumes actor moves accordingly; it also uses absolute calendar cadence for periodic auto-needs checks.
+- `src/timed_event.cpp` stores absolute due time plus contextual payload/location and may consume RNG/world state during actualization, so scheduler ordering, context, persistence and RNG continuation are parity-significant.
+- Pinned tests include activity scheduling helpers and tracker tests (`tests/activity_scheduling_helper.cpp/.h`, `tests/activity_tracker_test.cpp`) and broader subsystem tests. These are behavioural evidence/fixtures; OctoGhast conformance tests below additionally cover the continuous-authoritative/co-op adaptation absent from upstream.
+
+### Immutable definitions versus mutable runtime state
+
+**Definition/template/profile data** is immutable after the authoritative rules/content load barrier for a running world: duration/action/activity definitions, Cataclysm cadence constants/schema-derived rules, calendar configuration schema/defaults, scheduler handler/type registrations, and the selected rules-profile time mapping. Definitions are referenced by stable typed IDs, not duplicated into each ECS entity.
+
+**Mutable authoritative runtime state** includes canonical tick/time coordinate, chronology anchors/options selected for the world, actor move budgets and fractional remainders, activity instances/progress, scheduler entries/deadlines/order sequence, world/session lifecycle state, active-region leases/index state where applicable, and deterministic RNG continuation state. Mutable runtime state is server-owned and persisted according to #85.
+
+Host accumulator debt, render/interpolation time, open UI state, socket/connection objects, client frame pacing and Godot transforms are neither definition data nor authoritative world state and are excluded from saves.
+
+### Ownership, stable identity and references
+
+- The authoritative server/world owns canonical time, schedulers and world lifecycle.
+- Each actor/entity has stable authoritative identity independent of ECS storage address, Godot object identity, client connection and player account/session.
+- Player identity, connection identity and controlled entity are distinct. Reconnect rebinds a stable player/session to permitted controlled state; it does not recreate chronology or scheduler identity.
+- Scheduler entries that can coexist at the same deadline require deterministic stable ordering metadata (for example a persisted enqueue/order sequence scoped to the scheduler). Equal-time execution must not depend on dictionary/hash/ECS insertion order.
+- Scheduled payload references use stable typed IDs/entity/item/location references defined by their owning specs. A stale or invalid reference is handled by the owning handler's explicit validation/failure rule; it must not retarget by incidental container/index position.
+- Server active regions and spatial indexes are world-owned (#58/#77). Time/scheduler code may request work for regions/entities but does not infer authority from any client's current view.
+
+### Deterministic command admission and continuous execution
+
+Network/in-process requests are **intents**, not asynchronous world mutations. Transport may receive them at any wall-clock time, but authoritative admission happens only at the defined simulation boundary. For a supplied canonical tick/input sequence, results are independent of callback timing, render FPS and transport implementation.
+
+At an authoritative step:
+
+1. advance/establish the canonical step according to host policy;
+2. admit validated requests assigned to that boundary using the networking/session ordering contract (#90);
+3. execute due scheduler/system work and eligible actor work using explicit phase/order keys;
+4. commit resulting authoritative state;
+5. derive player-specific projections/events;
+6. allow persistence barriers at the defined quiescent boundary.
+
+The exact phase decomposition may be optimized, but Cataclysm-profile results must preserve the causal constraints evidenced by the pinned loop. No client callback, UI opening, packet arrival or renderer frame may splice mutation into a phase already executing.
+
+### Multi-player death, disconnect and world/session lifecycle
+
+Pinned CDDA's `cleanup_at_end()` couples one avatar's death to the only gameplay session. OctoGhast intentionally decomposes this:
+
+- **CharacterLifeState**: alive, incapacitated, dead, etc. is authoritative simulation state.
+- **ControlBinding**: which stable player/session, if any, controls an actor.
+- **ConnectionState**: transient transport/session connectivity.
+- **WorldSessionState**: running, globally paused by policy, shutting down, closed.
+
+A character may die while the world remains running. Disconnect does not stop canonical time and does not itself destroy a controlled character; #85 owns persistence/reconnect state and the relevant gameplay policy determines whether the disconnected actor remains fully active, sleeps/waits, or becomes AI-controlled. Whatever policy is selected, it is authoritative and deterministic, not a local-client pause.
+
+### Autosave/save barrier refinement
+
+The upstream autosave position remains useful parity evidence: it occurs at a deterministic point before later world/environment/AI processing. OctoGhast persistence, however, is server-owned:
+
+- autosave/manual save requests become save intents serviced only at a deterministic quiescent boundary;
+- accepted save barriers do not advance time, consume moves or draw RNG;
+- in-flight transport requests are either deterministically included before the barrier or remain queued after it per #85;
+- a dead/disconnected individual player does not suppress a shared-world save;
+- loading restores canonical tick, chronology, scheduler order/deadlines, actor budgets/remainders, activities and RNG continuation without restoring socket/presentation/host pacing state.
+
+### Projection and information boundaries
+
+The client may receive its own authoritative clock/progress information and public/visible events required for presentation, but does not receive arbitrary scheduler queues, hidden actor budgets, unseen world events or ECS state merely because the server has them. Projection/audience rules belong to the producing subsystem (#82 for EOC/event audiences, #77 for spatial visibility/knowledge, #90 for transport semantics).
+
+### RNG/determinism refinement
+
+The game loop/scheduler must introduce no wall-clock-dependent random draws. RNG-consuming scheduled/world handlers execute in deterministic authoritative order. Save/load must restore the RNG stream/state needed for the same continuation (#85). Optimizations such as catch-up or leap-safe timewarp may replace repeated stepping only where the owning subsystem declares the transformation observationally equivalent, including RNG/event ordering.
+
+### Additional black-box/conformance scenarios
+
+46. **Profile/Core rate boundary** — run the Cataclysm profile and assert its selected mapping is 10 canonical ticks = 1 CDDA world second = 100 moves; instantiate a Core test profile with a different exact fixed rate and prove scheduler/network/persistence abstractions do not assume 10 TPS or 100 moves/second.
+47. **One-second cadence on 10-TPS host** — a Cataclysm hook defined as once per CDDA turn fires exactly on each tenth canonical tick, independent of host/render frame grouping.
+48. **Two player-controlled actors** — two players in one active region receive independent action opportunities from their own budgets; neither is treated as the avatar for scheduler ownership or world chronology.
+49. **Separated active regions** — two players in disjoint active regions advance under one canonical clock; global work executes once, region-local work executes for each active region, and no client-owned reality bubble advances time.
+50. **Overlapping active regions** — overlapping player coverage does not duplicate per-second environment/entity processing or scheduler actualization.
+51. **Player death isolation** — kill player A's controlled character at canonical tick N while player B remains active; A's death events/state are committed, B and the world continue at N+1, and shared schedulers are not cleared.
+52. **One-player world-end compatibility** — in a one-player Cataclysm-profile server with no remaining playable controlled character, enter the configured world-end/shell flow without conflating that policy with generic Core character death.
+53. **Multiplayer autosave despite dead peer** — when autosave is due and player A is dead but player B/world remain active, one authoritative world save occurs at the defined barrier.
+54. **Disconnect continuity** — disconnect player A during a long activity; canonical time continues, player B continues acting, and A's activity follows the configured authoritative disconnect policy. Reconnect restores the same stable player/control references without resetting deadlines/budgets.
+55. **Same-tick contention** — admit two valid requests from distinct players that contend for one authoritative target on the same tick; resolution order is stable under repeated runs, socket callback timing changes and ECS/hash insertion-order changes.
+56. **Hidden scheduler isolation** — schedule a hidden world event outside player B's knowledge/visibility; B receives no scheduler/internal payload until the owning subsystem produces a B-visible event/state change.
+57. **Save barrier and queued request** — place one validated request immediately before and another immediately after a save barrier; repeated runs deterministically include/exclude the same requests, and load resumes with no duplicate/lost accepted command.
+58. **RNG continuation across scheduled event** — save immediately before an RNG-consuming scheduled event, then compare uninterrupted versus load-and-continue state/event traces; results match exactly for the controlled stream contract.
+59. **Timewarp barrier** — accelerate across a mix of leap-safe expiry and an intermediate-simulation subsystem; the safe deadline may settle arithmetically, the barrier is stepped deterministically, and the final observable result/RNG trace matches ordinary fixed stepping.
+60. **Godot/UI non-authority** — open/close arbitrary client panels and stop rendering for one client while the server runs; canonical time, actions, activities, scheduler state and other players are unchanged except for explicit server pause policy requests.
+
+### Dependency contract after re-evaluation
+
+- #57 implements/decomposes generic canonical-time/scheduler infrastructure while consuming this document's Cataclysm profile mapping.
+- #58/#77 own authoritative spatial/index and active-region semantics used by time-driven world work.
+- #69 owns detailed action/activity lifecycle and interruption; this spec owns when authoritative progression invokes that contract.
+- #67 owns Cataclysm speed/modifier formulas; this spec owns deterministic budget accrual/scheduling integration.
+- #82 owns event/EOC/talker scheduling/context/audience details against the same canonical clock.
+- #85 owns save transactions, stable persistence identity, reconnect continuation and RNG/save state.
+- #90 owns transport/session admission, bounded networking resources and request ordering. Time/scheduling consumes validated admitted requests and does not reference sockets.
+- Godot/presentation consumes projected time/progress/events only and cannot own or mutate the authoritative clock.
+
+No new unresolved cross-cutting architecture decision was discovered. The re-evaluation narrows an accidental platform constraint (10 TPS) to the Cataclysm profile and separates single-avatar game-over/autosave assumptions from shared authoritative world lifecycle.
