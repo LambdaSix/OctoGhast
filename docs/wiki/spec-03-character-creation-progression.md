@@ -1,6 +1,6 @@
 # Spec 03 — Character creation and progression
 
-Status: investigated / specification complete  
+Status: investigated / specification complete; re-evaluated 2026-09-24 against current Core/profile architecture  
 Tracking issue: #68  
 Parent epic: #65  
 Reference implementation: `LambdaSix/Cataclysm-DDA` @ `e262adb299a7613b4aedc5f12c08fe0413c56a84`
@@ -21,7 +21,9 @@ This spec consumes, without reopening, the contracts in:
 - Spec 05 / #70 and Spec 06 / #71: authoritative item identity, inventory and transfer.
 - Spec 17 / #82: authoritative EOC/talker execution and audience-filtered effects/messages.
 - Spec 18 / #83: immutable definitions, typed IDs, JSON inheritance/finalization/validation.
-- Spec 20 / #85: authoritative persistence, stable player identity distinct from connection and controlled entity, deterministic save barriers.
+- Spec 20 / #85: authoritative world persistence, stable world-local player identity distinct from connection and controlled entity, deterministic save barriers.
+- #90: transport/session/projection ownership, bounded networking and deterministic request intake; progression systems do not own sockets or connection lifecycle.
+- #91: unresolved cross-world player-profile/meta-progression persistence; Spec 03 consumes that future contract rather than defining account/profile storage locally.
 
 ## Authoritative pinned-CDDA evidence
 
@@ -217,7 +219,11 @@ A conduct is evaluated by the same requirement machinery but represents maintain
 
 ### OctoGhast scope
 
-Gameplay statistics and character-run achievements/conducts are authoritative and scoped to the stable player/Character run that generated their events; they are not inferred from client telemetry. Definition unlocks used by future character creation are stored against stable player identity/profile state, separate from socket identity and from the transient controlled-entity link. Multiplayer events are routed only to trackers whose documented subject/ownership matches the event; one player's action must not accidentally complete another player's personal requirement.
+Gameplay statistics and character-run achievements/conducts are authoritative and scoped to the stable player/Character run that generated their events; they are not inferred from client telemetry. Multiplayer events are routed only to trackers whose documented subject/ownership matches the event; one player's action must not accidentally complete another player's personal requirement.
+
+Pinned CDDA scenario/profession unlock requirements are **cross-run meta-progression**: `scenario::can_pick()` and `profession::can_pick()` query `past_achievements_info`, whose loader reads completed achievements from the user achievement directory and legacy past-game/memorial data. Therefore these unlocks are not ordinary current-world Character state.
+
+OctoGhast must keep the unlock check server-authoritative, but the durable owner of cross-world profile/meta-progression is deliberately deferred to #91. Until #91 is resolved, Spec 03 requires an abstract authoritative eligibility/profile service and must not serialize profile unlock history into a Character, socket/session object, Godot client cache, or world snapshot merely as a local convenience.
 
 ## 12. Commands, activities, queries and events
 
@@ -302,3 +308,91 @@ This spec defines progression state and rules but does not implement combat, cra
 - Godot UI: renders definition catalogs and projected mutable state; never applies grants directly.
 
 No new cross-cutting architecture decision is required by this investigation. The multiplayer adaptations above follow the already-set server authority, stable-player identity, canonical-time, projection and deterministic-ordering contracts.
+
+
+## 19. 2026-09-24 re-evaluation: reference profile, generic Core and future evolution
+
+This re-evaluation preserves the pinned-CDDA evidence above while making the architectural boundary explicit. CDDA reference parity is a completeness benchmark and major waypoint, not a permanent constraint on generic Core.
+
+### 19.1 Pinned CDDA reference behaviour
+
+The Cataclysm reference profile must reproduce the pinned baseline's externally visible rules, including:
+
+- scenario/profession/hobby/start-location schemas, availability restrictions, achievement requirements and hard requirements;
+- Cataclysm character-creation cost/point modes and trait/skill/profession composition rules;
+- grid/overmap-based start-location selection and scenario world-start hooks;
+- practical/theoretical skill XP thresholds, catch-up/knowledge ordering, 24-hour rust grace and rust cadence;
+- proficiency prerequisite, practiced-duration and fractional-remainder semantics;
+- mutation acquisition/conflict/category/threshold and activation rules;
+- bionic type versus installed-instance identity, UID-sensitive operations, capacity/dependency rules and EOC integration;
+- Cataclysm martial-art, spell-grant, achievement/conduct/stat-tracker semantics;
+- cross-run achievement-based scenario/profession eligibility, including `META_PROGRESS` and hard-requirement behaviour.
+
+These are profile rules. They are not evidence that every future ruleset hosted by OctoGhast must use Cataclysm points, skills, mutations, bionics, grid spawn rules or achievement gates.
+
+### 19.2 OctoGhast adaptation
+
+The following are intentional architectural adaptations rather than claims about upstream CDDA:
+
+- character creation is an atomic authoritative server transaction instead of a local UI mutating an avatar object;
+- existing-world joins cannot reset the shared world clock or implicitly replace global scenario chronology;
+- creation and progression requests enter through the same transport-neutral command/query boundary in one-player and co-op servers;
+- several player-controlled Characters may progress concurrently, with deterministic contention and actor-scoped state;
+- progression continues or catches up according to authoritative canonical time and activity/background policy, not renderer frames, open menus or connection lifetime;
+- Godot receives player-specific projected state/catalogs and never receives arbitrary ECS components or mutable registry objects;
+- connection/session identity is never progression identity or persistence identity;
+- server-owned world saves follow Spec 20, while cross-world profile/meta-progression ownership is explicitly separated into #91.
+
+### 19.3 Generic Core contract
+
+Generic Core should provide reusable capabilities, not a universal Cataclysm character model:
+
+- immutable typed definition registries and validation;
+- stable runtime entity/reference identity primitives;
+- atomic authoritative command/transaction execution;
+- deterministic fixed-step scheduling and profile-defined action/time conversion;
+- durable-work/activity hooks;
+- deterministic RNG streams and replay/save continuation;
+- persistence abstractions with explicit ownership;
+- event/statistic observation primitives;
+- capability/knowledge/progression state containers that rules profiles may compose;
+- projection/audience filtering and transport-neutral request/response contracts.
+
+Cataclysm-specific skill threshold formulas, mutation categories, bionic schemas, martial-art definitions, character-creation point accounting and achievement-gated start options belong in the Cataclysm profile unless a later architecture decision deliberately generalises a smaller reusable primitive.
+
+### 19.4 Future evolution seams
+
+A future OctoGhast rules profile may, without replacing Core infrastructure:
+
+- use different creation currencies or no point system;
+- use continuous or non-grid start placement while still consuming Core spatial identity/index contracts;
+- replace practical/theoretical skills with a different advancement model;
+- support several simultaneous durable work/progression channels if its rules allow them;
+- replace Cataclysm mutation/bionic concepts with other capability graphs;
+- use account-, campaign-, server- or world-scoped unlock policy;
+- evolve action economy/time mapping independently of the Cataclysm 100-move-per-second profile.
+
+Such evolution is not a renderer-only change when it alters rules. It requires a new/changed rules profile while retaining the same server authority, identity, persistence, deterministic scheduling and projection boundaries.
+
+### 19.5 Networking and identity contract
+
+#90 owns transport/session mechanics. Spec 03 contributes only typed semantic operations such as creation draft queries, `CreateCharacterIntent`, progression commands/activities and owner-specific projections.
+
+Network timing cannot choose mutation/progression order. Requests are admitted at deterministic simulation boundaries; same-state contention is resolved by the shared command ordering rules. Slow-client backpressure, reconnect and parser/framing behaviour must not alter progression outcomes.
+
+Cross-world unlock/profile identity is not the same as world-local `PlayerId`, `CharacterId` or connection identity. The exact profile/account ownership contract is intentionally centralized in #91.
+
+### 19.6 Additional conformance scenarios
+
+25. **Core/profile dependency isolation:** a headless Core fixture can exercise definition loading, authoritative commands, deterministic scheduling, persistence and projection without registering Cataclysm skill/mutation/bionic/creation schemas.
+26. **Cataclysm profile mapping:** loading the Cataclysm profile enables the pinned creation/progression formulas and schemas without changing Core timing, transport or persistence APIs.
+27. **Alternative creation policy seam:** a test rules profile can create a Character without Cataclysm point accounting or achievement gates while using the same atomic server transaction and identity allocation path.
+28. **Alternative spatial-start seam:** a non-Cataclysm test profile may supply a different deterministic start-placement policy without changing `CreateCharacterIntent`, connection/session ownership or ECS identity.
+29. **Transport equivalence:** the same creation/progression request sequence through in-process and loopback transports produces identical authoritative state, RNG consumption and domain events.
+30. **Observer invariance:** adding an uninvolved connected player/client does not change skill/proficiency/mutation/bionic/achievement outcomes or RNG consumption for another Character.
+31. **World-save/profile separation:** loading or rolling back an older world snapshot cannot silently roll back cross-world unlock/profile state; this scenario is blocked on #91 for its concrete storage/provider contract but is normative at the boundary.
+32. **Meta-progression policy fixture:** for fixed completed-achievement input, Cataclysm scenario/profession eligibility reproduces pinned `META_PROGRESS` and hard-requirement semantics; changing server/profile policy cannot be implemented by trusting client-reported unlock flags.
+
+### 19.7 Re-evaluation resolution
+
+No previously settled time, spatial, command/activity, persistence, EOC or networking decision is reopened. The original #68 evidence remains valid. The re-evaluation discovered one genuinely cross-cutting ownership gap—cross-world player profile/meta-progression persistence—and created #91 as its single authoritative home. Spec 03 is otherwise implementation-ready and can remain closed; implementation of profile-backed unlock persistence must consume #91 once that architecture is resolved.
