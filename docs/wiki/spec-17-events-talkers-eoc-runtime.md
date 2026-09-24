@@ -3,23 +3,36 @@
 **Tracking issue:** #82  
 **Parent:** #65  
 **Reference baseline:** `LambdaSix/Cataclysm-DDA@e262adb299a7613b4aedc5f12c08fe0413c56a84`  
-**Status:** investigation/specification and real-time/co-op architecture review complete; implementation not started
+**Status:** investigation/specification, real-time/co-op review, and Core-vs-Cataclysm architecture/programme re-evaluation complete; implementation not started
 
 ## 1. Purpose and parity boundary
 
-OctoGhast needs a data-driven rules runtime compatible with Cataclysm:DDA's dialogue condition/effect and Effect-on-Condition (EOC) behavior. This runtime is infrastructure: items, mutations, bionics, activities, attacks/deaths, events, NPC dialogue, map changes and mods invoke it.
+OctoGhast needs a Cataclysm-profile data-driven rules runtime compatible with Cataclysm:DDA's dialogue condition/effect and Effect-on-Condition (EOC) behavior. Items, mutations, bionics, activities, attacks/deaths, events, NPC dialogue, map changes and mods may invoke that profile runtime, but **EOC itself is not a generic Core concept**.
 
-Parity is behavioral. OctoGhast does not need CDDA's C++ class hierarchy, but it must preserve the observable JSON contracts, actor/context binding, variable semantics, evaluation order, scheduling, persistence, and failure behavior required by content at the pinned baseline.
+Parity is behavioral. OctoGhast does not need CDDA's C++ class hierarchy, but the **Cataclysm profile** must preserve the observable JSON contracts, actor/context binding, variable semantics, evaluation order, scheduling, persistence, and failure behavior required by content at the pinned baseline. Generic Core supplies reusable execution capabilities underneath that profile without permanently depending on CDDA's EOC names, talker taxonomy, alpha/beta conventions, variable naming, operator vocabulary, JSON schema or chronology constants.
 
-The runtime should be split conceptually into:
+The Cataclysm-profile runtime should be split conceptually into:
 
-1. **Registry/definition layer** — validated EOC IDs and compiled condition/effect/expression definitions.
-2. **Invocation frame** — alpha/beta talkers, context variables and call stack.
-3. **Evaluator** — conditions, effects, values, math expressions and variable access.
-4. **Scheduler** — queued recurring/activation EOCs and inactive recurring EOCs.
-5. **Event bridge** — event-type subscription, payload-to-context conversion and actor resolution.
-6. **Host adapters** — talker capabilities and world mutation/query operations.
-7. **Persistence bridge** — durable global/actor variables and queued/inactive EOC state.
+1. **Cataclysm registry/definition layer** — validated EOC IDs and compiled CDDA condition/effect/expression definitions.
+2. **Cataclysm invocation adapter** — alpha/beta talkers, CDDA context variables and call stack mapped onto a stable Core invocation context.
+3. **Cataclysm evaluator** — CDDA conditions, effects, values, math expressions, coercions and variable access.
+4. **Core scheduler adapter** — Cataclysm recurring/queued EOC semantics represented as deterministic scheduled jobs with stable ownership/context.
+5. **Event bridge** — Core typed event dispatch mapped to CDDA event subscriptions, payload-to-context conversion and talker resolution.
+6. **Cataclysm host adapters** — CDDA talker capabilities and effect adapters that invoke owning authoritative systems.
+7. **Persistence bridge** — Cataclysm durable variable/EOC state encoded through the world-save and scheduler contracts owned by Spec 20.
+
+### 1A. Four-way architecture classification
+
+Every implementation decision in this spec belongs to one of four layers:
+
+| Classification | Contract in Spec 17 |
+|---|---|
+| **1. Pinned CDDA reference behaviour** | The exact baseline evidence for EOC lifecycle types, alpha/beta talkers, variable scopes/shorthands, condition/effect operators, expression/coercion/RNG semantics, recurrence and JSON scripting contracts. This is evidence to reproduce, not generic platform API design. |
+| **2. OctoGhast Cataclysm-profile contract** | A faithful managed implementation of those pinned semantics, adapted only where already established for authoritative continuous time, co-op identity/authority, persistence and projection. Cataclysm content still observes the pinned behaviour through this layer. |
+| **3. Generic Core runtime contract** | Deterministic typed event dispatch; deterministic scheduled jobs; stable invocation context and typed/stable entity references; scoped state-storage primitives; deterministic RNG access; authoritative side-effect execution/command handoff; and audience-aware result projection. Core does not know EOC lifecycle names, CDDA talker categories, `u`/`npc` scope names, CDDA operators, CDDA JSON shapes or Cataclysm time/move constants. |
+| **4. Future evolution seams** | Other rules profiles may define different script languages, actor-role models, operator vocabularies, state scopes, recurrence semantics and data formats while reusing the same Core event/scheduler/context/RNG/authority/projection infrastructure. |
+
+The dependency direction is therefore **Core capabilities → rules-profile runtime → profile host adapters/domain systems**, never Core → Cataclysm scripting vocabulary.
 
 ## 2. Authoritative evidence at the pinned baseline
 
@@ -42,7 +55,7 @@ Important regression evidence includes `tests/math_parser_test.cpp` plus EOC/dia
 
 An EOC is a registered object identified by a stable string ID. Inline EOCs are accepted wherever the loader allows either an ID string or an object; references are consistency-checked after loading.
 
-Core fields and defaults:
+Pinned CDDA fields and defaults (therefore Cataclysm-profile schema, not Core schema):
 
 | Field | Semantics |
 |---|---|
@@ -103,17 +116,19 @@ These rules are invoked by the death-prevention host phase. Their effects can al
 
 ## 5. Invocation frame and nesting
 
-Every rule evaluates in a dialogue-like frame:
+Every Cataclysm rule evaluates in a dialogue-like profile frame:
 
 ```
-InvocationFrame {
-  alpha: Talker?      // "u" scope
-  beta: Talker?       // "npc"/"n" scope
+CataclysmInvocationFrame {
+  alpha: Talker?      // CDDA "u" role
+  beta: Talker?       // CDDA "npc"/"n" role
   context: Map<String, DiagValue>
   callStack: List<String>
-  conditionals: host-defined conditional bindings
+  conditionals: Cataclysm-profile conditional bindings
 }
 ```
+
+This shape is **not** the generic Core invocation API. Core requires only a stable invocation context able to carry a profile/runtime identifier, stable typed entity references/role bindings, immutable triggering metadata, scoped contextual values and deterministic execution metadata. The Cataclysm profile projects that generic context into alpha/beta talkers and CDDA variable conventions. A future profile may use named roles or no talker abstraction at all.
 
 Nested EOC calls copy the parent frame so actor bindings and context propagate. A child can extend/overwrite its own context without requiring the caller's ephemeral frame to be mutated.
 
@@ -121,7 +136,7 @@ The baseline records EOC call-stack entries and guards extreme recursion (the C+
 
 ## 6. Talker abstraction and capability matrix
 
-A talker is a capability adapter over a host entity, not synonymous with an NPC. Conditions/effects operate against alpha and beta talkers and must tolerate absent or unsupported capabilities.
+Within the Cataclysm profile, a talker is a capability adapter over a host entity, not synonymous with an NPC. Conditions/effects operate against alpha and beta talkers and must tolerate absent or unsupported capabilities. **Generic Core does not define these talker categories or the alpha/beta convention**; it supplies stable entity references and capability/host-service boundaries from which this profile builds its adapters.
 
 Minimum actor families for parity:
 
@@ -141,7 +156,7 @@ Do not implement a universal entity with fake fields. Define explicit capability
 
 ## 7. Variable model
 
-The baseline variable scopes are:
+The pinned CDDA variable scopes, implemented by the Cataclysm profile, are:
 
 - **global** — world/global variable store;
 - **context** — invocation-local map;
@@ -186,7 +201,7 @@ Where upstream condition implementations short-circuit through native boolean co
 
 Effects within one effect list execute sequentially; later effects observe earlier mutations unless a specific effect contract states otherwise.
 
-The condition/effect registry should be extensible: each JSON operator is a named compiler producing a typed predicate/effect closure or AST node. Unknown operators and malformed operands must produce source-located load errors.
+The **Cataclysm-profile** condition/effect registry should be extensible: each pinned CDDA JSON operator is a named compiler producing a typed predicate/effect closure or AST node. Unknown operators and malformed operands must produce source-located load errors. Generic Core must not register, enumerate or switch on CDDA condition/effect operator names; another rules profile may supply an entirely different operator vocabulary or no JSON scripting at all.
 
 ## 9. Math/expression runtime
 
@@ -209,7 +224,7 @@ The pinned math parser demonstrates:
 - explicit parse/runtime diagnostics;
 - IEEE-style infinity/NaN behavior for applicable floating operations.
 
-The parser must preserve pinned precedence, including tested edge cases such as unary/exponent combinations. Do not substitute a host-language `eval`.
+The Cataclysm-profile parser must preserve pinned precedence, including tested edge cases such as unary/exponent combinations. Do not substitute a host-language `eval`. The expression grammar, numeric/coercion rules, `DiagValue` variants and dialogue functions are Cataclysm-profile compatibility behaviour; Core only supplies deterministic RNG/state/reference services required by whichever evaluator a profile installs.
 
 Random functions (for example `rng`) must use OctoGhast's gameplay RNG service, not a parser-private RNG. A single expression evaluation consumes RNG in evaluation order. Seeded conformance tests must verify bounds and deterministic replay under the same seed/state.
 
@@ -231,7 +246,9 @@ Actor resolution failure must not prevent non-actor payload conditions from runn
 
 ## 11. Scheduling and time semantics
 
-Scheduling is expressed in game-time durations and absolute due times using the authoritative canonical simulation-time model from Spec 01. CDDA's game-time recurrence/duration rules remain the rules baseline; OctoGhast changes only the scheduling owner and progression context. The server advances canonical time continuously at fixed simulation steps independent of render/network frame rate, and EOC due checks occur at deterministic simulation boundaries rather than on a local player's turn.
+Cataclysm EOC scheduling is expressed in profile game-time durations and absolute due times using the authoritative canonical simulation-time model from Spec 01. CDDA's game-time recurrence/duration rules remain the Cataclysm rules baseline; OctoGhast changes only the scheduling owner and progression context. The server advances canonical time continuously at fixed simulation steps independent of render/network frame rate, and EOC due checks occur at deterministic simulation boundaries rather than on a local player's turn.
+
+**Core timing contract:** the scheduler accepts canonical due coordinates/deadlines and deterministic order keys, but conversion between a profile's chronology/duration/action units and canonical scheduler coordinates is supplied by the active rules profile. Cataclysm currently consumes Spec 01's selected Cataclysm mapping (including its 10-tick/world-second and move-economy relationship); Core must not treat that mapping as a universal constant. A future profile may use a different chronology/rate conversion while retaining the same deterministic scheduler.
 
 Required properties:
 
@@ -250,7 +267,7 @@ A zero/negative recurrence can create pathological same-turn loops. The loader/r
 
 ## 12. Persistence
 
-Persistence is shared with Spec 20.
+Persistence ownership and save transaction semantics are owned by Spec 20/#85. Spec 17 only defines the Cataclysm-profile state that must participate in that contract; it does not create a second persistence subsystem.
 
 Durable state includes:
 
@@ -271,19 +288,23 @@ For OctoGhast, **global** variables are world-scoped and shared by all actors by
 
 ## 13. Host integration points
 
-The EOC runtime must expose explicit host APIs rather than letting feature systems reach into evaluator internals:
+The Cataclysm profile should expose an EOC-facing façade rather than letting feature systems reach into evaluator internals:
 
-- `activate(eocId, frame)`
-- `queue(eocId, delay, owner, capturedContext)`
-- `publishEvent(event, optionalAlpha, optionalBeta)`
-- `processDue(character)`
-- `reactivate(character/global)`
+- `activate(eocId, cataclysmFrame)`
+- `queue(eocId, profileDelay, owner, capturedContext)`
+- `publishCataclysmEvent(event, optionalAlpha, optionalBeta)`
+- `processDue(owner)`
+- `reactivate(owner/global)`
 - `runDeathHooks(actor, actorKind)`
 - `runPreventDeath(actor)`
 
-Items, recipes, mutations, bionics, activities, attacks/deaths, mapgen updates and later feature specs bind to these APIs. Inline EOC loading should return a registry ID so callers do not own compiled rule objects.
+Those are **profile APIs**, not generic Core interfaces. Underneath them, Core exposes reusable capabilities conceptually equivalent to typed event dispatch, deterministic job scheduling/cancellation, stable invocation-context construction, scoped state access, deterministic RNG, authoritative command/effect execution and audience-aware result publication. Core API names and data types should remain profile-neutral and must not accept `EocId`, `Talker`, `ACTIVATION`, `u`/`npc` scopes or CDDA JSON nodes.
 
-Mapgen-update and world-mutating effects must route through the local-map/world APIs from Specs 12/13; the scripting runtime is orchestration, not a second world model. These host APIs are server-internal authoritative operations. A client may request an action whose accepted resolution invokes an EOC, but it never receives a mutable invocation frame or permission to apply EOC effects directly.
+Items, recipes, mutations, bionics, activities, attacks/deaths, mapgen updates and later Cataclysm feature specs bind to the profile façade where they require EOC compatibility. Inline EOC loading should return a Cataclysm registry ID so callers do not own compiled rule objects.
+
+Mapgen-update and world-mutating effects must route through the local-map/world APIs from Specs 12/13; the scripting runtime is orchestration, not a second world model. The Cataclysm evaluator may request a map/world mutation, but the owning map/world system validates and commits it through the same authoritative mutation path used by non-scripted gameplay. No rules runtime owns a shadow map, inventory, actor model or alternative source of truth.
+
+These host APIs are server-internal authoritative operations. A client may request an action whose accepted resolution invokes an EOC, but it never receives a mutable invocation frame or permission to apply EOC effects directly. Transport/session lifecycle, request admission, reconnect and connection identity remain owned by #90; Spec 17 consumes only stable player/entity identity and projection contracts exposed above that boundary.
 
 ## 14. Error and diagnostic behavior
 
@@ -376,6 +397,12 @@ The implementation is conformant when automated tests demonstrate all of the fol
 27. Queue a global EOC and actor-owned EOCs, save before equal-time execution, reload and advance. Assert due times and persisted order keys reproduce the uninterrupted authoritative execution order.
 28. Deliver an EVENT payload naming Player A's Character while Player B is also connected. Assert actor resolution binds A by stable authoritative ID; failure to resolve A never substitutes B, while payload-only conditions retain pinned missing-talker behavior.
 29. Compare one-player in-process transport and network/co-op execution for the same admitted EOC-triggering command/event trace. Assert identical authoritative EOC state, RNG/schedule results and only transport-appropriate projection differences.
+30. Install a minimal non-CDDA rules profile that defines its own rule/job type and named invocation roles, with no EOC lifecycle enum, Talker classes, alpha/beta names, CDDA variable shorthand or CDDA JSON operators. Assert it can dispatch a typed Core event, schedule deterministic work, resolve stable entity references/context, consume deterministic RNG, commit an authoritative side effect through an owning system and publish a filtered result.
+31. Run representative pinned Cataclysm ACTIVATION, RECURRING and EVENT fixtures through the Cataclysm profile façade backed by the generic Core event/scheduler/context services. Assert externally observable Cataclysm state, branch/order, talker/variable binding, RNG use and recurrence results are unchanged from scenarios 1–19.
+32. With two simultaneous player-controlled Characters, execute equal rule payloads through separate Cataclysm invocation frames backed by Core contexts. Assert stable role/entity bindings and ephemeral context remain isolated; intentional shared state still serializes by authoritative execution order.
+33. Enqueue equal-due jobs from both the Cataclysm profile and a non-CDDA profile. Assert Core orders them by the documented canonical due coordinate plus persisted monotonic order key, independent of profile type, connection arrival, dictionary iteration or client identity.
+34. Save with scheduled Cataclysm and non-CDDA invocations pending, reload under Spec 20, disconnect/reconnect an owning player through a new #90 session, and advance time. Assert stable invocation ownership/entity references and order keys survive; no socket/session identity enters the save; each rule executes exactly once.
+35. Have Cataclysm and non-CDDA rule executions each produce private and world-visible authoritative results. Assert audience filtering is applied by the shared projection boundary and does not depend on the rules-runtime implementation, while hidden context/state remains server-only.
 
 ## 18. Non-goals and decisions deferred to dependent specs
 
@@ -383,9 +410,21 @@ This spec does not enumerate every individual CDDA condition/effect operator. Th
 
 NPC conversation UI belongs to Spec 11/21. Event producers belong to their domain systems. Mapgen semantics belong to Spec 13. This spec owns the common invocation/evaluation contract those systems call.
 
-## 18A. Architecture-review decision summary
+## 18A. Architecture-review and Core/profile re-evaluation summary
 
-The pinned-CDDA investigation above remains evidence for EOC definitions, lifecycle, talker capabilities, variable semantics, expression behavior and recurrence rules. OctoGhast deliberately adapts only execution context: canonical continuous server time replaces avatar-turn scheduling; stable world/actor identities replace local-avatar/session assumptions; the server exclusively owns side effects/RNG/schedules; and results cross the client boundary only through audience-filtered projections. These adaptations do not redefine CDDA condition/effect semantics.
+### 1. Pinned CDDA reference behaviour
+The completed investigation remains authoritative evidence for EOC lifecycle names/types, talker capability matrix, alpha/beta conventions, CDDA variable scopes and shorthand/indirection, condition/effect operator vocabulary, JSON forms, expression grammar/coercion behaviour, recurrence/deactivation rules, event binding and observable failure semantics.
+
+### 2. OctoGhast Cataclysm-profile contract
+The Cataclysm profile must preserve that behaviour for pinned content. The already-reviewed adaptations remain unchanged: canonical continuous server time replaces avatar-turn scheduling; stable world/actor identities replace local-avatar/session assumptions; server-side execution exclusively owns effects/RNG/schedules; persistence uses Spec 20; and results cross the client boundary only through audience-filtered projection. These adaptations do not redefine Cataclysm condition/effect semantics.
+
+### 3. Generic Core runtime contract
+Core supplies deterministic event dispatch and ordering, deterministic scheduled jobs with stable ownership/order keys, stable typed invocation/entity references, generic scoped state-storage primitives, deterministic gameplay RNG access, authoritative side-effect/command execution boundaries, and audience-aware projection. Core chronology APIs accept profile-defined rate/chronology conversion. Core has no permanent dependency on CDDA EOC lifecycle names, talker categories, alpha/beta role names, `u`/`npc` variable syntax, CDDA operator sets, `DiagValue` details, CDDA JSON shapes or 10-TPS/100-move constants.
+
+### 4. Future evolution seams
+A future rules profile may install a different scripting runtime, DSL, bytecode evaluator or direct compiled rules; use named/multi-party roles rather than alpha/beta; define different scoped state; use different recurrence semantics or chronology mapping; and expose different operator/data vocabularies. It should still be able to reuse Core event delivery, scheduler, stable context/reference, RNG, authority and projection facilities without importing Cataclysm namespaces or translating its rules into fake EOCs.
+
+No unresolved cross-cutting decision was found by this re-evaluation. The boundary follows #52/#57/#58/#64/#65, persistence remains owned by #85/Spec 20, and session/network concerns inherit #90.
 
 ## 19. Definition of done for #82
 
@@ -400,6 +439,7 @@ The pinned-CDDA investigation above remains evidence for EOC definitions, lifecy
 - persistence/reconciliation behavior;
 - failure/diagnostic expectations; and
 - black-box parity fixtures; and
-- the authoritative real-time/co-op scheduling, talker isolation, persistence and audience/projection contract plus scenarios 20–29 above.
+- the authoritative real-time/co-op scheduling, talker isolation, persistence and audience/projection contract plus scenarios 20–29 above; and
+- the explicit pinned-reference / Cataclysm-profile / generic-Core / future-seam boundary plus cross-profile scenarios 30–35.
 
 Implementation completion is separate from specification completion.
