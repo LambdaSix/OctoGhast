@@ -491,7 +491,7 @@ This is an architectural classification only. It does not weaken or delete any C
 
 ## Open implementation decisions (not parity ambiguity)
 
-These may differ internally without violating parity: concrete C# class hierarchy; ECS vs aggregate implementation; cache representation; event-bus implementation; numeric wrapper types; and whether individual physiology subsystems are separate services. The acceptance boundary is the observable state transition, stable data contract and timing behavior above.
+Within #52's settled composition/ECS runtime direction, implementation choices include component/aggregate layout, cache representation, event-bus implementation, numeric wrapper types and whether physiology subsystems are separate services. Reintroducing an authoritative OO actor inheritance hierarchy is not an open local choice. The acceptance boundary is the observable state transition, stable data contract and timing behavior above.
 
 
 ## Architecture review — continuous authoritative time and co-op
@@ -511,3 +511,4 @@ This review does **not** replace or reinterpret the pinned-CDDA Character invest
 9. **Catch-up equivalence.** Advancing an interval through normal fixed ticks versus permitted deterministic catch-up yields equivalent Character state and threshold/event ordering, including five-minute ordering and RNG-sensitive work.
 10. **Formula preservation.** Golden fixtures for healing, stamina, needs, temperature, effects, vitamins and other Character rules remain pinned to the existing CDDA evidence; architecture adaptation tests may change scheduling/context assertions but must not silently alter those formulas.
 11. **Core/profile isolation.** The re-evaluation scenarios 21–28 pass: Cataclysm constants/cadences remain profile-local, alternative Core rates/physiology shapes do not require CDDA invariants, save/reconnect follows Spec 20, and observer count cannot change authoritative physiology.
+

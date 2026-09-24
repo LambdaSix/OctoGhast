@@ -279,7 +279,7 @@ Per active global turn `monster::process_turn` includes observable state changes
 
 The server advances continuously on Spec 01's canonical tick clock; no player's input gates monster progression. Preserve CDDA moves as simulation currency.
 
-Using the established 10-tick-per-world-second mapping, speed/move accrual is scheduled deterministically from canonical elapsed simulation time. Do not reinterpret `attack_cost=100` as “100 wall-clock milliseconds.”
+Using the Cataclysm-profile configuration of 10 ticks per world second (not a universal Core rate), speed/move accrual is scheduled deterministically from canonical elapsed simulation time. Do not reinterpret `attack_cost=100` as “100 wall-clock milliseconds.”
 
 A monster in an active region is scheduled once even if several players' interest regions overlap it.
 
@@ -631,7 +631,7 @@ The monster system requires these interfaces/concepts, without prescribing concr
 - item/corpse/inventory services from Specs 05/06.
 - persistence/background-region service from Spec 20.
 - environment/light/field/scent service, with detailed autonomous rules in Spec 14.
-- `IMonsterDecisionPolicy` / pathfinding contract supplied later by #81.
+- `IMonsterDecisionPolicy` / pathfinding contract supplied by completed Spec 16 / #81.
 - player-specific projection/interest service from #77/#90 architecture.
 
 Cross-system calls must pass stable IDs/value objects and explicit contexts, not direct client/UI objects.
@@ -823,3 +823,16 @@ Evolution/revival lifecycle | §§11, 13, M10-19/20/21/28
 Map load/unload/persistence | §§12, 14, M10-10/22/23/24/25
 Combat/faction/EOC/event/environment dependencies | §§2, 8-10, 13, 17
 Parity scenarios for spawn/pursuit/attacks/death/drop/revival/save-load | §19; detailed autonomous pursuit policy remains deliberately owned by #81, while this spec pins the monster-side pursuit inputs and movement economy required by it
+
+## 23. Post-spec Core/profile classification
+
+The pinned evidence and all M10 scenarios remain mandatory for the Cataclysm reference profile. Reference parity is a foundation/completeness benchmark, not the final limit of creature design.
+
+- **Reference behaviour / Cataclysm policy:** monster/species/faction/group schemas, HP and morale/anger fields, senses/flags, 100-move costs, one-second cooldown processing, special-attack maps, weighted spawn rules, evolution/reproduction formulas and corpse/revival/XP rules belong to Cataclysm. In particular the reproduction invocation roll is preserved; generality does not authorize replacing it with a new biological model.
+- **Core contract:** stable runtime identity, immutable definition references, authoritative lifecycle/mutation, deterministic scheduler/RNG access, spatial indexing, active/background ownership, save continuation and explicit projection. Core need not define a Monster subtype, CDDA size taxonomy, species flags or a monster-only scheduler.
+- **Intentional adaptations:** explicit invocation actors replace a global avatar; stable CreatureId replaces position-based durable identity; one server simulates separated/overlapping regions and filters projections per viewer.
+- **Evolution seams:** another profile may use different actor capabilities, growth/reproduction, sensing, geometry or cooldown currency while reusing Core. Polymorph identity retention and new identity on Cataclysm revival remain the profile's concrete rules.
+
+**M10-AUD-01:** instantiate a non-Cataclysm creature fixture with different capabilities, cadence and deterministic non-grid position; exercise spawn/move/save/load/despawn through the same Core contracts without registering Cataclysm monster fields. Separately retain M10's pinned spawn/cooldown/reproduction/death/revival fixtures unchanged.
+
+Global scheduling/activation integration follows [#95](https://github.com/LambdaSix/OctoGhast/issues/95); this does not reopen #75's completed evidence.

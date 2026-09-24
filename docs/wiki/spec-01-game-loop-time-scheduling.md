@@ -6,6 +6,8 @@ Reference baseline: `LambdaSix/Cataclysm-DDA@e262adb299a7613b4aedc5f12c08fe0413c
 
 ## Status and purpose
 
+The pinned-reference sections below retain upstream behaviour and historical proposed interfaces. The authoritative real-time/co-op review and its later Core/profile clarification govern OctoGhast implementation; the upstream avatar-gated loop, integer-turn-only WorldTime, game-over and autosave scenarios are reference fixtures, not universal Core requirements. The [post-spec architecture audit](./post-spec-architecture-audit.md) records subsequent cross-spec integration qualifications.
+
 This page records the investigation required by #66 and converts the pinned Cataclysm:DDA behavior into an implementation-facing contract for OctoGhast. It is intentionally behavioral: parity requires reproducing externally observable ordering, time/move semantics, interruption and persistence behavior, not CDDA's concrete class layout.
 
 ## Authoritative reference anchors
@@ -441,7 +443,7 @@ Speed/cost formulas are Cataclysm policy. Budget accumulation, remainder account
 
 ## 5. Fixed-step progression and ordering
 
-The server exposes an operation equivalent to `AdvanceOneSimulationTick()`. Each tick uses a fixed delta and a deterministic phase pipeline:
+The server exposes an operation equivalent to `AdvanceOneSimulationTick()`. Each tick uses a fixed delta. **Integration decision pending in [#95](https://github.com/LambdaSix/OctoGhast/issues/95):** the pipeline below must be reconciled with the preserved environment/actor causal constraints, Specs 04/09 execution keys, Spec 25 admission keys and Spec 26 activation phases before it becomes an executable total-order contract. The following is the existing phase outline, not permission for dependent implementations to choose conflicting contention winners:
 
 1. establish canonical tick N;
 2. admit previously received client requests at the defined boundary;
@@ -514,7 +516,7 @@ Authoritative clock, scheduler, budgets, activities, RNG and chronology are non-
 
 `client input -> transport request -> deterministic server admission -> authoritative resolution -> projection/event -> client presentation`
 
-The client never writes world/ECS state or advances time. It may interpolate/animate projections. A plain .NET/headless host must be able to load, advance and save the simulation. In-process single-player and network multiplayer use the same logical protocol.
+The client never writes world/ECS state or advances time. It may interpolate/animate projections. Core timing/domain contracts must be exercisable in a plain .NET host. Per [Spec 24](./spec-24-build-platform-packaging-runtime-resource-layout.md), a production headless host may use bounded libgodot server adapters while remaining free of graphical/window/audio requirements; those adapters do not own the clock or durable domain state. In-process single-player and network multiplayer use the same logical protocol.
 
 Ghast is reference evidence here: ADR-0017 demonstrates a sole monotonic canonical tick and absolute deadlines; ADR-0019 demonstrates a hostable fixed-step server with deterministic network pumping and in-process/network transports; ADR-0011 keeps interpolation/presentation outside authoritative simulation. OctoGhast deliberately does not inherit Ghast's 20 TPS or exact networking implementation.
 
@@ -553,7 +555,7 @@ Godot client: input-to-request translation, projection rendering, interpolation/
 41. A declared intermediate-simulation barrier prevents unsafe skipping; optimized timewarp matches accelerated stepping observably.
 42. One-player in-process and loopback network transports produce matching admitted commands, authoritative traces and projections.
 43. Two players with different speeds accrue/spend independent budgets against one chronology.
-44. A representative simulation can load/advance/save with no Godot runtime or scene tree.
+44. A Core timing/domain fixture can load/advance/save with no Godot runtime or scene tree. When a production server adapter materially affects gameplay, also run its headless integration/conformance fixture with the real libgodot adapter per Spec 24; a fake alone does not prove equivalent deterministic continuation.
 45. Client interpolation cannot alter collision, action cost, FOV, scheduler state or the next authoritative position.
 
 ## 13. Review decisions and dependent work
@@ -571,7 +573,7 @@ Changing tick rate, same-tick ordering keys or the one-global-clock rule is an a
 - [x] Define deterministic same-tick ordering and host catch-up independent of render frame rate.
 - [x] Define single-player pause semantics and multiplayer pause/acceleration/timewarp policy.
 - [x] Define long-activity progression when other players/world actors continue acting.
-- [x] Ensure the loop is headless and Godot-free; Godot consumes projections and supplies requests only.
+- [x] Keep Core timing/domain contracts Godot-independent and the host headless-capable. The Godot client consumes projections and supplies requests only; Spec 24 separately permits bounded server adapters.
 - [x] Add one-player in-process-server and multi-player timing acceptance scenarios.
 - [x] Repository spec updated; architecture review complete.
 
@@ -694,3 +696,7 @@ The game loop/scheduler must introduce no wall-clock-dependent random draws. RNG
 - Godot/presentation consumes projected time/progress/events only and cannot own or mutate the authoritative clock.
 
 No new unresolved cross-cutting architecture decision was discovered. The re-evaluation narrows an accidental platform constraint (10 TPS) to the Cataclysm profile and separates single-avatar game-over/autosave assumptions from shared authoritative world lifecycle.
+
+### Post-spec integration gate
+
+The earlier “no new unresolved decision” statements record the individual reviews. The corpus audit subsequently found #95. Existing fixed-step, no-dropped-ticks, profile-rate, negative-budget, authority and save invariants remain settled. Before integrated scheduling sign-off, #95 must fix a total execution/admission order, actor/environment causal phases, activation interval boundaries and paused control intake. Its scenarios augment tests 12–14, 25–26, 55 and 57; they do not erase pinned reference tests.

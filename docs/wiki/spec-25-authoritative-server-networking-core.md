@@ -33,7 +33,8 @@ This specification consumes, rather than reopens:
 - #86 / Spec 21 — Godot interaction/projection boundary and stale-UI handling;
 - #88 / Spec 23 — deterministic in-process/loopback conformance testing;
 - #89 / Spec 24 — host/platform/runtime resource layout;
-- #91 — cross-world profile/account/meta-progression identity and persistence where required.\n- #92 — authentication, credential/provider and public-server security policy.
+- #91 — cross-world profile/account/meta-progression identity and persistence where required.
+- #92 — authentication, credential/provider and public-server security policy.
 
 ### Ownership table
 
@@ -190,7 +191,7 @@ Messages are classified by semantic contract, not merely by transport reliabilit
 
 - **Command/intent request** — asks the server to attempt an authoritative mutation/action.
 - **Activity request** — starts/cancels durable work through Spec 04.
-- **Synchronous query** — requests bounded authorized information; does not mutate gameplay state except explicitly audited query bookkeeping.
+- **Synchronous query** — requests bounded authorized information; does not mutate gameplay state or consume authoritative RNG. Metrics, rate-limit counters and disposable query caches are infrastructure bookkeeping, not a gameplay mutation exception. A query that would trigger generation or another semantic transition must hand off to its owning authoritative operation.
 - **Session/control message** — negotiation, join, leave, heartbeat, capability exchange.
 - **Social/admin message** — separately capability/authorization checked.
 
@@ -224,6 +225,8 @@ Transport receipt is not gameplay acceptance.
 Transport/parser threads enqueue validated immutable request DTOs. The authoritative simulation drains admitted requests only at the Spec 01 deterministic server intake phase.
 
 ### 7.2 Equal-tick ordering rule
+
+**Post-spec qualification:** [#95](https://github.com/LambdaSix/OctoGhast/issues/95) owns reconciliation of this admission key with the actor execution keys in Specs 01/04/09, AI/system precedence and bounded candidate selection. The following recorded network-intake rule is not yet a complete cross-source contention contract.
 
 For requests assigned to the same canonical intake tick:
 
@@ -476,11 +479,11 @@ Networking consumes **no authoritative gameplay RNG** for:
 
 If security tokens require cryptographic randomness, that RNG is security infrastructure and isolated from deterministic simulation RNG streams.
 
-For an identical accepted request sequence, content generation and initial authoritative state, simulation results must be identical regardless of:
+For an identical canonical admission trace (assigned tick, stable source/order and semantic payload), content generation, active-region/lease inputs and initial authoritative/RNG state, simulation results must be identical regardless of:
 
 - packet fragmentation/coalescing;
 - socket callback thread;
-- host network jitter;
+- host network jitter that leaves that admission trace unchanged;
 - serializer buffering;
 - renderer frame rate;
 - in-process versus loopback transport.
@@ -565,13 +568,13 @@ Vertical-slice tests prove in-process/loopback equivalence and bounded lifecycle
 
 ## 20. Explicitly deferred cross-cutting decisions
 
-Only one unresolved cross-cutting area remains outside this ticket: **production authentication/security/account-provider policy** for LAN/friend/public dedicated servers. It must have a single authoritative follow-up ticket and be resolved before OctoGhast is declared safe for public internet hosting.
+The original review separated production authentication/security into #92 and cross-world profile ownership into #91. The subsequent corpus audit also found [#95](https://github.com/LambdaSix/OctoGhast/issues/95) (admission/execution/activation integration) and [#96](https://github.com/LambdaSix/OctoGhast/issues/96) (bounded command deduplication/outcome recovery). Those tickets own the unresolved decisions; the completed transport/framing/resource/projection evidence remains valid.
 
-The following are **not** unresolved after this spec:
+The following decisions remain established, subject to the explicit integration qualifications above:
 
 - initial socket transport: TCP;
 - application framing: bounded length-prefixed typed binary envelope;
-- equal-tick ordering: PlayerId then admitted request sequence then stable type discriminator;
+- network intake key: PlayerId then admitted request sequence then stable type discriminator; #95 must settle its relation to actor execution and cross-source contention;
 - reliability classes: reliable facts, replaceable state, disposable hints;
 - initial queue/frame caps: defined above and configurable within hard maxima;
 - coalescing: only replaceable state with stable semantic keys;
@@ -705,3 +708,14 @@ Run a representative new-game-to-movement flow with exactly one player. The same
 9. Resolve the #92 before public internet deployment.
 
 No gameplay/runtime implementation is performed by this specification.
+
+## 24. Post-spec acceptance qualifications
+
+- **Ordering:** NET25-09/10 and AI NET25-27 require the shared decision/scenarios in [#95](https://github.com/LambdaSix/OctoGhast/issues/95), including conflicting PlayerId/CharacterId order, a bounded frozen candidate set and deferred work.
+- **Outcome recovery:** §6.3's terminal-outcome promise and §16's result-history wording depend on [#96](https://github.com/LambdaSix/OctoGhast/issues/96). A committed command whose reply was lost cannot be called rejected, nor safely replayed solely because a new session has a fresh transport sequence. Record the uncertainty until the chosen reconciliation contract proves the outcome; do not silently choose a retention/persistence policy here.
+- **Determinism:** network transport does not make different physical arrival histories identical. Equivalence tests control canonical admission ticks/order as well as payloads; admission decisions are traceable. No async callback may mutate the world.
+- **Projection integration:** consume Spec 26's enter/update/leave/privacy semantics and Spec 27's baseline epoch, per-object revision, sample tick and motion-continuity requirements. Coalescing must not resurrect hidden state or carry interpolation across an obsolete baseline.
+
+**NET25-AUD-01:** issue the same authorized pure query repeatedly through both transports; authoritative world state/time/RNG stay unchanged while bounded infrastructure metrics may change.
+
+These are targeted integration amendments. No Cataclysm move cost, identity separation, queue bound, transport-neutrality or visibility requirement is relaxed.

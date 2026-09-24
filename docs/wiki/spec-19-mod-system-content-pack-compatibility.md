@@ -482,13 +482,14 @@ The Godot single-player client may render a prompt for that result and resubmit 
 
 The pinned baseline can load a world against changed files under the same mod IDs.
 
-OctoGhast MUST preserve ID-based compatibility, but SHOULD compute a deterministic diagnostic content fingerprint for the resolved package set. A fingerprint mismatch:
+OctoGhast preserves stable ID resolution and records the frozen content-generation identity/compatibility metadata required by Specs 18/20. A diagnostic fingerprint is one possible part of that evidence, not a replacement for compatibility policy.
 
-- is observable in logs/admin diagnostics;
-- can be exposed during connection/world-load diagnostics;
-- is not, by itself, a hard failure in the Cataclysm profile unless a later compatibility policy says so.
+- Report changed generation/fingerprint in world-load diagnostics.
+- A mismatch alone does not prove incompatibility: a declared profile compatibility rule may accept the change, or an explicit migration may transform saved state.
+- A materially changed definition under the same ID MUST NOT be silently accepted as the same continuation. With no declared compatibility or migration decision, stop activation with a structured compatibility/resolution-required result, as Spec 18 BND-08 requires.
+- This is an intentional OctoGhast reproducibility/continuation safeguard. The pinned CDDA changed-files behaviour above remains reference evidence; it does not authorize silent reinterpretation in OctoGhast.
 
-This gives reproducibility evidence without inventing an upstream version solver.
+This introduces no package-version solver and does not require exact byte equality for compatible content.
 
 ## 11. Runtime lifecycle and concurrency
 
@@ -673,7 +674,7 @@ Content definitions may themselves configure gameplay systems that use RNG; thos
 | world content manifest | authoritative world | ordered package IDs | **yes** | request only while world inactive |
 | definition registry | authoritative server content generation | typed string IDs | regenerated from content; references persist by string ID | no |
 | registry compact index | server process generation | generation-local integer | no | no |
-| content fingerprint | server content generation | digest of canonical manifest/resources | optional diagnostic | no |
+| content-generation identity / compatibility metadata | server content generation | versioned identity interpreted by profile policy | required in world save per Specs 18/20; a diagnostic fingerprint may supplement it | no |
 | presentation asset pack | client/product surface | asset-pack ID | client config | local presentation only |
 
 Filesystem paths, sockets, connection IDs, ECS entity IDs and Godot node IDs are never package identity.
@@ -745,7 +746,7 @@ These are implementation acceptance scenarios, not suggestions.
 35. **SAVE-06 — unknown missing mod:** unresolved ID produces a structured resolution-required result; headless host does not silently delete it.
 36. **SAVE-07 — obsolete legacy package:** existing world can load an installed obsolete package; new-world package query marks it non-selectable.
 37. **SAVE-08 — defaults:** changing configured default packages affects a new world but not an existing world's persisted manifest.
-38. **SAVE-09 — content fingerprint drift:** same IDs with changed package bytes preserve ID resolution but emit a diagnostic fingerprint mismatch.
+38. **SAVE-09 — content-generation drift:** same IDs with changed package bytes retain stable ID lookup and emit mismatch diagnostics. A declared compatible change may load; a material definition change without compatibility/migration stops activation before any world tick. Verify both branches against Spec 18 BND-08 and Spec 20 P20-39.
 
 ### Authoritative server/co-op
 
@@ -797,3 +798,4 @@ This specification does not:
 - turn CDDA's informational `version` field into a hidden semver contract.
 
 No unresolved cross-cutting architecture decision was found during this investigation. The server-owned frozen content-generation model follows #52/#57/#58/#65 and Spec 18/20 directly; future package-version negotiation or executable plugin support would be an explicit platform extension rather than a requirement for Cataclysm reference parity.
+

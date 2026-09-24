@@ -116,7 +116,7 @@ At minimum:
 
 ## 4. Units and canonical update cadence
 
-OctoGhast uses Spec 01 canonical time: 10 simulation ticks per world second; 10 ticks equal one pinned-CDDA turn/world second. Wall-clock/render/network time never advances environmental rules directly.
+The Cataclysm profile configures Spec 01 canonical time at 10 simulation ticks per world second; 10 ticks equal one pinned-CDDA turn/world second. Wall-clock/render/network time never advances environmental rules directly.
 
 The Cataclysm profile uses:
 - temperatures as typed temperature values; weather generator calculations are Celsius/Kelvin-compatible and data accepts typed units;
@@ -254,7 +254,7 @@ Within a canonical environment step, use deterministic ordering:
 5. commit derived cache invalidations;
 6. build player-specific projections/events.
 
-This retains Spec 01's environment-before-later actor-phase semantics where a rule depends on it without globally input-gating time.
+This records the required Cataclysm environment-before-later-actor causal constraint. [#95](https://github.com/LambdaSix/OctoGhast/issues/95) must reconcile it with Spec 01's phase outline and Spec 26 activation intervals; implementations must not silently choose opposite actor/environment ordering. The profile cadence does not impose 10 TPS on generic Core.
 
 ## 9. Field state and creation semantics
 
@@ -663,3 +663,4 @@ Downstream users include world generation/mapgen, vehicles, AI/pathfinding, clie
 No new cross-cutting architecture decision is required to complete #79. The apparent single-avatar ownership in pinned weather and scent code is directly resolved by already-established #52/#58/#77 world-owned active-region/server-authority rules: preserve the Cataclysm environmental formulas and spatial semantics, but remove the privileged-avatar ownership/scheduling assumption. Weather/scent storage and caching may be implemented differently provided the conformance scenarios above hold.
 
 Implementation work is intentionally out of scope.
+

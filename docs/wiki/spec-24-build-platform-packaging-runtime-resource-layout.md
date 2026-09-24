@@ -135,7 +135,7 @@ OctoGhast.Cataclysm
 OctoGhast.Server
     ^ authoritative host/session/projection services
     |
-    +-- transport adapters (in-process and later #90 network transport)
+    +-- transport adapters (in-process and Spec 25 / #90 TCP transport)
     |
     +-- engine-service interfaces
             ^
@@ -427,7 +427,7 @@ Spec 20 remains authoritative for save transactions. Spec 24 adds these packagin
 - any gameplay-significant data represented inside Godot server APIs at runtime must be reconstructible from ECS/domain persistence plus immutable definitions; Godot RIDs/object identity are not persistence identity;
 - save metadata records enough build/profile/content identity to validate a continuation before mutating the loaded world.
 
-Direct compatibility with upstream CDDA save files remains a separate compatibility decision; packaging parity does not imply binary/save-format parity.
+Spec 20 decides that direct CDDA save-file read/write compatibility is not required initially; a future pinned importer remains possible. Packaging parity does not imply binary/save-format parity.
 
 ## 11.1 Authoritative Godot-service boundary
 
@@ -710,4 +710,5 @@ A later implementation of this specification is complete when:
 
 Pinned CDDA demonstrates mature multi-platform build/release practice, explicit installed-versus-user paths, independently packaged data/gfx/lang resources and release-time validation. OctoGhast preserves those externally important capabilities while deliberately replacing CDDA-specific build architecture with .NET-owned hosts using 2dog/libgodot from project inception. The ECS/domain model remains owner of durable authoritative state, while bounded Godot server APIs may provide runtime computation/services behind explicit adapters and the Godot 2D client consumes player-specific projections.
 
-No new unresolved cross-cutting architecture decision was discovered. The open production-network transport details remain owned by #90 and cross-world profile storage remains owned by #91.
+No new unresolved cross-cutting architecture decision was discovered. Completed Spec 25 / #90 owns production-network transport mechanics; #92 owns unresolved authentication/public-server security and #91 owns cross-world profile storage.
+

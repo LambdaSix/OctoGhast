@@ -611,7 +611,7 @@ Spec 07 does not define sockets, framing, authentication, queue sizes or backpre
 - malformed, oversized, rate-limited or disconnected-client traffic fails at the networking/session boundary without consuming crafting RNG or partially mutating simulation state;
 - reconnect rebinds a stable player/session to existing authoritative craft/activity state; it does not recreate the craft or become part of persistence.
 
-Until #90's prospective design is finalized, Spec 07 MUST inherit that ticket's eventual generic transport/session decisions rather than invent a crafting-specific network path.
+Spec 25 / #90 is complete and governs transport/session mechanics. Crafting consumes it without a separate network path. Its retry requirements additionally depend on [#96](https://github.com/LambdaSix/OctoGhast/issues/96) for a bounded outcome/deduplication contract across reconnect/save.
 
 ## 19. Black-box and conformance scenarios
 
@@ -735,4 +735,5 @@ Preserve pinned recipe data semantics, requirement feasibility/consumption, move
 ### Future evolution seam
 Reference parity is a completeness waypoint, not a permanent crafting-design ceiling. Later OctoGhast rules may replace recipe schemas, work currencies, production graphs, learning/failure formulas, spatial reachability or work-order representation while retaining the same Core authority and continuation guarantees. Such divergence must be explicit rules/profile work, not an accidental change to Cataclysm parity.
 
-No genuine unresolved cross-cutting architectural decision was discovered by this re-evaluation. #90 remains the single authoritative home for still-prospective networking-core details; Spec 07 only declares the crafting semantics that boundary must carry.
+No genuine unresolved cross-cutting architectural decision was discovered by this re-evaluation. Spec 25 / #90 owns completed networking-core mechanics; Spec 07 declares the crafting semantics that boundary carries. The later corpus audit identified #95 ordering integration and #96 retry/outcome recovery as dedicated cross-spec decisions; the earlier individual-review conclusion does not close those follow-ups.
+

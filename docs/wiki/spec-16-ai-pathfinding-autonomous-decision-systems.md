@@ -37,7 +37,7 @@ This specification does **not** redefine:
 - persistence ownership (#85 / Spec 20);
 - transport/session mechanics (#90).
 
-Detailed NPC dialogue/faction/mission content remains a later feature spec. Spec 16 only consumes those states where they affect autonomous decisions.
+Completed Spec 11 / #76 owns detailed NPC dialogue/faction/mission content. Spec 16 only consumes those states where they affect autonomous decisions.
 
 ## 2. Architectural prerequisites
 
@@ -585,7 +585,7 @@ CDDA processes monsters/NPCs in its turn-gated actor phase. Actors spend accumul
 
 ### 9.2 OctoGhast adaptation
 
-The server advances continuously at canonical 10 TPS. Autonomous actors are scheduled from their own move budgets exactly like other actors.
+The Cataclysm profile configures continuous authoritative progression at 10 canonical TPS per Spec 01; generic Core has no fixed 10-TPS requirement. Autonomous actors are scheduled from their own move budgets exactly like other actors.
 
 AI “thinking” is not a wall-clock task. A decision opportunity occurs only at a deterministic simulation boundary when the actor is eligible.
 
@@ -944,3 +944,4 @@ Godot
 ```
 
 No runtime/gameplay implementation is performed by this investigation.
+

@@ -433,7 +433,7 @@ CDDA resolves combat inside a turn-gated single-player loop. The avatar UI choos
 
 ### Implementation contract
 
-Within one deterministic server resolution boundary, an admitted immediate Cataclysm-profile attack is atomic with respect to externally observable authoritative state. Same-tick combat mutations use the existing ordering key from Specs 01/04: phase, due tick, subsystem priority, stable actor/entity ID and monotonic admission sequence. A later action revalidates the state left by earlier actions.
+Within one deterministic server resolution boundary, an admitted immediate Cataclysm-profile attack is atomic with respect to externally observable authoritative state. **Cross-spec integration gate:** [#95](https://github.com/LambdaSix/OctoGhast/issues/95) must reconcile the following Specs 01/04 execution key with Spec 25 admission ordering before same-tick contention is frozen. The existing combat execution key is: phase, due tick, subsystem priority, stable actor/entity ID and monotonic admission sequence. A later action revalidates the state left by earlier actions.
 
 Examples: if actor A kills target T before B's admitted attack resolves, B receives the feature-appropriate stale/invalid-target result and does not also damage a dead target; if A destroys/transfers a weapon before B's command using it resolves, B cannot use a stale client copy.
 
@@ -681,3 +681,4 @@ Pinned source:
 - https://github.com/LambdaSix/Cataclysm-DDA/blob/e262adb299a7613b4aedc5f12c08fe0413c56a84/tests/melee_test.cpp
 - https://github.com/LambdaSix/Cataclysm-DDA/blob/e262adb299a7613b4aedc5f12c08fe0413c56a84/tests/ranged_balance_test.cpp
 - https://github.com/LambdaSix/Cataclysm-DDA/blob/e262adb299a7613b4aedc5f12c08fe0413c56a84/tests/projectile_test.cpp
+

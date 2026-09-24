@@ -218,7 +218,7 @@ The harness has a dedicated trusted test principal. Interactive developer/admin 
 - destructive lifecycle operations;
 - transport fault injection.
 
-#90 owns authentication/session mechanics; this spec owns only capability requirements. Ordinary players MUST NOT gain debug mutation simply by knowing a message type.
+Spec 25 / #90 owns session mechanics; #92 owns production authentication/security policy. This spec owns capability requirements, not an account system. Ordinary players MUST NOT gain debug mutation simply by knowing a message type.
 
 ### 6.3 Continuous-time rule
 
@@ -740,7 +740,7 @@ Pinned CDDA debug/test code often assumes one process, one avatar and directly a
 
 ### Implementation contract
 
-All black-box scenarios MUST be runnable headlessly without Godot. UI debug tooling is an optional front end over the same debug/test services.
+All non-presentation black-box scenarios MUST run without a graphical/window/audio surface. Core unit/contract fixtures remain runnable without Godot; production scenarios whose gameplay depends on a Spec 24 server adapter MUST also exercise the real headless libgodot implementation. UI/presentation scenarios use their required client surface. Deterministic fakes provide isolation, not proof of production adapter equivalence. UI debug tooling is an optional front end over the same debug/test services.
 
 ## 19. Networking and security boundaries
 
@@ -977,7 +977,7 @@ The Cataclysm profile provides the pinned rules/data adapters and expected behav
 
 No new cross-cutting architecture decision is required by this investigation.
 
-The spec consumes existing decisions for canonical time, server authority, active regions, stable identity, persistence, projection and networking. Concrete authentication/role management for production remote administrators remains #90/product-security work; Spec 23 requires capability separation but does not invent an account system.
+The spec consumes existing decisions for canonical time, server authority, active regions, stable identity, persistence, projection and networking. Concrete authentication/role management for production remote administrators is owned by #92; Spec 23 requires capability separation but does not invent an account system.
 
 ## 28. Definition of done
 
@@ -995,3 +995,9 @@ Spec 23 is implementation-ready when:
 - immutable fixture definitions are separated from mutable runtime state;
 - stable identity/reference, persistence and RNG requirements are explicit;
 - no developer UI is allowed to become a hidden privileged-avatar or client-side mutation path.
+
+## Post-spec cross-contract scenarios
+
+The [post-spec audit](./post-spec-architecture-audit.md) supplements feature scenarios with integration gates in [#95](https://github.com/LambdaSix/OctoGhast/issues/95) (order/activation) and [#96](https://github.com/LambdaSix/OctoGhast/issues/96) (bounded retries/outcomes). Do not mark those matrix rows Conformant while the decision is pending.
+
+**HAR23-AUD-01 — production adapter proof:** where authoritative results depend on a Godot server adapter, run real-adapter headless save/restart and deterministic continuation tests as well as isolated Core fixtures. No render/window/audio dependency is introduced; tolerance in a CDDA differential fixture does not automatically permit divergence in OctoGhast replay.

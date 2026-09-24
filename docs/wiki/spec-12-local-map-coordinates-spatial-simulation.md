@@ -8,6 +8,8 @@ Reference baseline: `LambdaSix/Cataclysm-DDA@e262adb299a7613b4aedc5f12c08fe0413c
 
 This page records the pinned-reference investigation required by #77 and turns the Cataclysm:DDA tactical map behavior into an implementation-facing contract for OctoGhast. It deliberately specifies observable spatial behavior, stable data contracts, mutation/caching obligations, and persistence boundaries rather than requiring CDDA's C++ class layout.
 
+The fixed sizes, z limits, grid projections, tile layers and line/distance rules below describe pinned CDDA and the Cataclysm profile. Generic Core owns deterministic position-to-cell mapping, indexing, mutation and lifecycle capabilities, not those constants or schemas. The WorldPosition/SpatialCell section governs the generic interface.
+
 This spec is foundational for construction, combat, AI/pathfinding, vehicles, world generation/mapgen, environment simulation, items, and persistence.
 
 ## Authoritative reference anchors
@@ -97,7 +99,7 @@ For a bubble-local map-square position `b`:
 
 The inverse subtracts that absolute map-square origin.
 
-The baseline map test explicitly requires both directions to round-trip while `abs_sub` is non-zero and at multiple z levels. OctoGhast must make this a core invariant.
+The baseline map test explicitly requires both directions to round-trip while `abs_sub` is non-zero and at multiple z levels. The Cataclysm profile must preserve this round-trip invariant; Core supports typed deterministic coordinate mappings without hard-coding the reference scales.
 
 ### Bounds
 
@@ -374,7 +376,7 @@ Suggested behavioral interfaces:
 
 ### SpatialCoordinates
 
-Own constants, typed positions, projections, decomposition/remainder operations, bounds helpers and distance/line primitives. No game-content dependency.
+Core owns typed position/cell mapping and deterministic projection/query primitives. Cataclysm supplies the spatial constants, origin/scale vocabulary, bounds and line/distance policies documented above; no Core API requires the 12/24/132 geometry or -10…+10 z range.
 
 ### Submap
 
@@ -453,7 +455,7 @@ Each authoritative tick/snapshot boundary must:
 2. resolve simulation against the world-owned active set;
 3. update authoritative spatial indexes;
 4. compute each connection's interest set from its player identity, spatial relevance, FOV/knowledge and protocol policy;
-5. emit only permitted snapshots/deltas/events with stable entity identifiers and authoritative integer positions.
+5. emit only permitted snapshots/deltas/events with stable entity identifiers and profile-defined authoritative WorldPosition values (grid-aligned integer positions in the Cataclysm profile).
 
 When two players' interests overlap, shared visible entities refer to the same authoritative entity/state revision. Replication may send separate per-client encodings, but it must not imply two simulation instances. When players are separated, no ECS-wide scan is required to build either interest set.
 
@@ -482,7 +484,7 @@ If a future OctoGhast rules mode permits non-grid positions, that mode must expl
 
 ## State and invariants
 
-The implementation must maintain these invariants:
+The Cataclysm implementation must maintain the reference geometry/tile invariants below. Ownership, atomicity, stable identity, deterministic mapping and projection isolation are generic Core contracts; fixed dimensions, z bounds and grid alignment are Cataclysm policy:
 
 1. Every loaded bubble tile maps to exactly one absolute map square and one containing absolute submap.
 2. Absolute positions do not change when the bubble shifts.
@@ -615,7 +617,7 @@ OctoGhast **does not need** to copy:
 - CDDA's `map`/submap C++ class structure;
 - uniform-submap memory optimization;
 - exact cache data structures;
-- map-file packing/compression layout, unless #85 later selects binary/save-file compatibility;
+- map-file packing/compression layout: Spec 20 / #85 explicitly excludes direct CDDA save read/write compatibility from the initial implementation while retaining a future importer seam;
 - runtime integer IDs.
 
 Where exact reference behavior is not yet pinned by a test, add a differential fixture against the pinned CDDA commit before depending on it.
@@ -642,3 +644,9 @@ The #77 spec is satisfied when an OctoGhast implementation can demonstrate:
 - authoritative WorldPosition, derived SpatialCell membership and Godot PresentationTransform kept strictly separate; the pinned Cataclysm profile remains grid-aligned while generic Core does not structurally forbid deterministic sub-cell positioning.
 
 At that point dependent systems can implement against OctoGhast spatial interfaces without rediscovering CDDA's local-map semantics.
+
+## Post-spec conformance and integration gate
+
+**SPAT-AUD-01:** a Core test profile uses different partition dimensions/z bounds and deterministic sub-cell positions; save and project those WorldPosition values without integer truncation, derive cell membership and verify atomic index updates. Cataclysm's negative-coordinate, 12×12, 24×24, 132×132 and z-bound fixtures remain unchanged.
+
+[#95](https://github.com/LambdaSix/OctoGhast/issues/95) owns reconciliation with Spec 26's movement-before-activation outline and the canonical phase plan. No command may query or mutate half-activated destination state. The decision must define preflight/defer behavior for unavailable targets and a processed-through interval convention so catch-up and active work never process the same interval twice.

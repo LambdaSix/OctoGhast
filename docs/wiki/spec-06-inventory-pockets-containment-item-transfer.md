@@ -160,7 +160,7 @@ This section is an **OctoGhast architecture adaptation**, not a claim about pinn
 
 Clients never mutate authoritative item ownership, pocket contents, charges, worn/wielded state, map stacks or vehicle cargo. A client submits a transfer intent/command identifying the acting Character, operation, source reference, requested quantity and destination selector/reference. The server resolves it at a deterministic simulation boundary through the same validation/transfer path used by AI and in-process single-player clients.
 
-A transfer that is instantaneous under the relevant CDDA rule resolves atomically when the actor is eligible and can pay its CDDA move cost. A transfer represented by CDDA as pickup/fill/haul or other persistent work becomes or advances an actor-owned activity; intermediate client UI state is not authoritative ownership. Completion/repetition revalidates the authoritative source, destination, reachability and quantities before each ownership mutation.
+A transfer that is instantaneous under the relevant CDDA rule resolves atomically when the actor is eligible under Spec 01 and the action-specific Cataclysm rule. Eligibility does not universally require a pre-funded full cost: an otherwise legal action may debit the signed budget below zero and delay the next opportunity, as Spec 01 requires. A transfer represented by CDDA as pickup/fill/haul or other persistent work becomes or advances an actor-owned activity; intermediate client UI state is not authoritative ownership. Completion/repetition revalidates the authoritative source, destination, reachability and quantities before each ownership mutation.
 
 Single-player uses the same command/result contract through in-process transport. Network latency and render frame timing must not change simulation ordering or bypass validation.
 
@@ -170,7 +170,7 @@ Per Spec 01/#57, the **Cataclysm profile configuration** maps 10 canonical ticks
 
 Generic Core does not hard-code 10 TPS, 100 moves per world second, speed-100 accrual, or even the existence of a `moves` currency. It supplies deterministic fixed-step scheduling and profile-defined action/work-cost integration. An alternative timing profile can use the same transfer transaction service with a different rate/cost mapping.
 
-The server schedules/resolves a transfer only when the actor has the required action budget or according to the activity contract. A successful mutation and its cost accounting belong to one authoritative resolution. A request rejected because its preconditions became stale before resolution does not debit the successful-transfer cost; any explicit attempted-action cost must be separately specified by the underlying CDDA action rule rather than invented as a networking penalty.
+The server schedules/resolves a transfer under the actor-eligibility or activity contract. It must not add a full-cost affordability gate where the pinned action permits negative move debt. A successful mutation and its cost accounting belong to one authoritative resolution. A request rejected because its preconditions became stale before resolution does not debit the successful-transfer cost; any explicit attempted-action cost must be separately specified by the underlying CDDA action rule rather than invented as a networking penalty.
 
 ### Deterministic contention and stale requests
 
@@ -300,4 +300,10 @@ Per #90, this subsystem defines transport-neutral transfer request/result/projec
 
 This spec depends on the completed core Item, Character, local-map/spatial (#58/#77), persistence (#85) and typed-ID contracts under #65, and consumes Spec 01/#57 for profile timing. It inherits #90 for transport/session concerns without defining local socket/protocol mechanics. It is a prerequisite for crafting/requirements, activities that consume/move items, ranged reload behavior, construction material consumption and inventory UI parity.
 
-The later activity/input specs should own command interruption and UI selection details, while this spec remains authoritative for ownership, containment validation, transfer atomicity, quantities, stable references and storage-selection outcomes.
+Spec 04 owns command/activity interruption and Spec 21 owns UI selection details, while this spec remains authoritative for ownership, containment validation, transfer atomicity, quantities, stable references and storage-selection outcomes.
+
+## Post-spec conformance and integration gates
+
+- **INV-AUD-01 — move debt:** given an eligible actor and a legal transfer costing more than its positive current budget, preserve the pinned debit/negative balance and delay later opportunity; do not reject merely for lack of the full cost. Resource, capacity and access checks remain mandatory.
+- Request-ID retry guarantees above require the shared bounded contract in [#96](https://github.com/LambdaSix/OctoGhast/issues/96), including reconnect, saved pending work and expired deduplication history. They must not be implemented with an unbounded cache or guessed persistence policy.
+- Cross-source contention consumes [#95](https://github.com/LambdaSix/OctoGhast/issues/95); the same admitted trace must produce the same winner across inventory, activities and combat.

@@ -268,7 +268,9 @@ All changes occur at deterministic simulation boundaries.
 
 ### 7.1 Phase order
 
-Normative phase order:
+**Cross-spec integration gate:** [#95](https://github.com/LambdaSix/OctoGhast/issues/95) must reconcile this existing outline with Spec 01's phase plan and Spec 12's load-before-query rule. Commands requiring unavailable destination state need an explicit preflight/defer contract; catch-up and active work need one processed-through interval convention. Do not implement a local ordering choice from this outline alone.
+
+Existing phase outline:
 
 1. admit/resolve movement and other commands according to Spec 01/04 ordering;
 2. compute resulting authoritative player/entity positions;
@@ -548,7 +550,7 @@ Within a region, use owning-domain deterministic ordering.
 
 Visibility and projection filtering must not consume authoritative gameplay RNG merely because a viewer is connected.
 
-Adding a second observer who performs no gameplay action must not alter simulation RNG outcomes.
+Adding a projection-only observer while holding authoritative commands, simulation coverage and server leases fixed must not alter simulation RNG outcomes. A player who expands active coverage changes simulation inputs even without an action; the general replay invariant then compares the same lease/activation trace. This does not permit duplicate overlap processing or query-driven weather/RNG changes.
 
 Background catch-up uses the owning subsystem's authoritative RNG stream/continuation rules. It must not reseed from wall-clock time or connection identity.
 
@@ -789,4 +791,10 @@ OctoGhast intentionally adapts ownership:
 - interest/projection caches are ephemeral and never authority;
 - canonical time, stable identities and persistence continue independently of presentation and connection lifetime.
 
-No genuinely unresolved cross-cutting architecture decision was exposed. This specification makes #77's foundational active-region decision implementation-ready at the Product Surface boundary and inherits networking/persistence/time policy from their authoritative specs rather than redefining them.
+At the individual-spec review, no genuinely unresolved cross-cutting architecture decision was exposed. That completion record is retained; the later corpus audit below qualifies global phase integration. This specification inherits networking/persistence/time policy from their authoritative specs rather than redefining them.
+
+## 21. Post-spec integration acceptance
+
+[#95](https://github.com/LambdaSix/OctoGhast/issues/95) adds required scenarios for unavailable movement targets, activation at a periodic deadline, and same-tick actor/environment ordering. Until resolved, the active-region union/identity/privacy contracts are stable but the global phase integration is not fully implementation-ready.
+
+**AR26-AUD-01 — observer versus activation:** with a fixed active union, add/remove an overlapping projection-only observer and verify identical authoritative state/RNG. Separately change a server/player lease so new simulation work activates; replay that same lease trace twice and verify deterministic exactly-once catch-up. These assertions must not be conflated into a requirement that an expanded simulated world perform no new work.

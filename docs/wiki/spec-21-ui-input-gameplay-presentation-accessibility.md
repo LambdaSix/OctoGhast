@@ -233,7 +233,7 @@ Interactive projections must use stable domain references rather than Godot obje
 Examples:
 
 - `CharacterId` / controlled actor identity;
-- stable `ItemId` / item-location reference;
+- stable `ItemUid` / item-location reference from Specs 05/06 (not a separate UI item identity);
 - container/location references from Spec 06;
 - recipe/construction/type IDs;
 - NPC/mission/faction IDs;
@@ -698,7 +698,7 @@ Preferences may be device-local or profile-scoped, but must never use connection
 - **Spec 17 / #82:** event/talker context, audience and message projection.
 - **Specs 18–19 / #83/#84:** action/content IDs, definitions, localization/content packs.
 - **Spec 20 / #85:** save/reconnect/world ownership.
-- **#90:** transport/session lifecycle, deterministic inbound handoff, bounded queues/backpressure, authentication and player/session binding.
+- **Spec 25 / #90:** transport/session lifecycle, deterministic inbound handoff, bounded queues/backpressure and player/session binding. **#92** owns production authentication/security policy; **#96** owns request outcome/retry recovery across reconnect/save.
 - **#91:** cross-world profile/meta-progression where UI preferences or unlocks become account/profile-scoped.
 - **Spec 22 / #87:** visual assets, tiles, audio and localization implementation of these semantic presentation contracts.
 - **Spec 23 / #88:** automated parity harness for the black-box scenarios below.
@@ -908,3 +908,4 @@ Spec 21 is implementation-ready when:
 - RNG and stable-reference requirements are explicit;
 - the black-box suite covers single-player one-server flow, co-op contention, disconnect/reconnect, resizing, accessibility and transport equivalence;
 - no unresolved cross-cutting architecture decision remains local to this specification.
+

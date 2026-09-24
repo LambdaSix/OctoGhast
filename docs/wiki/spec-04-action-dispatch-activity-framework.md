@@ -230,7 +230,7 @@ Each activity actor MUST declare its commit/claim semantics:
 - **shared/cooperative claim** only where the feature spec explicitly defines combined work;
 - **optimistic revalidation** where several actors may work but completion revalidates authoritative state.
 
-Claims are server/world state, never client locks. Deterministic same-tick ordering follows Spec 01: phase, due tick, subsystem priority, stable actor/entity ID, monotonic admission sequence. The loser of contention receives a deterministic rejection/invalidation event and is not charged completion effects/resources that did not commit. Feature specs may define partial work costs already legitimately spent.
+Claims are server/world state, never client locks. **Cross-spec integration gate:** [#95](https://github.com/LambdaSix/OctoGhast/issues/95) must reconcile the following actor execution key with Spec 25's PlayerId admission key before shared contention semantics are frozen. The existing Spec 01 execution key is: phase, due tick, subsystem priority, stable actor/entity ID, monotonic admission sequence. The loser of contention receives a deterministic rejection/invalidation event and is not charged completion effects/resources that did not commit. Feature specs may define partial work costs already legitimately spent.
 
 Overlapping player active regions never duplicate an activity or target.
 
@@ -437,3 +437,7 @@ Key outcomes:
 - Transport/session identity remains excluded from activity state and #90 remains the networking/session owner; this spec defines only request/result/projection semantics.
 - Scenarios A04-25 through A04-32 add architecture conformance for profile isolation, alternative Core timing/spatial/work-channel capability, observer invariance, save barriers and reconnect identity.
 - No gameplay/runtime implementation was performed and no new unresolved cross-cutting architecture decision was found.
+
+## Post-spec integration dependencies
+
+[#95](https://github.com/LambdaSix/OctoGhast/issues/95) owns the unresolved shared admission/execution/activation order. [#96](https://github.com/LambdaSix/OctoGhast/issues/96) owns bounded request identity, duplicate suppression and result recovery across reconnect/save; activity code must not invent a session-local substitute. Durable activity identity remains distinct from the request that started it. Both are integration gates discovered after the completed investigation, not changes to the pinned lifecycle/hooks/progress evidence.

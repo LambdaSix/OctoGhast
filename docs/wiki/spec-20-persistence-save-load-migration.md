@@ -143,7 +143,7 @@ Durable identity types MUST be explicit value types:
 - `CreatureId` where a persistent monster reference is required.
 - `VehicleId`: stable opaque identifier.
 - `MissionId`: stable opaque identifier.
-- `ItemUid`: only required for items that can be externally referenced; ordinary contained items may remain structurally owned.
+- `ItemUid`: every runtime Cataclysm item instance has a persistent UID per Spec 05 §3.2, including ordinary/nested contained items. Structural ownership determines where it is serialized, not whether it has identity. Generic Core persists each domain's declared identity requirements and need not assign IDs to every immutable value.
 - typed content IDs (terrain, item type, effect, EOC, faction template, etc.) remain string-backed IDs governed by Spec 18.
 - spatial identity/state is owned by the active rules profile: generic persistence requires a deterministic, serialization-stable `WorldPosition` representation/codec where position is durable, while derived `SpatialCell` membership may be persisted or rebuilt according to profile schema; Cataclysm uses Spec 12's typed grid coordinates and submap/overmap keys.
 
@@ -318,7 +318,7 @@ All durable DTOs MUST follow these rules:
 - culture-invariant numeric representation;
 - explicit units for time/distance/energy where ambiguity is possible;
 - enum values persisted by stable symbolic name or explicitly versioned numeric mapping;
-- typed IDs persisted as strings;
+- typed IDs use explicit stable versioned codecs; Cataclysm content definition IDs persist as strings per Spec 18. Runtime opaque IDs and another profile's definition keys need not share the Cataclysm string schema; ephemeral registry indexes remain forbidden.
 - dictionaries with semantically unordered keys must not influence gameplay determinism;
 - deterministic writer ordering SHOULD be used for golden tests and diffs;
 - nullable/optional semantics must distinguish absent, null and default where migration behavior differs;
@@ -658,3 +658,9 @@ This specification is satisfied when:
 - existing CDDA file compatibility is explicitly scoped as optional import/export rather than a prerequisite for behavioral parity;
 - round-trip, migration, corruption, interruption, deterministic-continuation, authoritative-server/co-op and Core/profile-boundary tests P20-01 through P20-43 pass;
 - evidence remains pinned to CDDA commit `e262adb299a7613b4aedc5f12c08fe0413c56a84`.
+
+## Post-spec identity and command-continuation checks
+
+**P20-AUD-01 — contained item identity:** save/reload an ordinary unreferenced nested Cataclysm item, then expose/transfer/reference it. Its original ItemUid survives; ownership nesting or later projection does not allocate a replacement identity. Split/merge retirement continues to follow Specs 05/06.
+
+[#96](https://github.com/LambdaSix/OctoGhast/issues/96) owns the missing bounded retry/outcome-history contract across reconnect/save/rollback. Existing raw-transport exclusions remain mandatory; if the decision requires durable operation records, those are semantic command state captured atomically with effects, not persisted RPC objects or socket buffers. Do not infer that a fresh projection alone answers whether a particular lost-response command committed. [#95](https://github.com/LambdaSix/OctoGhast/issues/95) owns the shared order/cut used by pending admitted work.
