@@ -6,7 +6,16 @@
 
 ## Purpose
 
-This page records the behavioral contract OctoGhast should reproduce for inventory ownership, item locations, pockets/containers, stacking/charges and transfer operations. It describes externally observable semantics rather than requiring a one-for-one C++ port.
+This page records the implementation contract for inventory ownership, item locations, containment and transfer. The pinned CDDA baseline remains the authoritative **reference evidence** for Cataclysm-profile behavior, but the platform boundary is intentionally broader: generic Core owns stable identity/location relationships and deterministic atomic transfer infrastructure, while pocket shape, capacity, ranking, reachability and move-cost policy belong to the active rules profile.
+
+The document therefore classifies important rules as:
+
+1. **Pinned CDDA reference behaviour** — evidence from the pinned baseline.
+2. **OctoGhast Cataclysm-profile policy** — the ruleset that reproduces that evidence for the reference-parity milestone.
+3. **Generic Core contract** — ruleset-agnostic identity, transaction, persistence and projection infrastructure.
+4. **Future evolution seam** — behavior a later rules profile may replace without replacing Core infrastructure.
+
+This is an architectural re-evaluation of completed evidence, not a fresh upstream investigation.
 
 ## Authoritative evidence
 
@@ -23,11 +32,31 @@ Primary runtime sources at the pinned baseline:
 
 Behavioral tests include `tests/item_pocket_test.cpp`, `tests/item_location_test.cpp`, `tests/item_pickup_test.cpp`, `tests/item_contents_test.cpp`, `tests/advanced_inventory_test.cpp`, `tests/liquid_handler_test.cpp`, and reload tests.
 
+## Classification summary
+
+### Pinned CDDA reference behaviour
+
+The source/tests listed above establish CDDA pocket taxonomy, pocket admission, priority/ranking, nested capacity checks, stacking/charge semantics, liquid and magazine rules, item-location behavior, reachability and move/access costs.
+
+### OctoGhast Cataclysm-profile policy
+
+The Cataclysm profile consumes that evidence and reproduces CDDA-style pockets, capacities, priorities, liquids, magazine wells, grid-derived reachability and move/action costs. The selected Cataclysm timing mapping comes from Spec 01/#57; this spec does not define a universal Core tick rate or action currency.
+
+### Generic Core contract
+
+Core must provide stable item/container identity, a containment/ownership graph, atomic ownership/location transitions, deterministic command ordering/contention, stale-precondition rejection, persistent stable references, authoritative projection boundaries, and transaction/conservation invariants. Core APIs must not require CDDA pocket types, CDDA volume/weight formulas, a 100-move action economy, or integer-grid reachability.
+
+### Future evolution seam
+
+A later rules profile may use slot-based equipment, mass-only storage, continuous-space reachability, arbitrary container capability predicates, different stack semantics, or a different time/action economy. Such a profile should reuse the same identity, transaction, contention, persistence and projection machinery while supplying different policy evaluators.
+
 ## Domain model
 
 ### Item locations and ownership
 
-An item has one immediate location kind: invalid/nowhere, character, map, vehicle, or container. Container locations recursively reference a parent item, so the effective root owner/location is obtained by walking parents. OctoGhast should model this as a location/ownership graph with exactly one immediate owner for every live item instance.
+**Pinned CDDA reference / Cataclysm profile:** an item has one immediate location kind: invalid/nowhere, character, map, vehicle, or container. Container locations recursively reference a parent item, so the effective root owner/location is obtained by walking parents.
+
+**Generic Core contract:** every live item has exactly one authoritative immediate owner/location relationship, and containment is an acyclic ownership graph. Concrete owner/location kinds are profile/domain adapters over that graph rather than hard-coded assumptions in the transaction engine.
 
 Character possession includes wielded, worn and pocket-contained items. Map ownership is a tile stack. Vehicle ownership includes cargo items and vehicle-part base items. Container ownership is an item inside a specific pocket of another item.
 
@@ -40,6 +69,8 @@ Serialized item locations encode enough information to recover character/map/veh
 OctoGhast does not need the same JSON shape internally, but persisted references must have equivalent outcomes: resolve the same live item when it still exists, resolve nested parents recursively, tolerate collection reordering where the reference identity is stable, and fail closed when the target no longer exists.
 
 ## Pocket/container contract
+
+Unless explicitly marked otherwise, the rules in this section are **pinned CDDA reference behaviour implemented by the OctoGhast Cataclysm profile**, not universal Core storage laws. Core exposes policy hooks/results for admission, ranking, capacity, quantity and access evaluation but does not encode the CDDA formulas or taxonomy itself.
 
 ### Pocket taxonomy
 
@@ -67,7 +98,9 @@ Parity requires deterministic selection for the same state and settings. OctoGha
 
 ### Access cost
 
-Pockets carry a base `moves` cost (defaulted by pocket data; tests/source treat it as part of pocket behavior). Obtaining an item from a nested container adds the relevant pocket access cost and may include parent acquisition cost depending on where the parent resides. Character enchantment/modifier rules can modify obtain cost. Transfer commands must debit moves through the normal action/activity system rather than mutate inventory for free.
+**Pinned CDDA reference / Cataclysm profile:** pockets carry a base `moves` cost (defaulted by pocket data; tests/source treat it as part of pocket behavior). Obtaining an item from a nested container adds the relevant pocket access cost and may include parent acquisition cost depending on where the parent resides. Character enchantment/modifier rules can modify obtain cost.
+
+**Generic Core contract:** a transfer may return a profile-defined action/work cost token/result that is consumed by the normal action/activity scheduler. Core does not define `moves`, 100-move turns, or pocket-access formulas.
 
 ## Transfer semantics
 
@@ -111,7 +144,11 @@ Split operations create a distinct item/stack identity for the separated quantit
 
 ## Reachability and failure behavior
 
-A transfer is permitted only when its source can be obtained/reached under the calling action and its destination is accessible and accepts the item. Failure is non-destructive: the source remains owned at its prior location/quantity, destination state is unchanged, and no move cost should be charged unless the surrounding action explicitly defines an attempted-action cost.
+**Pinned CDDA reference / Cataclysm profile:** a transfer is permitted only when its source can be obtained/reached under the calling action and its destination is accessible and accepts the item. For the Cataclysm profile, tactical reachability ultimately consumes the grid/cell semantics specified by #58/#77.
+
+**Generic Core contract:** the transfer transaction accepts a profile-provided reachability/access decision over opaque authoritative spatial/location context. It must not require integer coordinates, tile adjacency or a specific distance metric in its public interface. A future non-grid profile may therefore substitute continuous-space, graph-based or other reachability without replacing transfer identity/transaction infrastructure.
+
+ Failure is non-destructive: the source remains owned at its prior location/quantity, destination state is unchanged, and no move cost should be charged unless the surrounding action explicitly defines an attempted-action cost.
 
 Invalid/stale item locations resolve as invalid and must not mutate a coincidentally matching item. Recursive containment must reject cycles/self-containment and should impose a safe nesting/depth strategy for persistence and traversal.
 
@@ -129,7 +166,9 @@ Single-player uses the same command/result contract through in-process transport
 
 ### Continuous server time and CDDA move costs
 
-Per #57/#66, authoritative time advances at 10 canonical ticks per world second/turn and speed-100 accrues 10 moves per tick. Inventory operations retain the pinned-CDDA move/action/access costs described above; costs remain move currency rather than being converted into wall-clock milliseconds.
+Per Spec 01/#57, the **Cataclysm profile configuration** maps 10 canonical ticks to one Cataclysm world second/turn and 100 Cataclysm moves, with speed-100 accruing 10 moves per tick. Inventory operations retain the pinned-CDDA move/action/access costs described above; those costs remain Cataclysm-profile simulation currency rather than wall-clock milliseconds.
+
+Generic Core does not hard-code 10 TPS, 100 moves per world second, speed-100 accrual, or even the existence of a `moves` currency. It supplies deterministic fixed-step scheduling and profile-defined action/work-cost integration. An alternative timing profile can use the same transfer transaction service with a different rate/cost mapping.
 
 The server schedules/resolves a transfer only when the actor has the required action budget or according to the activity contract. A successful mutation and its cost accounting belong to one authoritative resolution. A request rejected because its preconditions became stale before resolution does not debit the successful-transfer cost; any explicit attempted-action cost must be separately specified by the underlying CDDA action rule rather than invented as a networking penalty.
 
@@ -177,20 +216,39 @@ Failure before commit is non-destructive as in the pinned-CDDA rule. If an inter
 
 ## Proposed OctoGhast implementation boundary
 
-Use separate concepts for:
+### Generic Core
 
-1. **Item identity/state** — stable runtime identity plus item definition/charges/state.
-2. **Item owner/location** — character slot/root inventory, map tile stack, vehicle cargo/base, or parent item+pocket.
-3. **Pocket definition** — immutable data-driven constraints/costs.
-4. **Pocket runtime state** — contents, seal state, preferences, capacity modifiers.
-5. **Transfer service/command** — validate source, choose/validate destination, compute quantity/cost, atomically mutate ownership, emit result/events.
-6. **Serializable item reference** — stable identity plus enough locator context to restore or fail closed.
+Use separate reusable concepts for:
 
-This fits OctoGhast's ECS direction while preserving CDDA behavior without copying its object graph.
+1. **Stable item/container identity** — authoritative runtime identity independent of ECS storage layout, DTO identity or presentation objects.
+2. **Ownership/location relationship** — exactly-one immediate authoritative owner/location edge plus acyclic containment traversal.
+3. **Transfer transaction/command** — validate expected source/destination/version context, invoke active-profile policy, atomically mutate ownership/quantity, integrate profile-defined work cost, update stable references, then publish results/projections.
+4. **Deterministic contention** — canonical ordering plus revalidation; socket arrival order is never authority.
+5. **Serializable stable reference** — identity plus locator/precondition context sufficient to restore or fail closed after persistence.
+6. **Projection contract** — viewer-specific DTOs/tokens with no ECS, socket, memory-address or Godot object identity leakage.
+7. **Policy interfaces/results** — admission, capacity, quantity/merge, destination ranking, reachability and action/work-cost decisions supplied by the active rules profile.
+
+### Cataclysm profile
+
+The Cataclysm profile supplies:
+
+- CDDA pocket definitions/types and mutable pocket state;
+- CDDA volume/weight/ammo/liquid/magazine constraints;
+- CDDA pocket priorities and destination ranking;
+- CDDA stacking/charge merge/split behavior;
+- CDDA grid-derived reachability/accessibility;
+- CDDA move/access/action-cost computation and its Spec 01 timing mapping;
+- Cataclysm-specific character/map/vehicle/container location adapters.
+
+### Future evolution seam
+
+A different rules profile may change any of the policy bullets above while retaining stable Core identity, atomic transactions, deterministic contention, persistence and projection. Core transfer interfaces must therefore avoid fields such as tile coordinates, CDDA pocket enums, `moves`, volume units or magazine-well assumptions unless they are wrapped in profile-specific request/policy data.
+
+This preserves CDDA behavior for the reference milestone without copying its object graph or making its storage model the permanent platform model.
 
 ## Acceptance/conformance scenarios
 
-The following black-box scenarios should gate completion:
+The following black-box scenarios should gate completion. Existing Cataclysm parity/co-op scenarios remain required, plus the Core/profile-isolation scenarios at the end:
 
 - Pick up a solid item from a map tile into worn storage; source disappears, destination owns one equivalent item and moves are charged.
 - Pickup with no valid storage fails without silently wearing/wielding or deleting the source.
@@ -219,9 +277,27 @@ The following black-box scenarios should gate completion:
 - A map stack or vehicle cargo leaving a player's live visibility is no longer authoritative live client state; remembered presentation cannot be used to transfer an item without server revalidation.
 - A client DTO containing a stable item token survives presentation/view-model replacement, but after the item moves its old location assertion is rejected until refreshed; no Godot node/object identity participates in resolution.
 - Save/load or reconnect can restore/resolve canonical stable item identity while stale pre-save/pre-disconnect transfer assertions are still revalidated against current authoritative location and visibility.
+- **Core/profile isolation:** instantiate the Core transfer engine with a test profile that has no CDDA pocket enum, volume/weight formula, move currency or grid coordinates; stable identity, atomic transfer, stale rejection and deterministic contention still operate unchanged.
+- **Alternative timing profile:** run equivalent transfers through a profile whose canonical rate/action-cost mapping differs from Cataclysm's 10-TPS/100-move mapping; ownership and contention results remain correct while eligibility/cost scheduling follows that profile.
+- **Future non-grid reachability profile:** provide a continuous-space or graph-based reachability evaluator to the same Core transfer infrastructure; no integer `SpatialCell` or tile-adjacency field is required by the generic transfer command/transaction interface.
+- **Deterministic multiplayer contention:** two players target the same indivisible item at one canonical boundary under both Cataclysm and a minimal test profile; canonical ordering chooses exactly one successful transaction and replay produces the same result independent of network arrival timing.
+- **Reconnect with stable references:** disconnect after receiving an item/container reference, mutate unrelated transport/session state, reconnect under the same stable player identity, and resolve the same authoritative item/container identity subject to current visibility/location revalidation; no socket/connection identity is part of the reference.
+- **Persistence round-trip without transport/Godot leakage:** save and reload a world containing nested items and in-flight/queued transfer-relevant state; the round trip restores Core item/container identity and profile-owned containment state but contains no socket handle, connection ID, serializer object identity, Godot node/resource ID or client view-model identity.
+- **Profile-local Cataclysm grid rule:** Cataclysm reachability may use #77 `SpatialCell` semantics internally, but substituting another profile does not change Core reference/transaction types.
+- **Profile-local Cataclysm pocket rule:** Cataclysm priority/capacity/liquid/magazine behavior can be replaced by another admission/ranking policy without changing deterministic transaction ordering or stable-reference resolution.
+
+## Persistence and reconnect alignment
+
+Per #85, the authoritative server owns world persistence. Persist stable item/container identity, ownership/containment relationships, Cataclysm-profile pocket/runtime state needed for behavior, relevant activity/scheduler state, and deterministic state required for continuation. Do **not** persist transport connections, socket/parser/buffer state, client DTO instances, Godot objects or transient interest/projection caches.
+
+Stable player identity, connection identity and controlled entity remain distinct. Reconnect may rebind a stable player to current projections, but previously issued transfer assertions are not grandfathered: current ownership, location, reachability and visibility are revalidated.
+
+## Networking/session alignment
+
+Per #90, this subsystem defines transport-neutral transfer request/result/projection semantics only. It does not choose sockets, framing, serializers, parser state machines, backpressure policy or connection-resource design. Network callbacks must hand validated requests into the deterministic simulation boundary; they never mutate inventory directly. Connection/session hardening remains centralized in #90.
 
 ## Dependencies and follow-on work
 
-This spec depends on the completed core Item, Character, local-map, persistence and typed-ID contracts under #65. It is a prerequisite for crafting/requirements, activities that consume/move items, ranged reload behavior, construction material consumption and inventory UI parity.
+This spec depends on the completed core Item, Character, local-map/spatial (#58/#77), persistence (#85) and typed-ID contracts under #65, and consumes Spec 01/#57 for profile timing. It inherits #90 for transport/session concerns without defining local socket/protocol mechanics. It is a prerequisite for crafting/requirements, activities that consume/move items, ranged reload behavior, construction material consumption and inventory UI parity.
 
 The later activity/input specs should own command interruption and UI selection details, while this spec remains authoritative for ownership, containment validation, transfer atomicity, quantities, stable references and storage-selection outcomes.
