@@ -7,9 +7,16 @@ Reference implementation: `LambdaSix/Cataclysm-DDA` @ `e262adb299a7613b4aedc5f12
 
 ## Purpose
 
-This page defines the behavioral contract OctoGhast needs for CDDA-compatible Character/avatar state and physiological simulation. It specifies observable state, invariants, cadence, composition rules and conformance boundaries; it does not require reproducing CDDA's C++ class layout.
+This page defines the behavioral contract OctoGhast needs for the Cataclysm reference profile's Character/avatar state and physiological simulation. It specifies observable state, invariants, cadence, composition rules and conformance boundaries; it does not require reproducing CDDA's C++ class layout and it does not make CDDA-specific physiology a permanent Core platform invariant.
 
-The reusable Character domain owns actor physiology and derived capability. Avatar-only responsibilities are presentation/input/session concerns layered on top. NPCs may use the same Character state while policy exceptions (for example optional NPC food needs) remain explicit.
+The reusable Character domain owns actor physiology and derived capability for the Cataclysm profile. Avatar-only responsibilities are presentation/input/session concerns layered on top. NPCs may use the same Character state while policy exceptions (for example optional NPC food needs) remain explicit.
+
+This specification must be read through four layers established by #52/#57/#58/#64/#65:
+
+1. **Pinned CDDA reference behaviour** — the formulas, data semantics, thresholds, cadence and state transitions evidenced at the pinned commit.
+2. **OctoGhast Cataclysm profile** — the rules/profile implementation that reproduces that behaviour under OctoGhast's authoritative real-time/co-op architecture.
+3. **Generic Core contract** — ruleset-agnostic capabilities for authoritative actors, stable identity, deterministic elapsed-time scheduling, state mutation/query, persistence hooks and projection boundaries.
+4. **Future evolution seams** — anatomy shape, need/resource sets, cadence rates, constants, modifier graphs and action-currency mappings remain profile policy unless independently promoted to a genuinely reusable Core concept.
 
 ## Authoritative evidence
 
@@ -282,11 +289,13 @@ Scheduling must use the shared time/tick semantics from Spec 01. Catch-up must u
 
 ### 14.1 OctoGhast authoritative-time adaptation
 
-The cadence table and all pinned-CDDA formulas above remain normative rules evidence; only their scheduling/context changes for OctoGhast. The authoritative server owns one canonical clock (Spec 01: 10 simulation ticks per world second, 10 ticks = one pinned-CDDA turn = 100 moves). Physiology is advanced from authoritative elapsed simulation time for every simulated Character. No Character's needs/effects/temperature processing waits for that Character to submit an action, and no player's input turn is the clock source.
+The cadence table and all pinned-CDDA formulas above remain normative **Cataclysm-profile** rules evidence; only their scheduling/context changes for OctoGhast. Per the reviewed Spec 01 boundary, generic Core owns one deterministic fixed-step simulation coordinate and profile-defined rate conversion. The **Cataclysm profile configures** the selected parity mapping as 10 canonical ticks = one pinned-CDDA world second/turn = 100 moves. Core APIs MUST NOT hard-code 10 TPS, 100 moves/second, or CDDA's one-/five-/30-minute physiological cadence as universal platform constants.
 
-Per-turn work is integrated over elapsed authoritative turns/ticks. Minute/five-minute/30-minute/12-hour/24-hour work is triggered by crossed canonical deadlines or equivalent elapsed-interval tick counting. Implementations may batch mathematically equivalent work, but must preserve cadence boundaries, ordering, deterministic RNG consumption and intermediate state transitions where the pinned rule depends on them. Render frames, socket latency and client-local clocks never drive Character physiology.
+Physiology is advanced from authoritative elapsed simulation time for every simulated Character. A rules profile declares the relevant cadence/deadline definitions and any mapping from canonical time to its action/work currency. For Cataclysm, per-turn work corresponds to pinned CDDA one-second turns and minute/five-minute/30-minute/12-hour/24-hour work is triggered by crossed Cataclysm-profile deadlines or equivalent elapsed-interval tick counting. Implementations may batch mathematically equivalent work, but must preserve profile cadence boundaries, ordering, deterministic RNG consumption and intermediate state transitions where the pinned rule depends on them. Render frames, socket latency and client-local clocks never drive Character physiology.
 
-Several player-controlled Characters may therefore accrue needs, digest, recover stamina, change temperature, gain/expire effects and cross thresholds simultaneously. Same-tick ordering follows Spec 01's deterministic server ordering; Character formulas are not specialized according to which player owns the actor.
+No Character's needs/effects/temperature processing waits for that Character to submit an action, and no player's input turn is the clock source. Several player-controlled Characters may therefore accrue needs, digest, recover stamina, change temperature, gain/expire effects and cross thresholds simultaneously. Same-tick ordering follows Spec 01's deterministic server ordering; Character formulas are not specialized according to which player owns the actor.
+
+A future non-Cataclysm profile may choose a different exact canonical rate, action currency, physiology cadence or even a different set of physiological resources without replacing Core scheduler, persistence, networking or projection abstractions. Such a profile is not required to preserve Cataclysm parity; the Cataclysm profile is.
 
 ### 14.2 Sleep, incapacity and continued world time
 
@@ -313,6 +322,10 @@ Persist at minimum:
 - sleep/daily physiological bookkeeping.
 
 Derived caches (encumbrance cache, dead-state cache, enchantment cache, computed modifiers) should be rebuilt after load. Stable typed IDs and missing/obsolete-ID handling follow Specs 18 and 20.
+
+Spec 20 is authoritative for save ownership and continuation semantics. The server/world save owns Character authoritative state in both one-player and multiplayer deployments. A durable world-local `PlayerId`, transient connection/session identity, and controlled `CharacterId` are distinct concepts. Disconnect destroys transport/session state, not the Character; reconnect rebinds the permitted durable identity to the same authoritative Character and receives a fresh projection. Socket IDs, packet/request queues, replication baselines, render transforms and client UI state are never Character persistence.
+
+Character state is captured only at Spec 20's deterministic save barrier. A save MUST NOT observe a half-applied damage/healing/needs/effect transition or consume simulation RNG. Canonical time, scheduling/deadline state and RNG stream state/counters needed to continue physiology deterministically are persisted by their owning subsystem rather than duplicated ad hoc inside every Character.
 
 ## 16. Public interfaces required by dependent systems
 
@@ -418,6 +431,53 @@ Each slice should land with the corresponding parity fixtures before dependent f
 - **Spec 03 Progression:** owns acquisition/progression of traits, mutations, skills and bionics; Character consumes their modifiers.
 - **Spec 21 UI:** owns presentation; Character exposes state and transition events.
 
+## 21.1 Core/profile ownership and evolution contract
+
+### Immutable definition/profile data
+
+Loaded/finalized definitions are immutable for a running world and referenced by stable typed IDs. For the Cataclysm profile this includes anatomy/body-part definitions, character modifiers, effect/vitamin/addiction/movement-mode definitions, balance constants, need thresholds, temperature model constants and cadence definitions. These belong to Cataclysm content/profile policy even when generic registry/validation machinery is supplied by Core.
+
+### Mutable authoritative runtime state
+
+Mutable Character instance state includes body-part HP/wounds/wetness/temperature/treatment, resource values, digestion/calorie state, effects, addictions, morale, movement/posture, sleep/health bookkeeping and any deterministic per-instance remainder/deadline state required by the selected profile. It is server-authoritative, addressed through stable Character/body-part/content IDs, and changes only through deterministic simulation/domain mutation paths.
+
+### Generic Core capability
+
+Core may provide reusable primitives/interfaces for:
+
+- stable actor/entity identity and typed content references;
+- definition registries/finalization/validation;
+- bounded scalar/resource state and body/part-like keyed state where useful without prescribing human anatomy;
+- deterministic modifier/query composition;
+- authoritative damage/resource/status mutation transactions and domain events;
+- canonical elapsed-time/deadline scheduling with a profile-supplied mapping;
+- deterministic RNG services/streams;
+- persistence ownership/fixup hooks and save barriers;
+- player/session/control bindings and per-observer projection contracts.
+
+Core MUST NOT require every ruleset to have STR/DEX/INT/PER, CDDA body-part IDs, hunger/thirst/fatigue, vitamins, morale/addictions, CDDA temperature constants, 5-minute needs ticks, or the 100-move economy.
+
+### Cataclysm-profile policy
+
+The Cataclysm profile owns the concrete human/non-human anatomy graph semantics, primary stats and formulas, HP/death rules, needs/metabolism/digestion/sleep model, vitamin/health model, effect/addiction/morale semantics, encumbrance/limb-score interpretation, temperature/wetness model, balance constants, exact modifier ordering, and cadence mappings described by the pinned evidence. Those rules remain mandatory for reference-parity fixtures.
+
+### Future evolution seams
+
+A future OctoGhast rules profile may introduce different anatomy topology, continuous or differently sampled physiology, alternative resources/needs, different damage/death semantics, different stat sets, different modifier systems, different action currencies or different cadence constants. It must still use the authoritative-server, stable-identity, deterministic-time, persistence and projection boundaries already established unless a later architecture ticket deliberately changes those generic contracts.
+
+This is an architectural classification only. It does not weaken or delete any Cataclysm reference fixture in Sections 2–20.
+
+## 22. Re-evaluation conformance scenarios — Core vs Cataclysm boundary
+
+21. **Cataclysm timing/profile mapping.** Run the Cataclysm profile and assert 10 canonical ticks = one reference world second = 100 moves, with the existing five-minute Character boundary occurring at the equivalent profile deadline.
+22. **Alternative Core rate.** Run a minimal non-Cataclysm test profile at a different exact fixed-step rate and physiology cadence. Assert Core scheduler, Character identity, persistence and projection paths operate without assuming 10 TPS, 100 moves/second or five-minute needs ticks.
+23. **Alternative physiology schema.** Define a test actor profile with a different resource/stat set and no CDDA hunger/vitamin/morale model. Assert generic actor/resource/status/persistence facilities do not require CDDA fields to exist.
+24. **Definition versus instance isolation.** Load finalized Cataclysm anatomy/effect/need definitions once, instantiate two Characters, mutate one Character's HP/effects/needs and assert the immutable definitions and the peer Character instance are unchanged.
+25. **Save-barrier atomicity.** Request a save while a Character physiology step is resolving a threshold/effect/healing transition. Assert Spec 20 captures either the complete pre-step or complete post-step authoritative state, never a partial transition, and save/load consumes no gameplay RNG.
+26. **Reconnect identity.** Disconnect a player while its Character sleeps or is incapacitated, advance authoritative time, save/reload if applicable, reconnect with a new connection and assert the same durable PlayerId regains the same CharacterId at the correctly advanced physiological state; no socket/session identifier is required.
+27. **Observer invariance.** Add/remove overlapping client observers while advancing a Character's physiology. Assert one authoritative Character update/RNG sequence occurs regardless of observer count; only projections differ according to owner/party/world visibility.
+28. **Profile constant isolation.** Change a Cataclysm-profile fixture constant/cadence in a dedicated test profile and assert the resulting behavior changes only through profile data/configuration, with no Core code/API constant requiring modification.
+
 ## Acceptance-criteria disposition
 
 - [x] Every character state variable required for parity is assigned a domain, units/type, bounds/default source and mutation boundary; exact content-defined ranges remain sourced from pinned JSON/balance data.
@@ -450,3 +510,4 @@ This review does **not** replace or reinterpret the pinned-CDDA Character invest
 8. **Single-player/multiplayer equivalence.** Run the same one-Character input/environment/tick trace through a one-player in-process server and through the multiplayer server path with no interacting peer. Character-authoritative outcomes are identical; only transport/projection envelopes may differ.
 9. **Catch-up equivalence.** Advancing an interval through normal fixed ticks versus permitted deterministic catch-up yields equivalent Character state and threshold/event ordering, including five-minute ordering and RNG-sensitive work.
 10. **Formula preservation.** Golden fixtures for healing, stamina, needs, temperature, effects, vitamins and other Character rules remain pinned to the existing CDDA evidence; architecture adaptation tests may change scheduling/context assertions but must not silently alter those formulas.
+11. **Core/profile isolation.** The re-evaluation scenarios 21–28 pass: Cataclysm constants/cadences remain profile-local, alternative Core rates/physiology shapes do not require CDDA invariants, save/reconnect follows Spec 20, and observer count cannot change authoritative physiology.
