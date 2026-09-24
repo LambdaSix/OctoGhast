@@ -6,11 +6,22 @@ Reference baseline: `LambdaSix/Cataclysm-DDA@e262adb299a7613b4aedc5f12c08fe0413c
 
 ## 1. Purpose and architectural context
 
-This specification defines the implementation contract for player/NPC action dispatch and long-running activities. It preserves pinned-CDDA action costs, activity progress, interruption/resume semantics and hook ordering while adapting the turn-gated single-avatar implementation to OctoGhast's continuously advancing authoritative server.
+This specification defines the implementation contract for player/NPC action dispatch and long-running activities. It preserves pinned-CDDA action costs, activity progress, interruption/resume semantics and hook ordering while adapting the turn-gated single-avatar implementation to OctoGhast's continuously advancing authoritative server. CDDA is the reference/completeness profile, not a permanent Core ceiling: Cataclysm-specific action IDs, activity data fields, one-primary-activity policy, 100-move economy and grid target semantics MUST remain profile policy unless independently justified as reusable platform invariants.
 
 Prerequisites are Spec 01 (canonical time/action budget), Spec 02 (Character), Spec 05 (Item identity/lifecycle), Spec 06 (item locations/transfers), Spec 12 (coordinates/active regions), Spec 17 (events/talkers/EOCs), Spec 18 (typed IDs/registries) and Spec 20 (persistence). Dependent specs include crafting #72, construction #73, combat #74, monsters #75, NPCs #76, AI #81 and UI/input #86.
 
 This is a behavioural specification. OctoGhast MUST NOT reproduce CDDA's C++ class layout or global-avatar coupling.
+
+### 1.1 Reference behaviour, Cataclysm profile, Core contract and future seams
+
+For this specification, requirements are classified as follows:
+
+1. **Pinned CDDA reference behaviour** — evidence from `e262adb299a7613b4aedc5f12c08fe0413c56a84`, including action dispatch, `activity_type` definitions/defaults, `player_activity` lifecycle/progress, interruption/backlog and save semantics.
+2. **OctoGhast Cataclysm profile** — the compatibility implementation of those rules under the authoritative 10-TPS continuous server model, stable IDs, multiplayer ownership and explicit projections.
+3. **Generic Core/server contract** — ruleset-agnostic command admission, deterministic ordering, durable-work lifecycle primitives, stable references, persistence hooks, deterministic RNG access and projection boundaries. Core MUST NOT depend on Cataclysm action/activity IDs or schemas.
+4. **Future evolution seams** — profiles may use different action currencies, spatial semantics, interruption policies, activity definition schemas, or multiple independent durable-work channels without replacing ECS identity, networking, persistence or scheduling infrastructure.
+
+Reference parity remains mandatory for the Cataclysm profile. The future seam is architectural freedom, not permission to skip pinned behaviour.
 
 ## 2. Authoritative pinned-CDDA evidence
 
@@ -56,7 +67,7 @@ Opening a UI never starts, advances, pauses or cancels an activity by itself.
 
 ## 4. Immutable activity definitions
 
-An `ActivityTypeDefinition` is registry-owned immutable content identified by stable typed `ActivityTypeId`.
+Within the Cataclysm profile, an `ActivityTypeDefinition` is registry-owned immutable content identified by stable typed `ActivityTypeId`. Generic Core registry/definition infrastructure MUST be able to host typed immutable definitions, but it MUST NOT know or require Cataclysm-specific fields such as `based_on`, `rooted`, `auto_needs`, distraction sets or EOC IDs.
 
 Pinned `activity_type` JSON fields and defaults:
 
@@ -84,7 +95,7 @@ Definitions are not copied into runtime instances or saves beyond their typed ID
 
 ## 5. Mutable runtime activity state
 
-Each Character owns at most one current authoritative activity plus an ordered backlog/suspension stack/list. Runtime state includes:
+**Pinned CDDA / Cataclysm-profile policy:** each Character has one primary current activity plus an ordered backlog/suspension stack/list. **Generic Core MUST NOT encode “one activity slot for every possible rules profile” as a platform invariant.** Core provides actor-owned durable-work state/lifecycle storage and deterministic execution; the Cataclysm profile configures one mutually exclusive primary activity lane and its backlog. A future profile may define independent work channels only with its own explicit scheduling/contention rules. Cataclysm runtime state includes:
 
 - stable activity type ID;
 - actor-specific payload/state;
@@ -157,7 +168,7 @@ For **neither**, generic framework progress does not decrement remaining work; t
 
 OctoGhast adaptation:
 
-- Spec 01's canonical 10 TPS mapping is authoritative: 10 ticks = 1 world second = 100 baseline moves.
+- For the **Cataclysm profile**, Spec 01's selected mapping is authoritative: 10 canonical ticks = 1 CDDA world second = 100 baseline moves. Generic Core fixed-step/scheduler APIs MUST accept a profile-defined rate/action-currency mapping and MUST NOT hard-code 10 TPS or 100 moves/second.
 - Time-based work advances from canonical elapsed simulation time, not wall-clock/render time. The equivalent baseline rate is 10 nominal work moves per canonical tick before the same Cataclysm activity/exertion modifiers.
 - Speed-based work consumes the owner's available authoritative move budget as it becomes schedulable; actor speed therefore affects opportunity exactly through Spec 01's move accumulation.
 - Neither activities are stepped only at deterministic declared scheduling points; they may use absolute deadlines/elapsed intervals where observationally equivalent.
@@ -199,7 +210,7 @@ Activity targets MUST use contracts from Specs 05/06/12/20:
 
 - Character/NPC/creature targets: stable runtime entity ID.
 - Externally referenced items: stable `ItemUid` plus authoritative item-location/ownership locator as required by Spec 06.
-- Map targets: absolute integer/grid coordinates; never client/Godot transforms.
+- Cataclysm-profile map targets: stable authoritative logical locations using the Spec 12 grid-aligned `WorldPosition`/`SpatialCell` mapping; never client/Godot transforms. Generic Core target/reference APIs MUST NOT require every future `WorldPosition` to be integer-grid identical to `SpatialCell`.
 - Vehicle targets: stable vehicle/part identity where available; relative offsets are permitted only for semantics intentionally tied to a moving vehicle.
 - Content definitions: typed string IDs.
 
@@ -280,11 +291,15 @@ Runtime invariant failures (unknown activity type after load, unresolved require
 
 ## 16. Implementation boundaries
 
-**Core/server infrastructure:** deterministic command admission, authorization envelope, stable command sequencing, actor activity slot/backlog container, lifecycle runner, persistence codec interfaces, target-reference primitives, contention primitives and projection boundary.
+**Generic Core/server infrastructure:** deterministic command admission and authorization envelopes; stable command sequencing; ruleset-neutral durable-work/activity lifecycle primitives; stable actor/work-instance/reference identity; deterministic scheduling hooks; persistence codec interfaces; contention/claim primitives; deterministic RNG access; and projection/event boundaries. Core MUST NOT reference Cataclysm action IDs, `ActivityTypeId` schema fields, distraction enums, EOC IDs, CDDA move constants or grid-only target types.
 
-**OctoGhast.Cataclysm:** action semantics/costs, activity definitions, progress basis/modifiers, interruption predicates, activity actors, feature-specific validation/effects, EOC/event mapping.
+**OctoGhast.Cataclysm profile:** semantic action IDs and compatibility mapping; one primary activity lane plus backlog; CDDA move/action costs; `activity_type` JSON schema/defaults; `time`/`speed`/`neither` progress semantics; rooted/auto-needs/refuel/distraction policies; actor payloads; feature-specific validation/effects; EOC/event mapping; and grid-aligned target rules required by the pinned baseline.
+
+**Server/session layer:** binds stable PlayerId/control permissions to actors, admits transport-neutral requests at deterministic simulation boundaries, applies #90 connection/session ordering and resource rules, and projects only authorized results. Socket/connection identity never becomes activity identity.
 
 **Godot client:** input contexts/keybindings, menus/target selection, command construction, optimistic cosmetic feedback only, owner-visible progress/decision UI and presentation of results.
+
+**Future evolution seam:** a later non-Cataclysm profile may use different action currency, non-grid authoritative positions, different activity definition data, or more than one independent durable-work channel. Such a profile must define its own scheduling/contention semantics but MUST be able to reuse Core identity, persistence, deterministic ordering, transport and projection boundaries.
 
 The server domain MUST have no dependency on Godot input events, nodes, transforms, popup APIs or audio APIs.
 
@@ -362,6 +377,30 @@ Construct pathological activity replacement that recursively pushes work. Assert
 ### A04-24 Projection secrecy
 Give owner and nearby/non-nearby peer clients the same running activity. Assert owner gets permitted progress; peers get only authorized visible state; hidden target IDs/internal actor payload/EOC variables are absent.
 
+### A04-25 Core/profile dependency isolation
+Enforce project/reference tests showing generic Core/server durable-work infrastructure compiles without Cataclysm action/activity definition types. Cataclysm may depend on Core command/scheduling/persistence/reference/projection contracts; Core must not reference `ACT_*`, CDDA distraction enums, `based_on`, EOC IDs or 100-move constants.
+
+### A04-26 Profile-defined time/action currency
+Run the Cataclysm profile and assert 10 ticks = 1 CDDA second = 100 moves with A04-03/04 results unchanged. Instantiate a Core test profile with a different exact fixed-step/action-currency mapping and prove the generic lifecycle runner, persistence and networking boundaries do not assume 10 TPS or 100 moves/second.
+
+### A04-27 Primary activity lane is profile-local
+For the Cataclysm profile, assign activity B while A is current and assert the documented suspend/replace/backlog semantics and single primary lane. Separately instantiate a Core test durable-work host capable of naming two independent channels without importing Cataclysm types; assert Core storage/identity APIs do not force a universal single-slot model. This does not add concurrent Cataclysm activities.
+
+### A04-28 Grid target semantics remain profile-local
+Execute a Cataclysm activity targeting a map square and assert stable grid-aligned Spec 12 resolution. Separately use a Core spatial fixture where precise `WorldPosition` is not one-to-one with `SpatialCell`; assert durable-work target/reference infrastructure can carry a stable logical location without requiring a Godot transform or integer-only Core position.
+
+### A04-29 Cataclysm action IDs are not protocol/platform IDs
+Map two transports/clients to the same Cataclysm semantic action and assert identical admitted command. Then load a non-Cataclysm test command type through the same Core admission envelope and assert no `action_id`/`ACT_*` dependency exists in transport, persistence or deterministic sequencing infrastructure.
+
+### A04-30 Observer/interest invariance
+Run one activity in an area simultaneously covered by two clients, then remove one observer's interest while preserving the owner's/other coverage. Assert one authoritative activity instance, one hook/RNG sequence and unchanged progress; only projection recipients change.
+
+### A04-31 Save barrier across activity mutation
+Request a save while an activity step is resolving EOC/actor/finish effects. Assert Spec 20 commits only at the quiescent simulation boundary; reload never observes half-applied progress, duplicated completion effects, a mismatched backlog transition or partially advanced gameplay RNG.
+
+### A04-32 Reconnect identity is transport-neutral
+Disconnect and reconnect the activity owner with a different socket/session connection object. Assert stable PlayerId/control rebinds to the same Character/activity/work identity, admitted stale requests from the old connection cannot mutate it, and no Cataclysm activity state stores transport objects.
+
 ## 18. Acceptance-criteria coverage for #69
 
 - Immediate action vs activity boundary: sections 3 and 17 A04-01/02.
@@ -372,9 +411,29 @@ Give owner and nearby/non-nearby peer clients the same running activity. Assert 
 - Actor-generic vs avatar-specific behaviour: sections 3, 8, 16 and A04-13/19.
 - EOC/event hooks: sections 6, 11 and A04-06/07.
 - Completion/cancellation/interruption/save-load/disappearing-target black-box coverage: section 17.
+- Core-vs-Cataclysm boundary: sections 1.1, 4, 5, 7, 9, 16 and A04-25 through A04-29.
+- Multiplayer interest/save/reconnect refinements: A04-30 through A04-32.
 
 ## 19. Architectural decision status
 
-No new unresolved cross-cutting architectural decision was discovered. The required adaptations follow already-settled contracts in Specs 01, 02, 05, 06, 12, 17, 18 and 20: one authoritative canonical clock, actor-owned activities, stable IDs, server-owned world state, deterministic command admission, player-specific projection and persistence independent of transport/Godot identity.
+No new unresolved cross-cutting architectural decision was discovered. The required adaptations follow already-settled contracts in Specs 01, 02, 05, 06, 12, 17, 18 and 20: one authoritative canonical clock, actor-owned durable work, stable IDs, server-owned world state, deterministic command admission, player-specific projection and persistence independent of transport/Godot identity.
 
-Feature-specific activity actors may still expose local rule questions while #72/#73/etc. are investigated; those belong to their feature specs and do not change this framework contract.
+The 2026-09-24 re-evaluation additionally resolves accidental platform-ceiling risk without changing pinned parity: Cataclysm owns the one-primary-activity/backlog policy, 10-TPS-to-100-move mapping, `activity_type` schema, interruption categories and grid-aligned target semantics; generic Core owns the reusable deterministic durable-work, reference, persistence, RNG and projection capabilities. This is consistent with #52/#57/#58/#64/#65 and does not require a new architecture ticket.
+
+Feature-specific activity actors may still expose local rule questions while dependent feature specs are implemented; those belong to their owning feature specs and do not change this framework contract.
+
+
+## 20. Re-evaluation record — 2026-09-24
+
+Re-evaluated against #52, #57, #58, #64 and #65 plus completed prerequisite Specs 01, 02, 05, 06, 12, 17, 18 and 20. Pinned upstream evidence remains `LambdaSix/Cataclysm-DDA@e262adb299a7613b4aedc5f12c08fe0413c56a84`; source/data/tests were rechecked rather than substituting current upstream HEAD.
+
+Key outcomes:
+
+- Pinned lifecycle, progress, definition defaults, EOC ordering and invalidation evidence remains valid.
+- Cataclysm reference-parity behaviour is now explicitly separated from generic Core capability and future evolution seams.
+- The Cataclysm one-current-activity/backlog model is retained for parity but is no longer stated as a universal Core invariant.
+- The selected 10-TPS/100-move mapping is explicitly Cataclysm-profile policy consumed from Spec 01.
+- Grid-aligned activity target semantics remain Cataclysm-profile policy over Spec 12's WorldPosition/SpatialCell separation.
+- Transport/session identity remains excluded from activity state and #90 remains the networking/session owner; this spec defines only request/result/projection semantics.
+- Scenarios A04-25 through A04-32 add architecture conformance for profile isolation, alternative Core timing/spatial/work-channel capability, observer invariance, save barriers and reconnect identity.
+- No gameplay/runtime implementation was performed and no new unresolved cross-cutting architecture decision was found.
