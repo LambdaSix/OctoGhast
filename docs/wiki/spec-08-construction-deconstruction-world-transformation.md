@@ -22,21 +22,34 @@ The behavioural oracle is the pinned CDDA baseline above. OctoGhast does **not**
 
 Where the pinned game assumes one avatar, turn-gated input, a blocking prompt or one avatar-owned loaded map, this document labels the upstream rule, the OctoGhast adaptation, and the implementation contract separately.
 
+### 1.1 Architectural classification used by this specification
+
+Every important construction contract is interpreted through four layers:
+
+1. **Pinned CDDA reference behaviour** — exact behaviour, formulas, ordering, data contracts and world-transform semantics observed at the pinned baseline.
+2. **OctoGhast Cataclysm profile** — compatibility implementation of those rules, including CDDA move/work currency, the Cataclysm 10-tick/world-second mapping, grid-aligned construction sites, terrain/furniture state machines, staged definitions, deconstruction rules and construction-specific specials.
+3. **Generic Core capability** — ruleset-agnostic authoritative project/activity infrastructure: durable project identity, actor/activity ownership, deterministic scheduling, stable resource/reference binding, atomic mutation boundaries, deterministic contention, persistence, events/results and viewer-specific projection. Core does not define CDDA construction formulas, terrain/furniture IDs, adjacency, grid placement, move currency or stage semantics.
+4. **Future evolution seam** — another profile may use a different canonical rate, work currency, non-grid or multi-shape sites, another world-material model, different phase graphs or different completion rules while reusing the same Core project/activity/authority/persistence infrastructure.
+
+Reference parity remains mandatory for the Cataclysm profile. These seams prevent pinned CDDA limitations from becoming permanent Core laws; they do not relax the pinned behavioural target.
+
 ## 2. Dependencies and ownership boundaries
 
 This specification depends on, and does not reopen, the following completed contracts:
 
-- **Spec 01 / #66** — canonical authoritative time, 10 TPS, 100 moves/second compatibility budget and deterministic action scheduling.
+- **Spec 01 / #66** — generic deterministic fixed-step scheduling plus the Cataclysm-profile mapping of 10 canonical ticks = 1 Cataclysm world second = 100 moves; construction consumes that mapping as profile configuration, not as a Core timing law.
 - **Spec 04 / #69** — command/query/activity/event separation, actor-owned current activities/backlogs, interruption, stable activity targets and deterministic execution.
 - **Spec 05 / #70** — authoritative item identities and lifecycle.
 - **Spec 06 / #71** — item locations, requirement-facing inventory views, transfers, contention and stale references.
 - **Spec 07 / #72** — requirement groups, tools/qualities/components, crafting inventory semantics and deterministic requirement selection.
-- **Spec 12 / #77** — absolute integer/grid coordinates, server/world-owned active regions, controlled terrain/furniture mutation and cache invalidation.
+- **Spec 12 / #77** — authoritative `WorldPosition`, derived `SpatialCell` membership/indexing, server/world-owned active regions, and controlled world mutation/cache invalidation; Cataclysm construction targets grid-aligned cells through that mapping rather than requiring integer-grid coordinates in generic Core APIs.
 - **Spec 17 / #82** — authoritative events/EOCs, invocation context, audience filtering and deterministic effects.
 - **Spec 18 / #83** — JSON loading, inheritance, stable typed string IDs, registries, finalization and validation.
 - **Spec 20 / #85** — authoritative world saves, activity/RNG persistence, reconnect semantics and exclusion of transport/presentation state.
 
-Construction owns the **project/site lifecycle and construction-specific transformation ordering**. The map system owns physical tile mutation and derived-cache correctness. Inventory owns item identity/location and atomic consumption. Activity infrastructure owns scheduling/interruption. Character progression owns skill storage/practice. Vehicle/appliance systems own the durable objects created by their construction completion hooks. EOC/event infrastructure owns data-driven cross-system effects when invoked.
+Construction owns the **Cataclysm-profile project/site rules and construction-specific transformation ordering**. Generic Core owns reusable durable-project identity, activity ownership, deterministic scheduling, stable references, resource-binding/transaction primitives, exactly-once atomic mutation publication, contention ordering, persistence hooks, events/results and projection boundaries. The spatial/map system owns `WorldPosition` to `SpatialCell` mapping, physical world mutation and derived-cache correctness. Inventory owns item identity/location and atomic consumption. Activity infrastructure owns scheduling/interruption. Character progression owns skill storage/practice. Vehicle/appliance systems own the durable objects created by their construction completion hooks. EOC/event infrastructure owns data-driven cross-system effects when invoked.
+
+Construction introduces no transport-specific rule. Requests, authoritative results and projections inherit #90's transport/session boundary: connection/socket identity is separate from player identity and controlled actor; network callbacks never mutate construction/world state directly; deterministic simulation intake decides contention order; reconnect rebinds to durable player/actor/project state.
 
 ## 3. Authoritative pinned-CDDA evidence
 
@@ -149,7 +162,9 @@ Define a durable logical record equivalent to:
 
 ```
 ConstructionProject {
-    site: AbsoluteMapSquare
+    project_id: ProjectId
+    site_position: WorldPosition
+    site_cell: SpatialCell        // derived/indexed for the Cataclysm profile
     construction_id: ConstructionId
     progress_units: 0..10_000_000
     committed_components: [OwnedItemState]
@@ -157,11 +172,13 @@ ConstructionProject {
 }
 ```
 
-A dedicated globally unique project UUID is optional; the stable logical reference for this baseline is the absolute site plus project revision because the pinned world permits at most one unfinished construction per tile. If future features require moving projects, cross-tile projects or long-lived references after removal, introduce a stable project ID centrally rather than exposing an ECS entity ID.
+Generic Core MUST assign each durable project a stable `ProjectId` that survives save/load and is independent of ECS entity identity, connection identity and presentation objects. The Cataclysm profile additionally enforces at most one unfinished construction per target `SpatialCell`; its reference payload carries `ProjectId` plus current site position/cell and revision for stale-command detection. Site coordinates are domain state, not identity.
+
+For the Cataclysm profile, `WorldPosition -> SpatialCell` is grid-aligned and one-to-one at construction sites, so pinned absolute map-square behaviour is preserved. A future profile may map a precise position or site shape to one or more cells, or use another world-material model, without replacing Core project identity/activity/persistence APIs.
 
 ### 5.3 Invariants
 
-- At most one unfinished construction project exists at one absolute map square.
+- Cataclysm profile: at most one unfinished construction project exists at one target `SpatialCell`; generic Core does not impose one-project-per-cell as a universal rule.
 - A project's `construction_id` does not change in place.
 - Its committed components are no longer available in inventories/map stacks for unrelated use.
 - `progress_units` never decreases through ordinary work and is clamped to 10,000,000.
@@ -236,7 +253,7 @@ On a valid target the baseline:
 
 The baseline's sequential C++ calls occur in a single-player command context. In co-op, OctoGhast MUST make project creation an atomic authoritative transaction:
 
-1. resolve actor identity and absolute target;
+1. resolve actor identity, durable project/site intent and authoritative `WorldPosition`; derive the Cataclysm target `SpatialCell` through Spec 12;
 2. acquire/validate the site's mutation claim in deterministic server command order;
 3. revalidate site predicates, skills, vision rule and requirement availability;
 4. resolve concrete component/tool alternatives;
@@ -308,9 +325,11 @@ The pinned adjusted-time calculation:
 
 `CONSTRUCTION_SCALING == 0` uses the calendar season ratio; otherwise it uses `CONSTRUCTION_SCALING / 100.0`. These are **work-cost modifiers**, not a request to make the activity complete after real-world minutes.
 
-### 9.2 OctoGhast continuous-time adaptation
+### 9.2 Cataclysm-profile continuous-time adaptation
 
-Construction is a speed-based long-running activity under Spec 04. Canonical server ticks allocate/consume actor move budget; the construction activity converts consumed moves into the same normalized site progress.
+Construction is a speed-based long-running activity under Spec 04. The Cataclysm profile configures Spec 01 so 10 canonical ticks equal one Cataclysm world second and 100 moves; canonical ticks allocate/consume actor move budget and the construction activity converts consumed Cataclysm moves into the same normalized site progress. The pinned formula remains profile policy.
+
+Generic Core does not know that a second contains 100 moves, that construction has a 100-move clamp, or that progress is normalized to 10,000,000. Core supplies deterministic fixed-step scheduling/activity progression and lets the active rules profile define the work currency, conversion and completion predicate.
 
 The implementation contract is:
 
@@ -410,9 +429,9 @@ OctoGhast completion must be serialized as one authoritative logical transaction
 
 Within that transaction preserve the pinned semantic ordering because post-specials may inspect/mutate the already-transformed world.
 
-All terrain/furniture writes MUST go through Spec 12's controlled mutation API, which:
+All Cataclysm terrain/furniture writes MUST go through Spec 12's controlled world-mutation API using the authoritative `WorldPosition`/derived `SpatialCell` mapping, which:
 
-- validates absolute bounds/layer;
+- validates the profile-specific target cell/layer and authoritative position mapping;
 - updates persistent tile data;
 - invalidates movement, transparency/light, path/spatial and other affected derived caches/indexes;
 - preserves unrelated tile layers unless the construction rule explicitly changes them.
@@ -421,7 +440,9 @@ Item movement/spawning MUST use Specs 05/06 APIs so item identity, active-item i
 
 ## 12. Staged construction
 
-Pinned content models many staged projects as separate construction definitions connected by terrain/furniture state, usually sharing one group.
+### 12.1 Pinned CDDA / Cataclysm-profile rule
+
+Pinned content models many staged projects as separate construction definitions connected by terrain/furniture state, usually sharing one group. This terrain/furniture-driven stage graph is Cataclysm-profile world-transformation policy, not a generic Core project model.
 
 Example: brick wall:
 
@@ -437,6 +458,12 @@ Implementation contract:
 - after a stage completes, the next definition becomes eligible only if the resulting world state satisfies its prerequisites;
 - cancellation refunds only the currently unfinished project's committed components, never components consumed by already-completed stages;
 - save/load records the actual current terrain/furniture plus any current unfinished project, so no hidden stage ordinal is needed for ordinary chains.
+
+### 12.2 Generic Core and future seam
+
+Core needs only durable project identity, a profile-owned phase/progress payload, deterministic activity contribution, atomic state transition and persistence/projection hooks. It MUST NOT require phases to be represented by terrain IDs or require a linear two-stage sequence.
+
+A future profile may use named build phases, material-volume accumulation, geometric site footprints, partially completed structures or branching phase graphs. Such a profile may reuse `ProjectId`, activity ownership, resource binding, contention, save/reload and completion transaction infrastructure while supplying its own phase and world-material semantics.
 
 ## 13. Generic deconstruction versus explicit removal constructions
 
@@ -538,7 +565,7 @@ Mapgen may author initial terrain/furniture directly through the mapgen contract
 
 Pinned construction has bespoke C++ post/do-turn specials rather than a generic EOC field on every construction definition at this baseline. Nevertheless construction side effects may publish events or call systems that themselves invoke EOCs.
 
-Spec 17 governs those invocations:
+For the Cataclysm profile, Spec 17 governs those invocations; generic Core only exposes deterministic authoritative event/effect dispatch hooks and does not require EOC as a universal scripting model:
 
 - execute on the authoritative server;
 - bind the actual constructing Character/site context, never “local avatar” by implication;
@@ -601,7 +628,8 @@ The build activity actor separately serializes its absolute construction locatio
 
 Persist world-owned project state with:
 
-- absolute site/submap placement;
+- stable `ProjectId`;
+- authoritative `WorldPosition` and sufficient profile-owned spatial/site data to re-derive `SpatialCell` after load; Cataclysm persists equivalent absolute site/submap placement;
 - **stable string construction ID**, not registry integer index;
 - exact normalized progress units;
 - exact committed component item state/identity required by Specs 05/06;
@@ -716,7 +744,17 @@ The following scenarios are normative acceptance fixtures. Tests may use smaller
 37. **Separated active regions** — player A constructs in region A while player B constructs in disjoint region B. Both progress under the same canonical time; neither unloads/pauses the other; each receives only permitted projections.
 38. **Overlapping visibility isolation** — two players share an active region but only A has LOS/knowledge of a remote construction transform. The server mutates once; A receives current visible change, B does not gain hidden state until B legitimately observes it.
 39. **UI non-pause** — A leaves a construction menu open without issuing a command while B/world activities continue. No server construction/world time pauses.
-40. **Godot isolation** — move/interpolate a client-side visual node; target eligibility, project site identity and completion use only authoritative integer absolute coordinates.
+40. **Godot isolation** — move/interpolate a client-side visual node; target eligibility, project site identity and completion use authoritative simulation position/site state only. Cataclysm derives its target `SpatialCell`; presentation transforms never enter the rule.
+
+### Core/profile re-evaluation conformance
+
+41. **Cataclysm rate mapping versus Core scheduler** — run one Cataclysm construction fixture with Spec 01 configured at 10 canonical ticks = 1 Cataclysm world second = 100 moves and assert pinned progress. Run a synthetic non-Cataclysm profile on the same Core scheduler with a different exact tick/work mapping and assert Core scheduling/activity infrastructure does not assume 10 TPS or 100 moves/second.
+42. **Grid construction through SpatialCell** — submit a Cataclysm construction command using an authoritative `WorldPosition`; derive the target `SpatialCell` through Spec 12 and complete the project. Assert Cataclysm adjacency/grid rules are preserved while the generic project/activity API never accepts raw integer-grid coordinates as its universal site type.
+43. **Future non-grid construction profile seam** — define a synthetic profile with a precise/non-grid `WorldPosition` and site footprint mapped to one or more `SpatialCell` buckets. Reuse `ProjectId`, activity scheduling, resource binding, persistence and projection infrastructure; assert no Cataclysm terrain/furniture, adjacency or 100-move constants are required by Core.
+44. **Concurrent actors target one Cataclysm site** — two actors from the same projected site revision contend to start/work/cancel at one derived `SpatialCell`. Deterministic simulation ordering yields one authoritative project/mutation outcome, exactly-once resource effects and structured stale rejection for losers.
+45. **Save/reload plus disconnect/reconnect** — save an in-progress project with `ProjectId`, authoritative position/profile site data, committed resources and actor activity; disconnect/reconnect its player and reload the world. Assert the same durable project is rebound without socket/session identity, no work/resources replay, and permitted projection resumes from authoritative state.
+46. **Atomic completion, world mutation and projection** — complete a project whose Cataclysm rule changes terrain/furniture and emits side effects. Assert project completion, resource finalization, world mutation, cache/index invalidation and authoritative events commit as one logical revision; clients receive only post-commit viewer-specific projections and can never observe a half-mutated world.
+47. **EOC/event and transport inheritance** — trigger a construction side effect that reaches Spec 17 through an authoritative event. Assert talker/site context and audience filtering are correct, and repeat through in-process and loopback transports conforming to #90 with identical simulation outcome and no construction-specific socket/framing rule.
 
 ## 21. Implementation slices
 
@@ -732,8 +770,10 @@ A practical implementation sequence is:
 8. generic metadata deconstruction;
 9. built-in pre/do-turn/post-special host adapters;
 10. NPC/basecamp command integration;
-11. client DTO/projection and stale-command diagnostics;
+11. client DTO/projection and stale-command diagnostics through #90's transport-neutral session/projection boundary;
 12. differential/conformance fixtures above.
+
+Generic Core implementation slices are reusable project/activity infrastructure only: `ProjectId`, durable project storage hooks, profile-owned site payloads, deterministic contribution ordering, stable resource/reference binding, atomic mutation/result publication, persistence and projection. Cataclysm adapters supply construction definitions, grid/site predicates, move/work formulas, terrain/furniture/deconstruction rules and special hooks.
 
 Do not implement construction by exposing mutable ECS components to the Godot client or by running separate single-player-only mutation paths.
 
@@ -750,4 +790,18 @@ This repository specification addresses every ticket criterion:
 - [x] Save/load requirements for in-progress construction.
 - [x] Black-box parity scenarios covering staged builds, invalidated/contended sites, deconstruction, interruption/resume, continuous time and multiplayer.
 
-No new unresolved cross-cutting architecture decision was discovered. The required multiplayer adaptations fit the already-settled command/activity, active-region, item-contention, stable-ID, event and persistence contracts.
+## 23. 2026-09-24 architecture/programme re-evaluation
+
+The completed pinned-CDDA investigation remains authoritative evidence; no contradiction requiring upstream reinvestigation was found.
+
+- [x] Spec 01 dependency corrected: 10 TPS / 100 moves per Cataclysm world second is Cataclysm-profile configuration, while Core provides profile-independent deterministic scheduling/activity progression.
+- [x] Spec 12 dependency corrected: construction uses authoritative `WorldPosition` and derived `SpatialCell`; Cataclysm remains grid-aligned without leaking integer-grid requirements into generic Core project APIs.
+- [x] Pinned terrain/furniture pre/post states, staged projects, deconstruction formulas and special world transformations remain Cataclysm-profile policy.
+- [x] Generic Core responsibility is limited to durable `ProjectId`, activity ownership, stable resource/reference binding, atomic mutation/result publication, deterministic contention, persistence, events and viewer-specific projection.
+- [x] Future seams cover non-grid/multi-cell sites, alternative world-material models, alternative work currencies/rates and different phase graphs without replacing Core infrastructure.
+- [x] Multiplayer construction/site contention continues to inherit Specs 04/06/12/20.
+- [x] Construction-triggered EOC effects inherit Spec 17; EOC is not imposed as a generic Core scripting law.
+- [x] Networking/session behaviour inherits #90; no construction-specific transport/framing/backpressure rules were introduced.
+- [x] Conformance scenarios 41–47 cover profile-independent timing, `WorldPosition`/`SpatialCell`, a future non-grid profile, contention, save/reconnect, atomic completion/projection and EOC/transport inheritance.
+
+No genuinely unresolved cross-cutting architectural decision was discovered, so no new architecture ticket is required. No gameplay/runtime implementation was performed.
