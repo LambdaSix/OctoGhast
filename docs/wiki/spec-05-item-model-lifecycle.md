@@ -8,7 +8,7 @@ Pinned parity baseline: `e262adb299a7613b4aedc5f12c08fe0413c56a84`
 
 ## 1. Purpose and parity boundary
 
-This specification defines the core item domain that OctoGhast must expose to reproduce Cataclysm:DDA item behavior at the pinned baseline. It covers item type definitions, runtime item instances, subtype capabilities, state transitions, degradation, charges, activation/ticking, perishability, use/drop hooks, faults, flags, qualities, variants, nested item contents as an item capability, and persistence identity.
+This specification defines the Cataclysm reference-profile item domain and the smaller reusable Core capabilities required to host it. The pinned CDDA model is the behavioural/completeness oracle, not the permanent definition of OctoGhast Core. It covers item type definitions, runtime item instances, subtype capabilities, state transitions, degradation, charges, activation/ticking, perishability, use/drop hooks, faults, flags, qualities, variants, nested item contents as an item capability, and persistence identity.
 
 The detailed algorithms for choosing pockets, ownership/location transitions, pickup/drop/wear/wield, transfer costs, overflow routing, liquid transfer, and inventory UI are intentionally deferred to #71. This spec nevertheless requires every item to expose enough content/pocket state for #71 to operate without subtype-specific special cases.
 
@@ -86,7 +86,7 @@ Unknown or invalid references must be diagnosed during loading/finalization acco
 
 CDDA's `itype` composes optional subtype slots. OctoGhast SHOULD model these as capabilities/components rather than a mutually exclusive enum, because real definitions can combine behaviors.
 
-The minimum parity taxonomy is:
+The minimum Cataclysm-profile parity taxonomy is:
 
 | Capability | Required behavior/data surface |
 |---|---|
@@ -106,7 +106,7 @@ The minimum parity taxonomy is:
 | Craft/disassembly work item | recipe/component provenance and progress-bearing state |
 | Electronic storage/software | memory capacity, stored e-files/software and browsed/read state where applicable |
 
-This is a minimum taxonomy, not a restriction. The loader must preserve supported combinations present in the pinned data set.
+This is a minimum Cataclysm-profile parity catalogue, not a generic Core restriction. The Cataclysm loader must preserve supported combinations present in the pinned data set; future profiles may define different capability vocabularies without changing generic ECS, identity, scheduling, persistence or projection infrastructure.
 
 ## 6. Charges, counts, ammo and energy
 
@@ -134,7 +134,7 @@ An item may be inactive or active. Activation/deactivation is an explicit state 
 
 Active/ticking items SHALL participate in the shared active-item processing mechanism. Processing cadence uses the reference time model, never wall-clock timers. A tick may mutate charges, temperature, rot, countdown, faults, contents or type; invoke an action; emit effects; or destroy/remove the item.
 
-For OctoGhast, all lifecycle due-times, countdowns and periodic predicates are evaluated against the canonical authoritative `WorldTime` from #66. The server's fixed simulation ticks are scheduling opportunities; they do not redefine CDDA durations or formulas. A render frame, client clock, network arrival time or local Godot timer cannot advance an item.
+For OctoGhast, all lifecycle due-times, countdowns and periodic predicates are evaluated against canonical authoritative time. Under the Cataclysm profile selected by #66, 10 canonical ticks map to one CDDA world second/turn and 100 moves; that mapping is profile configuration, not a generic Core invariant. The server's fixed simulation ticks are scheduling opportunities; they do not redefine CDDA durations or formulas. A render frame, client clock, network arrival time or local Godot timer cannot advance an item.
 
 While an item's owning world region is active, the server processes due item work exactly once even if several players' active/interest regions overlap. Character-owned or container-nested active items follow the authoritative owner/context scheduling path and likewise cannot be ticked once per observing client.
 
@@ -198,7 +198,7 @@ For a fixed initial state and the same ordered command stream, item outcomes and
 
 Required edge behavior includes invalid type IDs being diagnosed; unsupported operations being safe no-ops or explicit failures matching reference semantics; failed split/ammo/energy operations avoiding partial mutation; damage/degradation clamping; conversions preserving structural validity; active processing safely deleting/transforming items; no recursive self-containment; unsupported action IDs failing validation; save/load preserving active/damaged/faulted/perishable/nested lifecycle continuity; and unusual capability combinations remaining data-driven.
 
-## 16. OctoGhast implementation shape
+## 16. OctoGhast implementation shape — Cataclysm profile over generic Core
 
 A suitable C# design is a deep item module with a small public surface:
 
@@ -286,3 +286,58 @@ Direct dependents include #71 inventory/pockets/transfers, crafting, constructio
 - [x] Minimum purpose-specific client item projection is defined without exposing arbitrary ECS/internal state.
 - [x] Deterministic concurrent-player contention against the same item is specified and covered by conformance scenarios.
 - [x] Affected specification text and tests/scenarios are updated; pinned-CDDA rules are preserved and the OctoGhast scheduling/replication adaptation is explicit.
+
+## 20. 2026-09-24 architecture/programme alignment re-evaluation
+
+This is a targeted architectural reinterpretation of the completed investigation against #52, #57, #58, #64 and #65. The pinned source/data/test evidence and the completed server-time/co-op review remain authoritative and are not repeated.
+
+### 20.1 Controlling boundary
+
+Where earlier sections use broad wording such as "item domain", "capability" or "OctoGhast SHALL", read them under this classification:
+
+1. **Pinned CDDA reference behaviour** — the exact item schemas, subtype combinations, formulas, ordering, state transitions and observable lifecycle outcomes evidenced at `LambdaSix/Cataclysm-DDA@e262adb299a7613b4aedc5f12c08fe0413c56a84`.
+2. **Cataclysm profile policy** — the OctoGhast rules module that reproduces those semantics. CDDA subtype taxonomy, flags, qualities, categories, variants, charges/ammo/energy meanings, damage/degradation/fault rules, tool/gun/comestible/corpse/relic behaviour, pocket roles, stacking rules and rot/temperature formulas live here unless separately justified as generic.
+3. **Generic Core capability** — reusable authoritative identity/reference plumbing, immutable-definition versus mutable-instance infrastructure, deterministic fixed-step scheduling/deadlines, command admission/mutation ordering, RNG services, persistence hooks and explicit projection/audience boundaries.
+4. **Future evolution seam** — later rules profiles may define different item taxonomies, resources, durability, lifecycle cadences, containment or spatial interaction without replacing Core identity/scheduling/persistence/network boundaries.
+
+Generic Core therefore MUST NOT contain a closed engine-wide enum for armor/gun/ammo/magazine/tool/comestible/book/bionic/etc.; MUST NOT give CDDA flags, qualities, categories or materials engine-global semantics; MUST NOT require all item-like objects to expose CDDA charges, ammunition, energy, damage/degradation, faults, rot or temperature; and MUST NOT hard-code the Cataclysm 10-TPS / 100-moves-per-world-second mapping.
+
+### 20.2 Classification matrix
+
+| Concern | Pinned CDDA reference behaviour | Cataclysm profile contract | Generic Core capability | Future evolution seam |
+| --- | --- | --- | --- | --- |
+| Definition/instance | `itype` definition plus mutable `item` state | Preserve pinned fields/defaults/inheritance/finalization and observable state | Immutable registered definitions referenced by stable IDs; mutable authoritative instances | Other profiles may use different schemas/capability vocabularies |
+| Stable identity | persistent item UID/location/reference semantics | Preserve item identity through conversion, relocation and save/load as specified here/#71 | Stable authoritative identity/reference resolution independent of ECS address, client or Godot | Non-item domains may reuse identity plumbing without adopting CDDA item rules |
+| Subtype taxonomy | armor/gun/ammo/magazine/tool/comestible/book/etc. slots/combinations | Required parity catalogue in §5 | No subtype names are Core invariants | Profiles may add/remove/recombine capabilities |
+| Flags/qualities/categories/materials | data-driven CDDA IDs and consuming rules | Preserve pinned meanings/validation | Generic typed-ID/registry infrastructure only | Different profiles may define different marker/query systems |
+| Charges/ammo/energy/counts | several distinct CDDA resource models | Preserve split/clamp/ammo/magazine/tool semantics | Generic deterministic state/value primitives only where independently useful | Profiles may use different resource/accounting models |
+| Damage/degradation/faults | CDDA condition floor, fault eligibility and repair semantics | Preserve §7 behaviour | Generic authoritative state + validation; no universal damage model | Alternative durability/repair models remain possible |
+| Active/countdown/tick | CDDA processing and one-shot transitions | Preserve rule cadence/outcomes against authoritative time | Deterministic deadlines/cadences, elapsed-time catch-up hooks, ordering | Profiles may use different cadences or no ticking items |
+| Rot/temperature | CDDA perishability/environment formulas | Preserve reference formulas/thresholds with authoritative environmental inputs | Time/deadline execution and persistence continuity only | Alternative spoilage/thermal models remain profile-local |
+| Pockets/contents | CDDA pocket roles/constraints | Preserve item-owned pocket schema; #71 owns transfer policy | Stable containment/reference infrastructure only if independently reused | Other profiles may use different containment models |
+| 10 TPS / 100 moves | CDDA has one-second turns and 100 moves; no host-TPS requirement | #66 selects 10 canonical ticks = 1 Cataclysm second = 100 moves | Fixed-step deterministic scheduling with profile-defined mapping | Different profile rates/action currencies require no item rewrite |
+| Projection | upstream has no network projection boundary | viewer-specific item DTO/event projection | purpose-specific projection/audience infrastructure | client presentation evolves independently |
+
+### 20.3 Definition/template data versus mutable runtime state
+
+For the Cataclysm profile, immutable finalized definition data includes the pinned item schema, subtype capability records, flags/qualities/material/category/variant/action definitions, pocket definitions, resource capacities/defaults and lifecycle rule parameters. Mutable authoritative instance state includes `ItemUid`, selected type/variant reference, quantities/resources, damage/degradation, faults, active/countdown anchors, rot/temperature state, custom variables, nested contents, generated relic/corpse/craft state and persisted scheduling anchors.
+
+Core owns the generic storage, identity, registry, scheduling and persistence mechanisms, not the CDDA meanings of those fields. Runtime instances reference finalized definitions by stable typed ID.
+
+### 20.4 Authority, persistence, RNG and concurrency retained
+
+The previous architecture review remains unchanged: the server owns item creation, identity allocation, mutation, split/merge/conversion/destruction and lifecycle progression; clients send intents and receive purpose-specific projections; unloaded/background item state remains authoritative and catches up against canonical time; deterministic same-boundary contention uses the shared command pipeline with stale-request revalidation; save/load preserves identity, lifecycle state and scheduling anchors while excluding transport/presentation state under #85; and seeded randomness is never re-rolled merely because an item reloads or reprojects.
+
+### 20.5 Additional conformance scenarios
+
+25. **Core/profile taxonomy isolation** — run a minimal non-Cataclysm Core test profile with stable authoritative objects and lifecycle deadlines but no gun/tool/comestible/flag/quality concepts; Core scheduling, persistence, identity and projection still operate.
+26. **Alternative resource model seam** — use a profile-defined resource that is neither CDDA charges, ammo nor energy; no Core API requires CDDA resource semantics.
+27. **Profile-rate isolation** — run generic lifecycle/deadline infrastructure under the Cataclysm 10-TPS mapping and a test profile with a different exact fixed-step mapping; only Cataclysm converts to 100 moves/world-second.
+28. **Definition-schema isolation** — register a non-Cataclysm object definition through shared registry infrastructure without CDDA materials/flags/qualities/categories/variants; Core finalization/reference/persistence succeeds.
+29. **Cataclysm taxonomy parity remains complete** — run representative subtype scenario 14 and prove the boundary split did not remove or weaken pinned CDDA capability/data requirements.
+30. **Observer/transport invariance** — add/remove observers, recycle Godot item nodes and switch in-process/network transport while holding admitted commands/time/RNG fixed; authoritative identity and Cataclysm lifecycle state are identical.
+31. **Future capability extension without Core edit** — add a synthetic profile-local item capability unknown to Core, persist/project it through profile adapters, and prove no engine-wide subtype enum change is required.
+
+### 20.6 Resolution
+
+No genuine cross-cutting architectural contradiction was found. The required correction is classification: CDDA item subtype taxonomy and its flags/qualities/charges/damage/rot/tool/gun/etc. semantics are Cataclysm-profile policy, while Core provides reusable identity, definition-instance, deterministic lifecycle scheduling, persistence/RNG, command-ordering and projection capabilities. This consumes #66's clarification that 10 TPS / 100 moves is Cataclysm-profile configuration rather than a permanent platform invariant.
