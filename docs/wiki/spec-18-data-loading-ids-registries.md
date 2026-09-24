@@ -115,13 +115,13 @@ Any other top-level JSON value is an error.
 
 Every content object handled by the dynamic loader has a string `type`. The loader looks that type up in a registered handler table. An unknown type is a JSON error at the `type` member.
 
-OctoGhast MUST therefore expose a loader registry equivalent to:
+For pinned compatibility, the Cataclysm profile MUST expose dispatch equivalent to:
 
 ```text
 type string -> content loader
 ```
 
-Registration of a second handler for the same type MUST be diagnosed. Implementations may reject duplicate handler registration outright; silently replacing a handler is not parity-compatible.
+Within the Cataclysm profile, registration of a second handler for the same CDDA type MUST be diagnosed. Implementations may reject duplicate handler registration outright; silently replacing a handler is not parity-compatible. Generic Core is not required to expose this string-type dispatch model.
 
 ### 1.2 Loading phases
 
@@ -163,7 +163,7 @@ CDDA recursively enumerates JSON files and dispatches objects as encountered, bu
 
 A loaded content folder is expected to be internally consistent with itself and all previously loaded folders. Later mods may depend on earlier content; earlier content must not depend on a later mod.
 
-OctoGhast MUST preserve **content-source order** (core, then active mods in dependency/load order), while allowing same-registry `copy-from` dependencies to be deferred until their base exists.
+The Cataclysm profile MUST preserve **content-source order** (core, then active mods in dependency/load order), while allowing same-registry `copy-from` dependencies to be deferred until their base exists. Generic Core instead requires deterministic source/dependency ordering supplied by the active profile.
 
 ## 2. Typed IDs and identity
 
@@ -548,7 +548,7 @@ Strongly typed IDs should be cheap value types. Registry indexes/handles are gen
 
 ## 11. Conformance fixture suite
 
-The following black-box tests are required before #83 can be considered implemented.
+The following original black-box fixtures verify the pinned Cataclysm compatibility layer; the BND scenarios below verify that these semantics do not leak into universal Core.
 
 | ID | Fixture | Expected result |
 |---|---|---|
