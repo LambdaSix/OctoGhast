@@ -22,6 +22,17 @@ The behavioural oracle is the pinned CDDA baseline above. OctoGhast does **not**
 
 Where pinned CDDA couples crafting to the local avatar, blocking menus, or turn-gated input, this document separates the **pinned CDDA reference behaviour**, the **OctoGhast adaptation**, and the resulting **implementation contract**.
 
+### 1.1 Reference profile versus reusable platform
+
+The 2026-09-24 re-evaluation against #52, #57, #58, #64 and #65 makes the Core/profile boundary explicit:
+
+1. **Pinned CDDA reference behaviour** is the evidence oracle at `e262adb299a7613b4aedc5f12c08fe0413c56a84`: recipe schemas, requirement logic, move/work formulas, proficiency and assistant effects, craft/disassembly lifecycle, learning, products/byproducts and result EOCs.
+2. **OctoGhast Cataclysm profile** owns those CDDA-specific rules and content semantics. In particular, CDDA recipe JSON, `RecipeId`/`RequirementId` registries, the 100-moves-per-world-second action economy, grid/reachability interpretations inherited from the Cataclysm map profile, CDDA proficiency/batch formulas, and CDDA uncraft/recovery policy are profile rules rather than universal engine laws.
+3. **Generic Core/server capability** supplies deterministic commands, activities, canonical fixed-step scheduling, stable identities/references, immutable-definition versus mutable-instance separation, authoritative resource mutation, persistence hooks, RNG services, spatial/resource-query abstractions, and player-specific projection. Core MUST NOT require that every future ruleset use CDDA recipe fields, CDDA move currency, Cataclysm skill/proficiency semantics, item-based craft instances, or CDDA's exact batch/disassembly formulas.
+4. **Future evolution seams** include alternate action currencies, continuous-space work reachability, different production graphs or job systems, non-item craft/work-order representations, different reservation policies, asynchronous industrial production, and different learning/failure models. Such changes may define a new rules profile without replacing Core's authority/time/identity/persistence/projection contracts.
+
+Reference parity remains mandatory for the Cataclysm profile; this classification prevents parity-specific constraints from becoming accidental permanent Core invariants.
+
 ## 2. Authoritative baseline evidence
 
 Primary pinned source anchors:
@@ -580,7 +591,27 @@ The implementation SHOULD expose transport-neutral domain contracts equivalent t
 
 These are semantic boundaries, not mandated C# signatures.
 
-Definition registries belong to Cataclysm content/rules. Generic command/activity/time/identity/persistence infrastructure belongs to Core/server architecture. Godot consumes projections and submits intents only.
+The semantic ownership boundary is:
+
+- **Cataclysm profile:** recipe/requirement definitions and validation, CDDA craftability rules, move/work calculations, proficiency/assistant/batch policy, component/tool interpretation, failure/learning formulas, product/byproduct/uncraft semantics and recipe-triggered EOCs.
+- **Generic Core/server:** stable identities, deterministic command ordering, activity/scheduler primitives, canonical time, authoritative mutation transactions, resource-provider/reference abstractions, RNG stream ownership, persistence barriers, projection/audience infrastructure and transport-neutral request/result envelopes.
+- **Godot/client:** presentation, filtering, selection UX, localization/rendering and intent submission; no authoritative reservation, RNG, progress or inventory mutation.
+
+A future non-Cataclysm profile may reuse the Core contracts while replacing the Cataclysm crafting policy wholesale. These are semantic boundaries, not mandated C# namespaces or signatures.
+
+### 18.1 Networking/session contract
+
+Spec 07 does not define sockets, framing, authentication, queue sizes or backpressure. Those remain owned by #90. Crafting requires only the following transport-neutral contract:
+
+- decoded client requests become validated crafting query/command DTOs before entering deterministic simulation intake;
+- socket/async-I/O callbacks never mutate craft, Character, item, reservation or RNG state;
+- connection identity is distinct from stable player identity, controlled Character identity and `CraftUid`;
+- duplicate/replayed requests are bounded by request identity/idempotency semantics before they can duplicate authoritative mutation;
+- recipe/craft projections are viewer-scoped and may be represented as replaceable state, while committed craft/disassembly results and inventory changes are reliable authoritative facts;
+- malformed, oversized, rate-limited or disconnected-client traffic fails at the networking/session boundary without consuming crafting RNG or partially mutating simulation state;
+- reconnect rebinds a stable player/session to existing authoritative craft/activity state; it does not recreate the craft or become part of persistence.
+
+Until #90's prospective design is finalized, Spec 07 MUST inherit that ticket's eventual generic transport/session decisions rather than invent a crafting-specific network path.
 
 ## 19. Black-box and conformance scenarios
 
@@ -664,6 +695,24 @@ Disconnect the controlling client during a craft. Server policy continues/suspen
 ### CRAFT-26 — Renderer/network independence
 Run the same canonical tick/command/RNG sequence with different render FPS and packet chunking. Final craft state, inventories, learned recipes and events are identical.
 
+### CRAFT-27 — Core/profile isolation
+Load two synthetic rules profiles through the same Core command/activity/persistence harness: the Cataclysm profile uses the pinned CDDA recipe/move semantics, while a synthetic profile uses a different work-unit and recipe-definition shape. Verify deterministic authority, identity, activity scheduling and persistence operate without Core APIs requiring CDDA recipe fields, 100-move units or CDDA proficiency/batch formulas.
+
+### CRAFT-28 — Stable player versus connection identity
+Start a craft, disconnect the controlling socket, reconnect through a different connection identity and rebind to the same stable player/Character. The authoritative `CraftUid`, progress, reservations, RNG continuation and activity state are unchanged; no new craft is created.
+
+### CRAFT-29 — Network rejection is simulation-neutral
+Submit malformed/oversized/rate-rejected duplicate crafting traffic followed by a valid command at the same canonical world state. Rejected traffic consumes no crafting RNG, action budget, components, reservations or simulation-order slot beyond whatever generic #90 intake accounting defines.
+
+### CRAFT-30 — Completion contention is atomic
+At the same deterministic boundary, one craft completion produces an item/resource that another actor's command attempts to consume or move. The globally defined command/activity phase ordering produces one stable outcome; observers never see half-created products, duplicated byproducts, duplicate EOCs or a product visible before its authoritative location/index state is valid.
+
+### CRAFT-31 — Shared provider contention across crafts
+Two simultaneous crafts reserve/debit a finite shared power or tool-charge provider. Deterministic admission/progress ordering permits only obligations that fit the authoritative remaining capacity; save/load between reservation and debit preserves the same winner/loser and charge total.
+
+### CRAFT-32 — Future spatial seam
+Run the Cataclysm profile with grid-aligned reachability and a synthetic Core test provider whose resource scope is supplied through a different spatial-query implementation. Crafting Core contracts consume authoritative reachability/resource-query results without assuming integer tiles or Godot transforms; Cataclysm parity remains grid-based.
+
 ## 20. Dependencies and follow-on contracts
 
 **Consumes:** Spec 01/#66 time/action economy; Spec 02/#67 Character skills/needs/stats; Spec 03/#68 proficiencies/progression; Spec 04/#69 activities; Spec 05/#70 items; Spec 06/#71 item locations/transfers; Spec 12/#77 map/reachability; Spec 17/#82 EOCs/talkers; Spec 18/#83 data/IDs; Spec 20/#85 persistence.
@@ -681,6 +730,9 @@ A primarily turn-gated Character drives crafting through local UI, using CDDA mo
 Commands, reservations, activities, craft instances, RNG and resource mutation are server-authoritative under continuous canonical time; multiple Characters may craft concurrently; no UI pauses the world; client projections are player-specific; deterministic contention replaces single-avatar assumptions.
 
 ### Implementation contract
-Preserve pinned recipe data semantics, requirement feasibility/consumption, move/work formulas, batch/proficiency/speed rules, in-progress state, failure, learning, results/byproducts/EOCs and disassembly behaviour. Change only scheduling, authority, projection and concurrency mechanics required by the established OctoGhast architecture.
+Preserve pinned recipe data semantics, requirement feasibility/consumption, move/work formulas, batch/proficiency/speed rules, in-progress state, failure, learning, results/byproducts/EOCs and disassembly behaviour in the **Cataclysm profile**. Generic Core supplies the reusable authority, command/activity, time, identity/reference, resource-query/mutation, RNG, persistence and projection mechanisms without hard-coding those Cataclysm rules.
 
-No unresolved cross-cutting architecture decision was discovered by this investigation.
+### Future evolution seam
+Reference parity is a completeness waypoint, not a permanent crafting-design ceiling. Later OctoGhast rules may replace recipe schemas, work currencies, production graphs, learning/failure formulas, spatial reachability or work-order representation while retaining the same Core authority and continuation guarantees. Such divergence must be explicit rules/profile work, not an accidental change to Cataclysm parity.
+
+No genuine unresolved cross-cutting architectural decision was discovered by this re-evaluation. #90 remains the single authoritative home for still-prospective networking-core details; Spec 07 only declares the crafting semantics that boundary must carry.
