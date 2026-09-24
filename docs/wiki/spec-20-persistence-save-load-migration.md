@@ -8,7 +8,7 @@ Pinned baseline: `e262adb299a7613b4aedc5f12c08fe0413c56a84`
 
 ## 1. Purpose and compatibility decision
 
-This document specifies the persistence contract OctoGhast needs for behavioral feature parity with the pinned Cataclysm:DDA baseline. It defines state ownership, save-set composition, stable identities, transaction behavior, load ordering, migrations, corruption handling, and conformance tests.
+This document specifies the persistence contract OctoGhast needs for reliable authoritative-world round trips while using the pinned Cataclysm:DDA baseline as the initial reference profile and completeness benchmark. It defines state ownership, save-set composition, stable identities, transaction behavior, load ordering, migrations, corruption handling, and conformance tests without making Cataclysm's on-disk categories or integer/grid spatial representation permanent Core requirements.
 
 **Compatibility decision:** byte-for-byte or direct read/write compatibility with arbitrary CDDA save directories is **not required** for the first OctoGhast implementation. Behavioral and state-model parity is required. The architecture MUST, however, keep import/export adapters possible: persisted domain state must use stable IDs and explicit versions rather than CLR type names, object addresses, or implementation-specific reflection metadata. A later compatibility slice may add a pinned-baseline CDDA importer without redesigning the domain model.
 
@@ -16,7 +16,18 @@ This choice separates two concerns:
 1. faithfully preserving the same observable game state and lifecycle semantics; and
 2. reproducing CDDA's historical on-disk representation, including legacy formats.
 
-The first is mandatory. The second is an explicit future compatibility feature.
+The first is mandatory for the Cataclysm reference profile. The second is an explicit future compatibility feature.
+
+### 1.1 Architectural classification used by this specification
+
+Persistence requirements are classified into four layers and MUST NOT be conflated:
+
+1. **Pinned CDDA persistence behaviour/evidence** — what the pinned baseline demonstrably saves, restores, migrates and orders.
+2. **Cataclysm-profile persisted state and compatibility semantics** — the OctoGhast state/categories needed to reproduce that reference behaviour, including grid/map/submap/overmap semantics and Cataclysm content compatibility.
+3. **Generic Core persistence infrastructure** — profile-neutral world identity, stable runtime identity/reference restoration, atomic snapshots, versioning/migrations, deterministic continuation, partitioning, schema ownership and profile/content-generation metadata.
+4. **Future evolution seams** — profile-owned serializers/state schemas, alternative deterministic `WorldPosition` representations, alternative partition schemes and new state categories that reuse the same Core transaction/identity architecture.
+
+A future rules profile MUST be able to persist authoritative state with a different deterministic spatial/state schema without replacing the save coordinator, snapshot transaction, stable identity map, migration pipeline or deterministic-continuation contracts.
 
 ## 2. Reference evidence
 
@@ -49,21 +60,22 @@ These are behavioral constraints, not a requirement to reproduce the C++ class l
 
 ### 3.1 Save set, not save file
 
-A world save is a **versioned save set** containing independently addressable persistence units. OctoGhast MUST model these logical units:
+A world save is a **versioned save set** containing independently addressable persistence units. Generic Core requires a manifest plus profile-owned persistence units; it does **not** require every profile to expose Cataclysm's map/submap/overmap categories.
 
-- world manifest and world options;
-- content/mod manifest sufficient to identify the data environment used by the save;
-- global game/session state;
-- one player/avatar state record per playable character/save slot as applicable;
-- tactical submap records;
-- overmap/region records;
-- off-bubble NPC and monster/world-actor records where ownership requires it;
-- vehicle state under its owning spatial record;
-- mission/faction/global narrative state;
-- queued events/EOCs and script variables;
-- auxiliary player-facing state that affects observable continuation, such as messages where retained by parity requirements.
+Generic Core MUST support logical units for:
 
-The physical implementation MAY combine logical units into fewer files or a database, but APIs and transactions MUST preserve these ownership boundaries.
+- world manifest and world options/configuration;
+- rules-profile identity/version and content-generation compatibility metadata;
+- authoritative global/world state;
+- durable world-local player/control associations;
+- profile-defined partition/state units;
+- authoritative entity/object-graph state;
+- deterministic scheduler/activity/event/RNG continuation state;
+- profile-defined auxiliary durable state that affects observable continuation.
+
+For the **Cataclysm profile**, the profile-defined units include the pinned/reference categories already investigated: tactical submaps, overmap/region records, off-bubble/world actors, vehicles under their spatial ownership, missions/factions/narrative state, queued EOCs/script variables, avatar/character state and parity-required messages/auxiliary state.
+
+The physical implementation MAY combine logical units into fewer files or a database, but APIs and transactions MUST preserve declared ownership boundaries and schema/version identity.
 
 ### 3.2 Snapshot identity
 
@@ -74,8 +86,9 @@ A world manifest MUST include at least:
 - `formatVersion`;
 - `worldId` (stable UUID);
 - `snapshotId`;
-- game/content compatibility version;
-- selected mod/content IDs and ordering;
+- rules profile ID and profile schema/version;
+- content-generation identity and compatibility metadata sufficient to interpret durable definition IDs;
+- selected package/mod/content IDs and ordering where the active profile uses them;
 - stable player/character roster and control-binding records required to resume the world (never connection/socket IDs);
 - canonical simulation tick/time and world chronology anchors;
 - last successful save timestamp;
@@ -100,8 +113,11 @@ Owns intrinsic character state: stable character ID, stats, anatomy/body state, 
 ### Items
 Items are persisted by their current owner: character inventory, map tile/submap, vehicle cargo/part, NPC inventory, etc. Nested pocket/container contents are serialized recursively as part of the owning root. An item MUST have one persistence owner at commit time.
 
-### Tactical map/submaps
-A submap is the durable unit for local terrain/furniture/traps/fields/items and other tile state established by Spec 12. Submap coordinates are stable keys. Loading the reality bubble MUST NOT change persistence ownership merely because a submap is cached.
+### Profile-defined spatial/world partitions
+
+Generic Core owns the ability to persist deterministic profile-defined world partitions and their stable keys/metadata; it does not mandate grid cells, submaps, overmaps, integer coordinates or any particular partition size.
+
+For the **Cataclysm profile**, a submap is the durable unit for local terrain/furniture/traps/fields/items and other tile state established by Spec 12, and submap/overmap coordinates remain stable profile-defined keys. Loading an active region/reality-bubble view MUST NOT change persistence ownership merely because a Cataclysm submap is cached.
 
 ### Vehicles
 A vehicle is spatially owned by the persistent map/submap partition that contains its canonical origin/ownership record. Cross-submap footprint data must not create duplicate vehicle identities. References use stable vehicle IDs.
@@ -129,7 +145,7 @@ Durable identity types MUST be explicit value types:
 - `MissionId`: stable opaque identifier.
 - `ItemUid`: only required for items that can be externally referenced; ordinary contained items may remain structurally owned.
 - typed content IDs (terrain, item type, effect, EOC, faction template, etc.) remain string-backed IDs governed by Spec 18.
-- spatial identities use the absolute coordinate types from Spec 12.
+- spatial identity/state is owned by the active rules profile: generic persistence requires a deterministic, serialization-stable `WorldPosition` representation/codec where position is durable, while derived `SpatialCell` membership may be persisted or rebuilt according to profile schema; Cataclysm uses Spec 12's typed grid coordinates and submap/overmap keys.
 
 Rules:
 
@@ -208,14 +224,14 @@ If required content is absent, fail with an actionable diagnostic listing missin
 Migrate each persistence unit from its stored schema version to the current in-memory schema. Migration is pure with respect to gameplay: it must not consume simulation RNG, moves or time.
 
 ### Phase 3 — world/global primitives
-Materialize calendar/time anchors, dimension/world identity, global counters and coordinate context needed to interpret spatial records.
+Materialize world identity, canonical time/chronology anchors, global counters and any profile-defined context required to interpret persisted units. Generic Core MUST NOT assume this context includes integer/grid coordinate spaces.
 
-### Phase 4 — spatial state
-Load the persistent world/overmap/submap partitions required to bootstrap the server. Reconstruct terrain/furniture/fields/items/vehicles and authoritative spatial indexes. Initial active regions are then derived from connected/controlled players and server policy; no single saved "reality bubble" is authoritative.
+### Phase 4 — profile-defined world/spatial state
+Ask the active rules profile to materialize its persistent world partitions/state using the saved profile/schema metadata. Rebuild authoritative spatial indexes from authoritative `WorldPosition` plus the profile's deterministic `WorldPosition -> SpatialCell` mapping where such indexing exists. Initial active regions are then derived from connected/controlled players and server policy; no saved client/reality-bubble view is authoritative.
 
-This deliberately adapts the pinned CDDA load ordering: CDDA's local active map remains evidence for spatial state that must survive, but OctoGhast may have zero, one, or many separated/overlapping active regions. Overlap is still one authoritative world region, not duplicated per player.
+For the **Cataclysm profile**, this phase loads persistent overmap/submap partitions, reconstructs terrain/furniture/fields/items/vehicles and uses Spec 12's grid-aligned `WorldPosition` / derived `SpatialCell` semantics. CDDA's local active-map ordering remains evidence for state that must survive, but OctoGhast may have zero, one or many separated/overlapping active regions. Overlap is still one authoritative world region, not duplicated per player.
 
-This ordering reflects the pinned baseline, where the main game loader establishes time/dimension and loads the map before restoring later runtime state.
+This preserves the pinned baseline's required load ordering without turning its coordinate or partition shape into a Core invariant.
 
 ### Phase 5 — entities
 Materialize avatar, NPCs, monsters and other actors. Create identity-map entries as each entity is constructed.
@@ -350,10 +366,10 @@ The domain-facing save coordinator depends on abstractions; JSON/file storage is
 Save barriers occur at deterministic canonical tick boundaries. Persist canonical tick/time, world chronology, actor action budgets, scheduler/deadline state, resumable activities and every deterministic/RNG stream seed/counter/state required for continuation. Save/load itself consumes no ticks/moves and does not perturb RNG. Host elapsed-time accumulators used only to pace catch-up are not persisted; after load the server resumes from the saved canonical time under a fresh host-clock baseline.
 
 ### Spec 12 — local map
-Absolute integer/grid coordinate and submap ownership contracts are authoritative. Multi-player active regions are server/world-owned runtime lifecycle state: separated regions may coexist and overlapping regions simulate once. Activation/deactivation itself is not client save state. Persist only semantic world state and any durable timestamps/deadlines needed for deterministic background catch-up; derive active-region membership and client interest after load.
+Consume Spec 12's separation of authoritative `WorldPosition`, derived `SpatialCell` membership and client-only presentation transforms. Generic Core persistence must not require `WorldPosition` to be an integer/grid tuple. The Cataclysm profile persists its grid-aligned logical positions and submap/overmap partition keys for parity. Multi-player active regions remain server/world-owned runtime lifecycle state: separated regions may coexist and overlapping regions simulate once. Activation/deactivation and client interest are derived after load; persist only semantic world/profile state plus durable timestamps/deadlines needed for deterministic background catch-up.
 
-### Spec 18 — data loading
-Persisted content IDs resolve only after registry finalization. Obsolete-ID mapping is shared, not reimplemented by each persistence codec.
+### Specs 18/19 — profile and content-generation identity
+Persisted definition IDs resolve only after registry finalization. Every world save identifies the active rules profile plus the immutable content generation/compatibility metadata required by Specs 18/19 to interpret those IDs. Session-local registry indexes are forbidden as durable identity. A materially different generation may load only after an explicit profile compatibility/migration decision; stable IDs must never be silently reinterpreted. Obsolete-ID mapping is shared, not reimplemented by each persistence codec.
 
 ### Spec 17 — EOC/events
 Queued execution time, EOC ID and serializable context are durable. Runtime callable objects are reconstructed from IDs.
@@ -382,7 +398,7 @@ Readers MUST impose sane limits on:
 - nesting depth;
 - collection/string sizes;
 - decompressed unit size;
-- coordinate ranges;
+- profile-defined spatial/state primitive ranges and encoded size;
 - entity counts per unit;
 - migration expansion.
 
@@ -545,6 +561,67 @@ Populate socket buffers, connection IDs, replication sequence state, interpolati
 ### P20-35 Network/in-process persistence equivalence
 Execute the same deterministic one-player command trace once over in-process transport and once over loopback network transport. Save at the same canonical tick. After excluding permitted non-gameplay metadata, assert semantically identical save state and identical continuation after reload.
 
+### P20-36 Cataclysm grid-position round trip
+Create Cataclysm-profile entities at representative positive, negative and z-level grid-aligned authoritative `WorldPosition` values spanning submap/overmap boundaries. Save/reload and assert positions, profile-defined partition ownership and derived `SpatialCell` membership round-trip exactly with no Godot/presentation transform involved.
+
+### P20-37 Alternative Core test-profile position schema
+Use a deterministic Core test profile whose authoritative `WorldPosition` is not an integer/grid tuple (for example a fixed-point pair plus a profile-defined region key). Save/reload through the same Core coordinator and assert exact semantic position/state equality. Assert no Cataclysm submap/overmap codec or integer-coordinate API is required.
+
+### P20-38 Stable references independent of position representation
+Create two runtime entities with stable IDs and a durable reference between them, move one under both the Cataclysm profile and the alternative test profile, then save/reload. Assert identity-map restoration resolves the same IDs/references independent of each profile's position representation and partition mapping.
+
+### P20-39 Profile/content-generation compatibility metadata
+Save a world with profile P, profile schema version V and content generation G. Reload with the identical compatible generation and succeed. Attempt load with a different profile, unsupported profile schema, or materially different content generation lacking an explicit compatibility/migration declaration and assert a structured compatibility failure before live-world publication.
+
+### P20-40 World rollback does not roll back cross-world profile state
+Persist world snapshot W1, advance #91-owned cross-world profile/meta-progression state, then load/rollback the world to W1. Assert the world-local `PlayerId`/world state rolls back while #91 profile/account/meta-progression state remains at its independently committed version and is neither overwritten nor duplicated by Spec 20.
+
+### P20-41 One-player transport save equivalence
+Run the same one-player authoritative command trace through in-process transport and network transport, save at the same canonical tick, and compare profile-owned world state, stable identities, scheduler/activity/RNG continuation and compatibility metadata. Excluding permitted non-gameplay metadata, saves are semantically equivalent.
+
+### P20-42 Disconnected-player profile-neutral round trip
+Disconnect a player, advance/save/reload with no socket/session state, then reconnect the same world-local `PlayerId` to the same `CharacterId`. Run under Cataclysm and the alternative Core test profile. Assert stable identity/control restoration does not depend on position schema or prior connection identity.
+
+### P20-43 Save-barrier cut with in-flight requests
+With multiple clients and profile-owned world state changing in different partitions, request a save while requests are in flight. Record the deterministic admission cut. Assert all admitted mutations through the cut are captured exactly once, unadmitted transport bytes are excluded, profile-specific position/state codecs observe one coherent snapshot, and reload matches a reference execution cut at that boundary.
+
+## 15C. Foundational Core/profile persistence re-evaluation
+
+This re-evaluation preserves the completed pinned-CDDA investigation and authoritative-server/co-op review. It changes classification and extension boundaries, not the established save transaction semantics.
+
+### Generic Core persistence responsibilities
+
+Core owns and standardizes:
+
+- stable world/runtime/player identity and reference restoration;
+- object-graph materialization, forward-reference fixup and invariant validation;
+- deterministic snapshot barriers and recoverably atomic commit;
+- save-set and per-unit schema/version metadata;
+- deterministic migration orchestration and diagnostics;
+- canonical simulation time plus scheduler/activity/event/RNG continuation sufficient for deterministic resume;
+- profile-neutral partition/unit storage and transaction participation;
+- schema ownership/dispatch so profile codecs can evolve independently;
+- active rules-profile identity/version and immutable content-generation compatibility metadata;
+- exclusion of transport/session/Godot/presentation state from authoritative world saves.
+
+Core does **not** require integer/grid `WorldPosition`, Cataclysm submaps/overmaps, CDDA save categories, JSON, one fixed partition size or one universal world-state schema.
+
+### Cataclysm-profile persisted state and compatibility semantics
+
+The Cataclysm profile owns the compatibility meaning of grid-aligned positions, map-square/submap/overmap keys, terrain/furniture/trap/field/item partition state, CDDA actor/vehicle/narrative/EOC categories, content/package semantics and any pinned save-order/fixup requirements documented above. Those remain mandatory for the Cataclysm reference-parity milestone but are not platform invariants.
+
+### World-local player identity versus #91 profile/account state
+
+`PlayerId` in this specification is a durable identity **within one authoritative world**. It is persisted with the world because it binds world-local knowledge/control relationships and reconnect semantics. It is not the cross-world profile/account/meta-progression identity owned by #91.
+
+Spec 20 MUST NOT store #91-owned achievement history, cross-world unlocks or other profile/meta-progression as if they were part of a world snapshot. Loading or rolling back an older world snapshot may restore an older world-local `PlayerId -> CharacterId` association/state, but MUST NOT implicitly roll back independently committed #91 state.
+
+### Future evolution seam
+
+A future rules profile may provide different deterministic codecs and schemas for `WorldPosition`, world partitions, entities or other authoritative state. As long as it supplies stable serialization, schema/version ownership, migration/compatibility policy and deterministic restoration hooks, it reuses the same Core save barrier, snapshot generation, manifest, identity map, migration orchestration and publication pipeline.
+
+No additional cross-cutting architecture ticket is required by this review. #91 remains the authoritative unresolved/active owner for cross-world profile/meta-progression persistence.
+
 ## 16. Implementation sequence
 
 1. Define persistence DTO/version conventions and stable runtime IDs.
@@ -579,5 +656,5 @@ This specification is satisfied when:
 - load/migration/fixup ordering is explicit and implemented;
 - autosave/manual save share the same correctness guarantees;
 - existing CDDA file compatibility is explicitly scoped as optional import/export rather than a prerequisite for behavioral parity;
-- round-trip, migration, corruption, interruption, deterministic-continuation and authoritative-server/co-op tests P20-01 through P20-35 pass;
+- round-trip, migration, corruption, interruption, deterministic-continuation, authoritative-server/co-op and Core/profile-boundary tests P20-01 through P20-43 pass;
 - evidence remains pinned to CDDA commit `e262adb299a7613b4aedc5f12c08fe0413c56a84`.
