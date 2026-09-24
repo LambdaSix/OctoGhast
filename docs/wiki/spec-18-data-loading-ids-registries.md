@@ -144,21 +144,21 @@ A registry stores one runtime definition per typed string ID and supports:
 - finalization;
 - consistency checking.
 
-### 3.1 Duplicate IDs and override behavior
+### 3.1 Duplicate IDs and override behavior — Cataclysm profile
 
 In `generic_factory::insert`, loading an object whose ID already exists replaces the existing object **in the same registry slot**. It does not append a second definition.
 
 Before replacement CDDA calls its duplicate-entry tracking logic, so source provenance can decide whether a diagnostic is appropriate.
 
-OctoGhast contract:
+Cataclysm-profile compatibility contract:
 
-- the latest permitted definition for an ID is the effective definition;
+- the latest permitted CDDA definition for an ID is the effective definition;
 - overriding must preserve one logical registry identity;
 - provenance (source/core/mod/file where practical) MUST be retained;
 - suspicious duplicates MUST be diagnosable;
 - replacement MUST invalidate cached resolutions.
 
-This replacement behavior is what makes later content/mod layers able to override earlier definitions.
+This replacement behavior is what makes later Cataclysm content/mod layers able to override earlier definitions. Generic Core exposes deterministic conflict/override policy hooks but does not universally select replacement or "later wins" semantics.
 
 ### 3.2 Abstract definitions
 
@@ -178,7 +178,7 @@ Specifying both is an error.
 
 A generic factory can accept an ID member that is either a string or an array. With an array, the definition is loaded once per listed ID into distinct real registry identities.
 
-## 4. `copy-from` inheritance
+## 4. `copy-from` inheritance — pinned CDDA / Cataclysm profile
 
 ### 4.1 Base lookup
 
@@ -202,7 +202,7 @@ During factory finalization, deferred JSON is retried. Retry continues while pro
 
 If a complete retry pass resolves nothing, the remaining objects form an unresolved/circular dependency set. Each is diagnosed as a circular dependency and discarded.
 
-OctoGhast MUST implement equivalent fixed-point behavior:
+The Cataclysm profile MUST implement equivalent fixed-point behavior:
 
 ```text
 pending = unresolved definitions
@@ -217,7 +217,7 @@ if pending remains:
 
 The diagnostic SHOULD distinguish "base never existed" from a true cycle where possible, but both must fail deterministically.
 
-## 5. Member loading and inheritance mutation
+## 5. Member loading and inheritance mutation — pinned CDDA / Cataclysm profile
 
 CDDA's generic member loaders use a `was_loaded` concept: after `copy-from`, the child starts with inherited values. Missing members therefore retain inherited values rather than receiving new defaults.
 
@@ -318,11 +318,11 @@ For generic optional members, using `relative`, `proportional`, `extend` or `del
 
 Generic mandatory members do not accept the four inheritance mutation features. Missing mandatory data is an error for a fresh object. For an inherited object, a missing mandatory member is permitted because the base has already supplied it.
 
-## 6. Mod and core precedence
+## 6. Mod and core precedence — Cataclysm profile / Spec 19
 
 The world stores an explicit active mod order. Mod metadata includes dependencies and conflicts, and the dependency tree is built from declared dependencies.
 
-The content loading rule to preserve is:
+The Cataclysm-profile content loading rule to preserve is:
 
 - core/base content is loaded before dependent mod content;
 - active mods are loaded in resolved world order;
@@ -331,15 +331,15 @@ The content loading rule to preserve is:
 - earlier sources must not depend on later mods;
 - mod-interaction files are conditional on the associated mod being active.
 
-OctoGhast MUST expose source provenance at least as:
+For Cataclysm compatibility, provenance MUST expose at least:
 
 ```text
-source id (core/mod)
-file or logical resource
+source/package id (core/mod)
+logical resource identity (and file path when the provider is filesystem-backed)
 load-order position
 ```
 
-This is necessary both for diagnostics and for future mod-compatibility work.
+Generic Core requires logical provenance but does not require a filesystem. Cataclysm's content provider may additionally retain normalized paths for parity diagnostics and Spec 19 package handling.
 
 ## 7. Finalization and cross-reference resolution
 
@@ -362,7 +362,7 @@ Cross-registry references SHOULD remain typed string IDs during parse and resolv
 
 A missing cross-reference discovered during finalization/validation MUST produce a source-aware diagnostic.
 
-## 8. Validation and diagnostics
+## 8. Validation and diagnostics — Core mechanism, profile policy
 
 ### 8.1 JSON structure diagnostics
 
@@ -391,21 +391,21 @@ Diagnostics SHOULD carry:
 
 CDDA's JSON object machinery tracks visited members and reports unvisited members unless the loader explicitly permits omissions. This catches misspelled/unsupported properties.
 
-OctoGhast SHOULD provide equivalent strict-member validation. A loader must explicitly mark intentionally ignored metadata rather than making unknown properties globally permissive.
+The Cataclysm profile SHOULD provide equivalent strict-member validation. Generic Core supplies structured validation/diagnostic plumbing but does not require every future schema to use CDDA's visited-member model.
 
 ### 8.3 Duplicate type-handler registration
 
-Registering a second loader for an existing `type` is a diagnostic. This protects the global dispatch contract.
+Within the Cataclysm profile, registering a second handler for the same CDDA `type` is a diagnostic. Generic Core does not require a universal string `type` dispatch table.
 
 ### 8.4 Consistency pass
 
 After ordered finalization, a global consistency pass validates domain-specific invariants and references. OctoGhast MUST retain a distinct validation phase so "parsed successfully" never implies "content graph is valid."
 
-## 9. Migration and obsoletion
+## 9. Migration and obsoletion — profile/domain policy
 
 Migration is not one universal registry feature in the baseline; multiple domains register explicit migration content types, including examples such as item `MIGRATION`, traits, bionics, proficiencies, fields, terrain/furniture, traps, vehicle parts, effects, spells, overmap terrain and mods.
 
-The foundational loader therefore needs to support migration definitions as first-class content handlers, but migration semantics remain domain-owned.
+The Cataclysm adapter must support migration definitions as first-class CDDA content handlers, while migration semantics remain domain-owned. Generic Core needs migration/compatibility extension points, not knowledge of CDDA migration object types.
 
 For mods specifically:
 
@@ -415,40 +415,60 @@ For mods specifically:
 
 OctoGhast design rule: the loader provides the mechanism (typed handler, source order, diagnostics); each domain owns the meaning and application of its migration records.
 
-## 10. Recommended OctoGhast interfaces
+## 10. Recommended Core/profile seams
 
-The following is a behavioral shape, not a required class layout.
+The following is a behavioural shape, not a required class layout.
 
 ```text
-IDataTypeLoader
-  TypeName
-  Load(JsonObject, LoadContext)
+// Generic Core
+DefinitionId<TDomain>              // stable durable identity
+DefinitionGenerationId            // frozen content-generation identity
 
-IContentRegistry<TDefinition, TId>
-  InsertOrReplace(definition, provenance)
-  TryGet(stringId)
-  IsValid(stringId)
-  Finalize(registryContext)
-  Validate(validationContext)
-  Reset()
+IDefinitionCatalogue<TDefinition, TId>
+  TryGet(TId)
+  IsValid(TId)
   Generation
+  EnumerateDefinitions()
 
-ContentLoader
-  Register(type, handler)
-  LoadSource(source)
-  ResolveDeferred()
-  FinalizeAll()
-  ValidateAll()
-  Reset()
+IDefinitionBuildPipeline
+  AddSource(IContentSource)
+  Build(profile)
+    -> DecodeCandidates
+    -> ApplyProfileConflictMergePolicy
+    -> ResolveDependencies
+    -> Finalize
+    -> Validate
+    -> Freeze
 
-LoadContext
-  SourceId
-  ResourcePath
-  LoadOrder
-  Diagnostics
+IContentSource
+  SourceIdentity
+  EnumerateLogicalResources()
+
+DefinitionProvenance
+  SourceIdentity
+  LogicalResourceIdentity
+  PackageIdentity?
+  ProfileMetadata?
+
+IDefinitionProfile
+  ProfileIdentity
+  SchemaVersion?
+  Decode(resource, diagnostics)
+  ConflictMergePolicy
+  FinalizationPlan
+  Validate(...)
+  CompatibilityPolicy(...)
+
+// Cataclysm profile adapter
+CataclysmJsonProfile : IDefinitionProfile
+  JSON type dispatch
+  abstract/copy-from
+  relative/proportional/extend/delete
+  pinned duplicate/override policy
+  CDDA finalization/validation compatibility
 ```
 
-Strongly typed IDs should be cheap value types. Registry indexes/handles should never cross a save-file or reload boundary.
+Strongly typed IDs should be cheap value types. Registry indexes/handles are generation-local implementation details and must never cross save, reload or transport boundaries as durable identity. Generic Core APIs should accept logical source/resource abstractions; a filesystem-backed provider is one implementation rather than a domain assumption.
 
 ## 11. Conformance fixture suite
 
@@ -493,6 +513,22 @@ The following black-box tests are required before #83 can be considered implemen
 | MOD-03 | earlier source references later mod-only content | validation fails |
 | MIG-01 | registered migration content type | migration handler receives record |
 
+
+### Core/profile boundary scenarios added by #83 re-evaluation
+
+| ID | Fixture | Expected result |
+|---|---|---|
+| BND-01 | Cataclysm profile loads a base/child fixture using `copy-from`, `relative`, `extend` and `delete` | Effective result matches pinned CDDA semantics; no generic Core API needs knowledge of those keywords |
+| BND-02 | Minimal non-CDDA profile supplies two typed definitions directly with no inheritance vocabulary | Core catalogue builds, finalizes, validates and freezes them successfully without `copy-from`, `abstract` or mutation operators |
+| BND-03 | Persist runtime object referencing definition `item/test`, reload same compatible content generation, then project over transport | Stable typed ID round-trips unchanged; no compact registry index or server object identity appears in durable/wire identity |
+| BND-04 | Attempt to mutate a definition after its content generation is frozen | Mutation is rejected/not observable; runtime state changes occur only on runtime instances |
+| BND-05 | Build the same candidate set/provenance/dependency graph twice with identical profile configuration | Final catalogue, diagnostics ordering and finalization outcome are deterministic |
+| BND-06 | Two profiles receive duplicate ID candidates: Cataclysm profile and a strict non-CDDA profile | Cataclysm applies pinned later-permitted replacement policy; strict profile deterministically rejects duplicates; Core supports both without hard-coded universal precedence |
+| BND-07 | Filesystem-backed and in-memory providers emit equivalent logical resources | Domain registry/finalization behaviour is identical apart from provenance details; Core domain APIs do not require filesystem paths |
+| BND-08 | Save declares content generation A but server attempts load against materially different generation B with no declared compatibility/migration | Load produces an explicit compatibility decision/failure; IDs are not silently reinterpreted |
+| BND-09 | Cataclysm world manifest from Spec 19 resolves core + mods in pinned order | Resulting candidate precedence follows Cataclysm profile/package policy, not a universal Core "mods later win" rule |
+| BND-10 | Cross-reference target is supplied by another registry finalized in a declared dependency stage | Deterministic finalization resolves it; an undeclared/missing dependency produces a source-aware validation error |
+
 ### Golden inheritance fixture
 
 A compact fixture should exercise precedence in one definition:
@@ -530,20 +566,30 @@ The test should assert semantics, not collection iteration order unless the doma
 
 ## 12. Implementation slices
 
-A dependency-friendly implementation sequence is:
+A dependency-friendly implementation sequence that preserves the boundary is:
 
-1. typed string ID primitives and registry generation semantics;
-2. registry insert/replace/reset/lookup plus provenance;
-3. JSON parser facade with strict member visitation;
-4. global `type` dispatch registry;
-5. abstract + `copy-from` inheritance and deferred fixed-point resolution;
-6. generic optional/mandatory member helpers;
-7. `relative`, `proportional`, `extend`, `delete` mutation support;
-8. explicit loader lifecycle and finalization stages;
-9. cross-registry reference validation;
-10. mod source/dependency/load-order inputs;
-11. migration handler plumbing;
-12. fixture/golden conformance suite above.
+**Generic Core first**
+
+1. stable typed/domain ID primitives and explicit missing-reference results;
+2. catalogue/registry storage plus generation-local cache invalidation;
+3. logical source/provenance abstractions with no required filesystem path;
+4. deterministic build lifecycle and named dependency/finalization stages;
+5. immutable/frozen content-generation identity;
+6. typed cross-registry reference validation and structured diagnostics;
+7. profile extension points for decoding, conflict/merge policy, schema/version and compatibility;
+8. save/transport contracts that expose stable IDs rather than compact handles.
+
+**Cataclysm profile on top**
+
+9. JSON parser facade with pinned strict-member behaviour;
+10. CDDA `type` dispatch;
+11. abstract + `copy-from` inheritance and deferred fixed-point resolution;
+12. optional/mandatory CDDA member helpers plus `relative`, `proportional`, `extend`, `delete`;
+13. CDDA duplicate/override and finalization-order compatibility;
+14. Spec 19 package/mod load-plan integration and migration handler plumbing;
+15. pinned fixture/golden conformance suite plus BND boundary scenarios above.
+
+This sequence is architectural decomposition, not an instruction to implement the loader in #83.
 
 ## 13. Acceptance criteria mapping for #83
 
@@ -558,17 +604,30 @@ A dependency-friendly implementation sequence is:
 
 ## 14. Findings that constrain later specs
 
-Later feature specs should assume the following shared rules instead of rediscovering them:
+Later feature specs should consume the following shared rules without rediscovering them.
 
-- persistent references use typed string IDs, never session-local registry indexes;
-- content may legally reference a same-registry `copy-from` base that is loaded later, provided it resolves by finalization;
-- abstract definitions are inheritance templates, not runtime entities;
-- later permitted definitions replace earlier definitions with the same ID;
-- direct member assignment takes precedence over relative/proportional mutation;
-- extend is applied before delete;
-- finalization and validation are separate from parsing;
-- source/mod provenance is part of the diagnostic contract;
-- a successful parse is not proof of a valid content graph.
+### Generic Core rules
+
+- persistent and protocol-visible definition references use stable typed/domain IDs, never session-local registry indexes;
+- a running authoritative world consumes an immutable frozen content generation;
+- definition generation identity participates in save/profile compatibility;
+- finalization and validation are distinct from decoding/parsing;
+- provenance is logical source/resource/package context; filesystem paths are optional provider metadata;
+- deterministic dependency ordering, finalization and diagnostics are platform requirements;
+- duplicate/merge/override behaviour is supplied by a profile policy rather than universally fixed by Core.
+
+### Cataclysm-profile compatibility rules
+
+- same-registry `copy-from` may resolve a base loaded later, provided deferred resolution succeeds before final validation;
+- `abstract` definitions are Cataclysm inheritance templates, not runtime entities;
+- later permitted CDDA definitions replace earlier definitions with the same ID according to the pinned source/package order;
+- direct member assignment takes precedence over `relative`/`proportional`;
+- `extend` is applied before `delete`;
+- CDDA strict-member/type-dispatch and migration behaviour remain compatibility requirements.
+
+### Runtime-state rule
+
+Definitions/templates are immutable inputs. Mutable ECS/world state belongs to runtime entities/components and persists separately, carrying stable definition references where required.
 
 ## Pinned source links
 
