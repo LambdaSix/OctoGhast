@@ -36,15 +36,22 @@ Important tests at this baseline:
 
 These are behavioral evidence, not an instruction to port the C++ class graph.
 
-## 3. Three-layer compatibility rule
+## 3. Four-layer compatibility and platform-boundary rule
 
 For every combat path distinguish:
 
 1. **Pinned CDDA reference behavior** — formulas, costs, RNG, ordering and data semantics observed at the pinned commit.
-2. **OctoGhast adaptation** — continuous canonical server time, multiple simultaneous player-controlled actors, transport-neutral commands and player-specific projections.
-3. **Implementation contract** — the combined rule that OctoGhast must expose.
+2. **OctoGhast Cataclysm profile** — the compatibility implementation that reproduces the pinned combat rules while operating inside OctoGhast's authoritative server architecture.
+3. **Generic Core contract** — ruleset-agnostic infrastructure only: deterministic command admission/order, canonical scheduling, stable identity, spatial-query abstractions, RNG streams, persistence barriers and projection/event routing. Core does **not** define CDDA damage types, melee formulas, grid-only reach, gun dispersion, projectile immediacy, armor coverage or weakpoint semantics.
+4. **Future evolution seams** — future OctoGhast rules may use different damage/armor models, continuous or sub-cell geometry, persistent time-of-flight projectiles, different reaction/initiative models or a different action economy without replacing the Core/server/transport architecture.
 
-The adaptation may change *when and under whose authority* an action resolves. It must not silently change CDDA damage, attack-cost, hit-quality, ammunition, armor or weakpoint rules.
+The adaptation may change *when and under whose authority* an action resolves. It must not silently change CDDA damage, attack-cost, hit-quality, ammunition, armor or weakpoint rules within the Cataclysm profile. Conversely, a pinned-CDDA limitation must not be promoted into a permanent Core invariant merely because Spec 09 needs it for reference parity.
+
+### 3.1 Re-evaluation against current architecture
+
+Re-evaluated 2026-09-24 against #52, #57, #58, #64 and #65 plus completed prerequisite Specs 01/02/04/05/06/12/17/18/20. The pinned evidence remains valid. The material change is classification: combat rules are Cataclysm-profile policy consuming generic Core capabilities, while continuous server authority, stable identity, deterministic ordering, persistence barriers and player-specific projection are platform contracts.
+
+No new cross-cutting architecture decision is required by this review.
 
 ## 4. Immutable definition data versus mutable runtime state
 
@@ -346,11 +353,13 @@ unless `NEVER_JAMS`, plus gun/magazine damage-dependent jam probabilities and am
 
 A projectile resolution carries immutable-derived plus shot-specific data: impact damage, speed, range, critical multiplier, shot spread, projectile/ammo-effect IDs, drop item, source/weapon context and flags such as multishot/magic/shrapnel.
 
-A normal projectile resolves atomically within the admitted fire/throw action against authoritative map/spatial state. If later implementation introduces persistent travel time, that requires a separate explicit design change; the baseline here is immediate trajectory resolution.
+**Cataclysm-profile contract:** a normal projectile resolves atomically within the admitted fire/throw action against authoritative map/spatial state, matching the pinned baseline's synchronous trajectory semantics. This is not a generic Core law. Core must permit a future rules profile to represent persistent/time-of-flight projectiles using the same stable identity, scheduling, spatial and persistence facilities without changing the transport or ECS ownership model.
 
 ### 10.2 Spatial traversal
 
-Trajectory uses authoritative integer/grid map coordinates from Spec 12. It checks terrain/furniture/vehicle/creature occupancy in path order and invokes map shooting/impact rules. It may damage or transform map state, strike creatures, continue/penetrate according to projectile rules, stop, or drop/embed the projectile item.
+**Pinned/CDDA Cataclysm-profile contract:** trajectory uses the grid-aligned authoritative map positions and derived SpatialCell occupancy defined by Spec 12 for this rules profile. It checks terrain/furniture/vehicle/creature occupancy in path order and invokes map shooting/impact rules. It may damage or transform map state, strike creatures, continue/penetrate according to projectile rules, stop, or drop/embed the projectile item.
+
+Generic Core spatial APIs must not require all future authoritative positions or collision models to be grid-aligned. Combat asks the active rules profile/spatial service for occupancy, traversal and collision facts; it does not derive authority from Godot transforms.
 
 Overlapping player regions see one projectile resolution and one set of mutations.
 
@@ -424,9 +433,23 @@ CDDA resolves combat inside a turn-gated single-player loop. The avatar UI choos
 
 ### Implementation contract
 
-Within one deterministic server resolution boundary, an admitted immediate attack is atomic with respect to externally observable authoritative state. Same-tick combat mutations use the existing ordering key from Specs 01/04: phase, due tick, subsystem priority, stable actor/entity ID and monotonic admission sequence. A later action revalidates the state left by earlier actions.
+Within one deterministic server resolution boundary, an admitted immediate Cataclysm-profile attack is atomic with respect to externally observable authoritative state. Same-tick combat mutations use the existing ordering key from Specs 01/04: phase, due tick, subsystem priority, stable actor/entity ID and monotonic admission sequence. A later action revalidates the state left by earlier actions.
 
 Examples: if actor A kills target T before B's admitted attack resolves, B receives the feature-appropriate stale/invalid-target result and does not also damage a dead target; if A destroys/transfers a weapon before B's command using it resolves, B cannot use a stale client copy.
+
+### Generic Core contract and future seam
+
+Core owns neither the attack formulas nor the assumption that an attack must always be an instantaneous grid interaction. Core must provide enough ruleset-neutral machinery for a rules profile to:
+
+- admit a command/intention at a deterministic simulation boundary;
+- query authoritative spatial/identity state without renderer involvement;
+- schedule rule-defined work and costs on canonical time;
+- consume deterministic RNG without transport/render dependence;
+- commit authoritative mutations atomically at profile-defined boundaries;
+- persist durable state and resume deterministic continuation;
+- route purpose-specific results/events/projections without exposing arbitrary ECS state.
+
+The Cataclysm profile uses those capabilities for immediate melee and synchronous projectile resolution. A future profile may choose persistent projectile entities, continuous collision or different initiative/reaction semantics without changing the client/server authority boundary.
 
 ## 14. RNG and determinism
 
@@ -461,15 +484,18 @@ Ordinary atomic in-flight projectile resolution does not require persistence bec
 
 ## 16. Dependencies and system boundaries
 
-**Core/server infrastructure**
+**Core/server infrastructure (ruleset-agnostic)**
 
 - deterministic command admission/order;
-- canonical scheduling/move budget;
-- stable entity/item references;
-- authoritative spatial queries;
-- RNG service/state;
+- canonical fixed-step scheduling and profile-supplied action-currency mapping;
+- stable entity/item/player references;
+- authoritative spatial-query interfaces over WorldPosition/SpatialCell without a universal grid-only combat assumption;
+- deterministic RNG service/state;
 - save barrier/transaction;
-- per-player projection/event routing.
+- per-player projection/event routing;
+- no dependency on Cataclysm damage IDs, armor/weakpoint structures, firearm semantics, Godot nodes or transport implementation types.
+
+These capabilities may be reusable by other combat models, but Spec 09 does **not** require a generic Core `DamageInstance`, `MeleeAttack`, `Gun` or `Projectile` abstraction. Promote such concepts to Core only if a later cross-ruleset requirement justifies it.
 
 **OctoGhast.Cataclysm combat**
 
@@ -586,6 +612,24 @@ Failures return structured authoritative results. They must not create phantom c
 
 **C09-37 UI does not pause aiming/combat** — keep targeting/inventory UI open while another actor attacks. Canonical time and other actor combat continue unless explicit global pause policy is active.
 
+### Core/profile-boundary and architecture re-evaluation
+
+**C09-38 Core dependency isolation** — enforce project/reference tests showing generic Core/server infrastructure can compile without Cataclysm combat definition types. Cataclysm combat may depend on Core scheduling/spatial/RNG/persistence/projection contracts; Core must not reference `DamageTypeId`, CDDA weakpoints, martial arts, gun/ammo definitions or Cataclysm projectile flags.
+
+**C09-39 Grid rule remains profile-local** — execute Cataclysm melee/projectile fixtures through the grid-aligned Spec 12 profile and assert pinned outcomes. Separately instantiate a Core spatial test fixture whose WorldPosition is not one-to-one with SpatialCell and prove Core indexing/identity APIs do not require CDDA combat types or integer-only positions. This is an architecture conformance test, not a request to change Cataclysm parity rules.
+
+**C09-40 Immediate-projectile rule remains profile-local** — Cataclysm firing resolves its ordinary projectile synchronously and leaves no durable in-flight projectile after the action. Verify the shared scheduler/persistence interfaces do not encode “all projectiles are atomic” as a platform invariant.
+
+**C09-41 Interest-region overlap invariance** — two clients' active/interest regions overlap a shooter, target and projectile path. Resolve one shot and assert one RNG trace, one ammo consumption and one world mutation sequence regardless of observer count.
+
+**C09-42 Interest churn does not affect combat** — while a shot/melee action resolves, add/remove an observing client's interest in the area. Authoritative hit, damage, item mutation and RNG are unchanged; only that client's later projection eligibility changes.
+
+**C09-43 Hidden-target query isolation** — a player whose projection does not include a hidden creature cannot discover its exact identity/HP/equipment through targeting or aim-estimate queries. Server-side combat may still use hidden authoritative state when rules require it.
+
+**C09-44 Save barrier during combat action** — request save while a melee attack or multi-shot fire action is inside its profile-defined atomic resolution. The save commits only at the Spec 20 quiescent boundary and reload never observes half-applied damage, duplicated ammo consumption or a partially advanced combat RNG stream.
+
+**C09-45 Disconnect/reconnect identity isolation** — disconnect and reconnect an attacker/target around combat boundaries. Socket identity changes do not change Character/Creature/Item identity, reaction counters, aim/recoil or deterministic command ordering; client presentation objects may be recreated freely.
+
 ## 19. Implementation sequencing
 
 Recommended slices, all against this contract:
@@ -615,6 +659,9 @@ Do not split these into incompatible duplicate damage pipelines.
 - [x] Stable identity, ownership, persistence and save-boundary requirements are defined.
 - [x] Continuous authoritative time, multi-player concurrency/contention and client projection adaptations are explicit.
 - [x] No unresolved cross-cutting architecture decision was discovered; this spec consumes the existing Spec 01/04/12/17/20 contracts.
+- [x] Re-evaluated against #52/#57/#58/#64/#65 and completed prerequisites: Cataclysm combat rules are profile-local, while Core remains ruleset-agnostic.
+- [x] Grid-aligned combat geometry and synchronous projectile resolution are explicitly Cataclysm-profile contracts, not permanent Core invariants.
+- [x] Additional architecture conformance scenarios C09-38 through C09-45 cover Core/profile dependency isolation, future spatial/projectile seams, overlapping interest, projection privacy, save barriers and reconnect identity.
 
 ## 21. Source links
 
