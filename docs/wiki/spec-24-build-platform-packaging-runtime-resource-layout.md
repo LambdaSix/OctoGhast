@@ -88,7 +88,8 @@ The implementation SHALL use SDK-style .NET projects with a repository-pinned SD
 Initial toolchain baseline for implementation:
 
 - **.NET 10 LTS** for Core, Cataclysm profile, server, tools and test projects.
-- **Godot 4.7.2 .NET** as the initial Godot client/editor/export baseline.
+- **Godot 4.7.2 .NET** as the initial Godot editor/runtime baseline.
+- **2dog 4.7.x matching the selected Godot/libgodot line** as the normative .NET-owned host integration. Host/native package versions MUST be repository-pinned together with Godot.
 - Toolchain versions MUST be pinned in repository-controlled configuration and upgraded deliberately, with CI validating the new matrix before the pin moves.
 - Release builds MUST NOT resolve an arbitrary machine-global "latest" SDK or Godot version.
 
@@ -105,7 +106,7 @@ Godot is not presentation-only infrastructure. Authoritative server infrastructu
 | Tier 2 | Linux | arm64 | Required | Not release-gated initially | build + headless tests |
 | Deferred | Windows | arm64 | Architecturally allowed | Not release-gated initially | no release promise |
 | Deferred | Android/iOS | mobile native | client only, remote-server use | Deferred | no parity-release gate |
-| Out of initial scope | Web | wasm/browser | No | No C# client export target | none |
+| Deferred | Web | wasm/browser | No authoritative browser server target initially | 2dog browser host is an architectural/client packaging seam, not Tier 1 | explicit browser package tests when promoted |
 
 "Required" means the reference-parity release cannot be declared without a passing artifact on that Tier 1 row. Tier 2 failures block a release only when the project explicitly promotes that target to release-gated status.
 
@@ -135,12 +136,22 @@ OctoGhast.Server
     ^ authoritative host/session/projection services
     |
     +-- transport adapters (in-process and later #90 network transport)
+    |
+    +-- engine-service interfaces
+            ^
+            |
+      OctoGhast.Godot.ServerAdapters
+            ^
+            |
+       2dog / libgodot
 
 OctoGhast.Client.Contracts
     ^ transport-neutral request/projection DTOs
     |
 OctoGhast.Client.Godot
     ^ Godot 2D input/render/UI/audio/localization
+    |
+    +-- hosted by .NET entry points through 2dog/libgodot
 
 OctoGhast.Tests / OctoGhast.Tools
 ```
@@ -671,7 +682,7 @@ This specification does not require:
 - SDL3, curses or CDDA terminal frontend compatibility;
 - identical CDDA archive/package naming;
 - Android/iOS parity-release support;
-- a web client while the selected Godot C# stack lacks a supported web export path;
+- Tier 1 web/browser release support; 2dog provides a browser-host seam, which remains deferred until explicitly promoted and gated;
 - direct upstream CDDA save-file compatibility;
 - a particular #90 socket backend;
 - a requirement that every authoritative subsystem use Godot where a simpler deterministic implementation is preferable;
