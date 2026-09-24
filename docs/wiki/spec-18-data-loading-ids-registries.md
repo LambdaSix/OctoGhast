@@ -8,9 +8,9 @@ Pinned parity baseline: `e262adb299a7613b4aedc5f12c08fe0413c56a84`
 
 ## Purpose
 
-This page defines the foundational OctoGhast contract for loading Cataclysm:DDA-style declarative content into runtime definitions. It is intentionally about externally observable data semantics, not a requirement to reproduce CDDA's C++ class layout.
+This page records both the pinned Cataclysm:DDA loader/reference semantics and the OctoGhast architecture that hosts them. It is intentionally about externally observable data semantics, not a requirement to reproduce CDDA's C++ class layout.
 
-The contract covers JSON type dispatch, typed IDs, registries, `copy-from`, abstract definitions, mutation operators, load ordering, deferred resolution, finalization, consistency checks, duplicate/override behavior, diagnostics, migrations, and mod precedence.
+The pinned compatibility evidence covers JSON type dispatch, typed IDs, registries, `copy-from`, abstract definitions, mutation operators, load ordering, deferred resolution, finalization, consistency checks, duplicate/override behavior, diagnostics, migrations, and mod precedence. The re-evaluated platform contract below deliberately keeps CDDA-specific vocabulary in the Cataclysm profile rather than making it universal Core behaviour.
 
 ## Authoritative evidence at the pinned baseline
 
@@ -25,6 +25,82 @@ The main evidence inspected for this specification is:
 - `tests/json_test.cpp`: JSON deserialization and diagnostic behavior.
 
 All source links below are pinned to the baseline commit so later upstream changes do not silently alter this contract.
+
+
+## Foundational re-evaluation — Core infrastructure versus Cataclysm compatibility
+
+This specification was re-evaluated on 2026-09-24 against #52, #57, #58, #64, #65, #84 and completed dependent architecture. The original pinned-CDDA investigation remains authoritative evidence; no contradiction requiring renewed upstream loader/source investigation was found.
+
+The correction is one of **semantic ownership**. CDDA remains the reference profile and completeness benchmark, but its loader vocabulary is not the permanent definition of generic Core.
+
+### A. Pinned CDDA loader/reference behaviour
+
+The evidence sections below document what `LambdaSix/Cataclysm-DDA@e262adb299a7613b4aedc5f12c08fe0413c56a84` does: JSON object/type dispatch, `string_id<T>` / `int_id<T>`, generic-factory replacement, `abstract`, `copy-from`, deferred inheritance, `relative`, `proportional`, `extend`, `delete`, ordered finalization, strict/unconsumed-member diagnostics, and core/mod load ordering.
+
+These facts remain parity evidence. They do not imply that another OctoGhast profile must use JSON, inheritance, CDDA mutation operators, or CDDA duplicate precedence.
+
+### B. Cataclysm-profile data compatibility contract
+
+The Cataclysm profile owns the compatibility semantics required by the pinned milestone:
+
+- CDDA JSON top-level object/array handling and `type` dispatch;
+- CDDA schema shapes and member readers;
+- `abstract` and exact `copy-from` lookup/deferred-resolution behaviour;
+- `relative`, `proportional`, `extend`, `delete` and their pinned precedence/error rules;
+- CDDA-specific duplicate-definition replacement and source-order policy;
+- CDDA finalization sequence/quirks and strict-member compatibility;
+- migration content records and other CDDA-specific content handlers;
+- the pinned core/mod content-pack expectations defined jointly with Spec 19 / #84.
+
+Full Cataclysm compatibility remains required for the pinned reference milestone. Moving these rules out of generic Core does not weaken their conformance requirement.
+
+### C. Generic Core definition/registry/ID infrastructure
+
+Generic Core owns reusable capabilities rather than Cataclysm vocabulary:
+
+- stable typed/domain identifiers with durable representations independent of ephemeral registry indexes;
+- definition catalogues/registries keyed by stable IDs;
+- immutable frozen content generations used by a running authoritative world;
+- content-generation identity suitable for save compatibility, protocol negotiation and diagnostics;
+- source provenance expressed as logical source/package/resource identity, not mandatory filesystem paths;
+- deterministic loading/build phases and dependency ordering;
+- dependency-aware finalization and typed cross-reference resolution;
+- validation/diagnostics with source-aware context;
+- schema/profile/version extension points;
+- deterministic override/merge hooks where a profile deliberately supplies such policy;
+- invalidation of generation-local lookup caches/handles when a catalogue generation changes.
+
+Core MUST NOT hard-code `copy-from`, CDDA mutation keywords, `MOD_INFO`, a global JSON `type` table, "later definition wins", filesystem traversal, or any particular CDDA finalization list as universal rules.
+
+A profile may reject duplicates, merge definitions, use inheritance, use composition, or obtain definitions from JSON, YAML, binary, generated, networked or in-memory sources so long as it satisfies Core's deterministic catalogue/finalization/validation contract.
+
+### D. Future schema/content-system seams
+
+The platform must permit a non-CDDA definition profile to reuse Core identity/registry infrastructure without emulating CDDA inheritance:
+
+- parsing/decoding is a profile/content-provider concern that produces typed definition candidates plus provenance;
+- package/resource discovery is supplied by content providers; generic domain APIs consume logical resource identities/streams/documents rather than assuming host filesystem paths;
+- override/merge policy is a profile-owned deterministic strategy;
+- finalization dependencies are named/typed contracts rather than one hard-coded Cataclysm order;
+- schema/version metadata may be interpreted by future profiles without changing stable-ID or registry primitives;
+- immutable definition generations may be built from different source technologies while runtime systems consume the same frozen catalogue interfaces.
+
+### Immutable definitions versus mutable runtime state
+
+Definitions/templates and their provenance belong to a frozen content generation. Runtime ECS/world state references definitions by stable typed ID and may use generation-local resolved handles internally, but gameplay MUST NOT mutate definition objects as runtime state.
+
+Mutable values such as item damage, actor HP, mission progress, map state or activity progress belong to runtime/persistence models. Their durable definition references are stable typed IDs plus whatever world/profile content-generation identity is required to interpret those IDs correctly.
+
+### World/profile content-generation identity and save compatibility
+
+A world save MUST identify the rules/profile and frozen content generation against which durable definition IDs are interpreted. The exact fingerprint/manifest encoding is a shared persistence/content-package concern with Spec 19 (#84) and Spec 20 (#85); it is intentionally not invented locally here. The invariant is:
+
+> A save may not silently reinterpret a stable definition ID against materially different content and call that the same continuation.
+
+Load may proceed only when the selected profile declares the saved generation compatible, or after an explicit migration/compatibility decision. Session-local compact registry indexes are never sufficient save identity.
+
+Transport projections likewise use stable typed IDs, plus profile/content-generation metadata where the protocol requires it, never server-process registry object identity or compact indexes.
+
 
 ## 1. Loader architecture
 
