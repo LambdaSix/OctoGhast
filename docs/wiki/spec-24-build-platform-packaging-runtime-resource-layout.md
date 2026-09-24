@@ -14,10 +14,12 @@ OctoGhast applies the programme architecture from #52, #57, #58, #64 and #65:
 
 1. **Generic Core** is a headless, renderer-independent simulation/platform library.
 2. **Cataclysm profile** supplies pinned-CDDA rules, schemas and content adapters.
-3. **Server** owns authoritative world state and can run without Godot.
-4. **Godot 2D client** owns presentation/input and consumes explicit player-specific projections.
-5. **Single-player** is one authoritative server connected through the same logical request/projection boundary as co-op, using an in-process transport.
-6. **Build/package layout must not collapse those boundaries** merely because client and server ship in one desktop bundle.
+3. **Authoritative server** owns world state and may host `libgodot` through 2dog where bounded Godot server APIs (for example physics, navigation or pathing) are useful.
+4. **Godot integration is contained behind explicit OctoGhast service interfaces**. Godot runtime objects, RIDs, nodes, caches and server-internal state are derived/runtime state rather than durable domain identity.
+5. **Godot 2D client** owns presentation/input and consumes explicit player-specific projections.
+6. **Single-player** is one authoritative server connected through the same logical request/projection boundary as co-op, using an in-process transport.
+7. **2dog/libgodot hosting is the normative process model from project inception**, not a later migration from a Godot-owned application process.
+8. **Build/package layout must not collapse authority boundaries** merely because client, server and libgodot may coexist in one desktop process.
 
 The current repository's legacy .NET Framework 4.6.2/MonoGame/Win32-shell projects and `dmcs` Rake build are historical migration state. They are evidence about the repository's starting point, not normative platform requirements for the ECS/server/Godot architecture.
 
@@ -90,7 +92,7 @@ Initial toolchain baseline for implementation:
 - Toolchain versions MUST be pinned in repository-controlled configuration and upgraded deliberately, with CI validating the new matrix before the pin moves.
 - Release builds MUST NOT resolve an arbitrary machine-global "latest" SDK or Godot version.
 
-Godot is a client dependency only. Core, Cataclysm and authoritative server assemblies MUST build and run without loading Godot assemblies or requiring a graphics/audio device.
+Godot is not presentation-only infrastructure. Authoritative server infrastructure MAY depend on `libgodot` through bounded OctoGhast adapters for selected engine services. Generic Core and durable domain state remain independent of Godot object identity and lifecycle. Dedicated/headless server operation means **no graphical/window/audio requirement**, not necessarily "no libgodot dependency."
 
 ### 3.2 Release tiers
 
@@ -147,7 +149,11 @@ Exact project names may differ, but the dependency rules are normative:
 
 - Core MUST NOT reference Cataclysm, Godot, socket backends or platform packaging APIs.
 - Cataclysm MAY reference Core; it MUST NOT reference Godot.
-- Server MAY reference Core, rules profiles and transport abstractions; authoritative gameplay code MUST NOT reference Godot.
+- Server MAY reference Core, rules profiles, transport abstractions and explicit engine-service interfaces.
+- Production implementations of selected engine-service interfaces MAY use Godot server APIs through a contained adapter assembly backed by 2dog/libgodot.
+- Authoritative systems feed ECS/domain data into those services, receive results, then commit authoritative outcomes back into ECS/domain state.
+- Godot `RID`s, nodes, object references, navigation/physics caches and other engine-owned runtime structures MUST NOT be the sole durable copy of gameplay-significant state and MUST be reconstructible from persisted authoritative state plus immutable definitions.
+- Unit tests MAY replace engine-service adapters with deterministic stubs/fakes where appropriate; conformance/integration tests MUST exercise the real Godot-backed implementation wherever Godot semantics materially affect gameplay.
 - Godot client MAY reference shared transport/projection contracts, never authoritative ECS component storage.
 - In-process transport and socket transport implement the same logical request/projection contract.
 - Packaging code MAY compose products but MUST NOT create new gameplay mutation paths.
@@ -168,8 +174,9 @@ At minimum:
 
 Build targets SHALL independently support:
 
-- headless authoritative server;
-- Godot desktop client;
+- headless authoritative server, optionally hosting libgodot-backed engine services without a presentation surface;
+- .NET-owned 2dog/libgodot desktop client host;
+- combined single-player host containing authoritative server + in-process client boundary + Godot presentation;
 - test harness;
 - content/schema validation tools;
 - package assembly.
@@ -363,9 +370,10 @@ Must contain:
 - build/content manifests;
 - required runtime dependencies;
 - licence/notice files;
-- no mandatory Godot editor/export runtime or graphical asset pack.
+- the libgodot/2dog native/runtime dependencies required by enabled server-side Godot service adapters, when those adapters are part of the selected server build;
+- no mandatory Godot editor, presentation scene pack or graphical asset pack.
 
-It MUST start with no display/audio device and support an explicit writable instance root.
+It MUST start with no display/audio device and support an explicit writable instance root. A dedicated server package MAY host libgodot in headless mode for bounded engine services; headless does not imply a Godot-free process.
 
 ### 10.2 Desktop client package
 
@@ -404,10 +412,27 @@ Spec 20 remains authoritative for save transactions. Spec 24 adds these packagin
 - a connected client's local save directory is not authoritative for a remote server world;
 - disconnect/reconnect does not move world ownership to the client;
 - a one-player server uses the same ownership rule;
-- transport/socket state and Godot state are never persisted merely because client and server are co-packaged;
+- transport/socket state and transient Godot runtime state are never persisted merely because client and server are co-packaged;
+- any gameplay-significant data represented inside Godot server APIs at runtime must be reconstructible from ECS/domain persistence plus immutable definitions; Godot RIDs/object identity are not persistence identity;
 - save metadata records enough build/profile/content identity to validate a continuation before mutating the loaded world.
 
 Direct compatibility with upstream CDDA save files remains a separate compatibility decision; packaging parity does not imply binary/save-format parity.
+
+## 11.1 Authoritative Godot-service boundary
+
+Godot/libgodot MAY participate in authoritative server execution through explicit OctoGhast interfaces such as physics, navigation, pathing or other bounded engine-service contracts.
+
+The ownership contract is normative:
+
+1. ECS/domain state is the durable authoritative source of truth.
+2. Before a Godot-backed query/step, authoritative systems synchronize the required current domain state into the adapter/runtime representation.
+3. Godot server APIs perform the bounded computation/query/step.
+4. The returned result is validated/interpreted by the owning authoritative system and any resulting gameplay mutation is committed back into ECS/domain state.
+5. Engine runtime state may be cached or incrementally maintained for performance, but it MUST be reconstructible after process restart/save load from persisted authoritative state plus immutable definitions.
+
+Interfaces exist to contain Godot API exposure, provide deterministic stubs/fakes for focused unit testing, and preserve a practical replacement seam. They do **not** assert that Godot-backed implementations are perfectly substitutable or free of semantic coupling. When Godot semantics affect authoritative outcomes, the real adapter is part of the conformance surface and must be tested accordingly.
+
+2dog/libgodot process hosting is therefore compatible with both dedicated server and graphical client roles. The relevant architectural invariant is state ownership and dependency containment, not the absence of libgodot from the server process.
 
 ## 12. RNG and determinism
 
@@ -434,7 +459,7 @@ At minimum:
 3. run headless unit/contract/scenario tests selected by Spec 23;
 4. load/validate representative pinned Cataclysm content through Specs 18/19;
 5. build the Godot C# client on at least one CI host and validate its project/export configuration;
-6. enforce dependency-boundary checks so Core/server do not acquire Godot dependencies;
+6. enforce dependency-boundary checks so Core/domain projects do not acquire arbitrary Godot dependencies and server-side Godot access remains confined to approved adapter/interface layers;
 7. run deterministic resource-discovery tests in a temporary root;
 8. reject committed release output/secrets or use of operator user-state paths in tests.
 
@@ -462,14 +487,16 @@ A release artifact fails if:
 - the source/build identity is ambiguous or dirty;
 - required content/resources are missing;
 - a package writes into its immutable install root during normal operation;
-- a headless server requires Godot/display/audio;
+- a headless server requires a graphical/window/audio environment;
 - platform-specific packaging changes authoritative rule/profile versions silently;
 - bundled content manifest does not match the manifest recorded in the artifact;
 - required conformance/parity rows for the declared release milestone are not in an acceptable Spec 23 state.
 
 ## 14. Headless and test-harness requirements
 
-All simulation, content-loading, persistence, network-contract and parity scenarios that do not explicitly test presentation MUST run without Godot.
+All simulation, content-loading, persistence, network-contract and parity scenarios that do not explicitly test presentation MUST run without a graphical/window/audio surface. They MAY use libgodot when exercising production Godot-backed server services.
+
+Pure unit/contract tests SHOULD use interface-level stubs/fakes where that gives tighter isolation. Tests whose result depends materially on Godot physics/navigation/pathing semantics MUST also run against the real libgodot-backed adapter so the abstraction cannot mask engine-specific behaviour.
 
 The test harness must be able to:
 
@@ -546,9 +573,9 @@ Place a user mod with IDs overlapping bundled content. Root discovery finds it, 
 
 Install a user presentation pack with the same legacy pack name as a bundled pack. Spec 22's duplicate/selection semantics apply; authoritative server state and world hash are unchanged.
 
-### BLD24-12 — Headless server has no Godot dependency
+### BLD24-12 — Headless server may host libgodot without presentation
 
-Launch the server on a machine/CI image with no Godot executable, display or audio service. It loads content, advances canonical simulation and passes a headless scenario.
+Launch the server with the configured 2dog/libgodot server adapters but no windowing or audio surface. It loads content, initializes required Godot server APIs headlessly, advances canonical simulation and passes a headless scenario. A variant using interface stubs confirms that domain/unit tests do not require the production adapter when Godot semantics are not under test.
 
 ### BLD24-13 — One-player packaged boundary
 
@@ -647,8 +674,9 @@ This specification does not require:
 - a web client while the selected Godot C# stack lacks a supported web export path;
 - direct upstream CDDA save-file compatibility;
 - a particular #90 socket backend;
-- Godot in the headless server process;
-- permanent commitment to today's .NET/Godot versions.
+- a requirement that every authoritative subsystem use Godot where a simpler deterministic implementation is preferable;
+- perfect interchangeability of Godot-backed services: interfaces contain dependency scope and enable focused testing/replacement seams, but do not imply zero-cost engine substitution;
+- permanent commitment to today's .NET/Godot/2dog versions.
 
 Toolchain and supported-platform pins may evolve deliberately. Such an upgrade does not permit silent changes to rules-profile semantics, protocol compatibility, persisted state or parity evidence.
 
@@ -656,8 +684,9 @@ Toolchain and supported-platform pins may evolve deliberately. Such an upgrade d
 
 A later implementation of this specification is complete when:
 
-- the repository uses pinned modern .NET/Godot toolchains;
-- Core/Cataclysm/server/client boundaries are enforceable by project references;
+- the repository uses pinned modern .NET/Godot/2dog toolchains;
+- .NET-owned 2dog/libgodot hosting is established as the normal application process model;
+- Core/domain, server adapter and client boundaries are enforceable by project references;
 - Tier 1 products build and package;
 - resource roots work independently of CWD with read-only installs;
 - all mutable world/profile/client state goes to its correct writable owner;
@@ -668,6 +697,6 @@ A later implementation of this specification is complete when:
 
 ## 20. Investigation conclusion
 
-Pinned CDDA demonstrates mature multi-platform build/release practice, explicit installed-versus-user paths, independently packaged data/gfx/lang resources and release-time validation. OctoGhast preserves those externally important capabilities while deliberately replacing CDDA-specific build architecture with a headless modern .NET server/Core and a Godot 2D presentation client.
+Pinned CDDA demonstrates mature multi-platform build/release practice, explicit installed-versus-user paths, independently packaged data/gfx/lang resources and release-time validation. OctoGhast preserves those externally important capabilities while deliberately replacing CDDA-specific build architecture with .NET-owned hosts using 2dog/libgodot from project inception. The ECS/domain model remains owner of durable authoritative state, while bounded Godot server APIs may provide runtime computation/services behind explicit adapters and the Godot 2D client consumes player-specific projections.
 
 No new unresolved cross-cutting architecture decision was discovered. The open production-network transport details remain owned by #90 and cross-world profile storage remains owned by #91.
