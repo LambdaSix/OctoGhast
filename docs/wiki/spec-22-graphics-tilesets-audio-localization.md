@@ -562,7 +562,7 @@ Invalid font entries are diagnosed and skipped/fail according to whether a usabl
 - **Spec 20 / #85:** authoritative world persistence excludes renderer/audio/client preference state.
 - **Spec 21 / #86:** player-specific UI projections, messages, accessibility, semantic focus, local options and Godot presentation boundary.
 - **#90:** connection/session/projection transport; wire data carries semantic IDs/events, never Godot/SDL resource identity.
-- **#91:** cross-world profile persistence; if language/presentation preferences later become account-synced, #91 owns that policy rather than world saves.
+- **Spec 28 / #91:** server-scoped account persistence; if language/presentation preferences later become explicitly account-synced, Spec 28 owns that policy rather than world saves. Device-local presentation preferences remain client state by default.
 
 ## 17. Pinned CDDA behavior versus OctoGhast adaptation
 
