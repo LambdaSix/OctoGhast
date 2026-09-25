@@ -240,7 +240,7 @@ These are proposed acceptance scenarios, not tests executed against a runtime.
 - **Ready to recommend now:** layered admission/execution; rotating bounded selection; per-domain queue semantics; external-only intake freeze; deterministic known-footprint activation; a reserved pause-control lane; coherent semantic save cuts.
 - **Requires explicit product/profile adoption:** common early budget credit versus original late avatar replenishment, and the fully enumerated Cataclysm subphase plan. These change outcomes and deserve named adaptation scenarios.
 - **Still architecturally unresolved:** mid-operation dynamic activation after earlier synchronous effects and its interaction with closed phases, failure and saves.
-- **Separate gate:** #96 for bounded operation identity and outcome recovery; #91/#92 retain their existing scope.
+- **Separate gates at review time:** #96 for bounded operation identity/outcome recovery; #91 for account/meta-progression and #92 for authentication/security. #91 was subsequently resolved by [Spec 28](../spec-28-server-accounts-meta-progression.md); #92 remains separate.
 
 #95 should remain open. The evidence supports a focused proposed resolution, not an assertion that all integration decisions have already been made. Core remains reusable; Cataclysm rules and queues remain concrete contracts rather than optional examples.
 
