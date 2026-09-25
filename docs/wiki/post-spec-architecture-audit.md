@@ -88,7 +88,7 @@ The prospective networking pointer requires no amendment: its link to Spec 25 an
 |---|---|---|
 | Authority | Server-owned ECS/world; commands request, domain systems validate/mutate; one-player and co-op share the logical path. | Concrete gameplay actions, validation, costs and outcomes; no local-avatar shortcut. |
 | Time | One canonical fixed-step coordinate; deterministic scheduling/remainders; host pacing and presentation separate. | 10 ticks/world second, 100 moves, speed/cadence/calendar/activity rules. Alternative exact profile rates/currencies remain possible. |
-| Ordering | Explicit deterministic intake/execution and persisted pending-work order, bounded resources. | Cataclysm causal/hook ordering; #95 must finish the global integration without hard-coding CDDA phases into Core. |
+| Ordering | Explicit deterministic intake/execution and persisted pending-work order, bounded resources. | Cataclysm causal/hook ordering is integrated by the resolved #95 architecture without hard-coding CDDA phases into Core. |
 | Space | WorldPosition, deterministic derived SpatialCell membership, atomic index mutation, world-owned region union. | Grid occupancy, 12/24/132 dimensions, z limits, line/path/collision/terrain rules. Future non-grid rules need explicit geometry policy, not renderer changes. |
 | Identity | World/player/entity/item/project identities independent of ECS storage, socket, session and Godot objects; typed durable codecs. | ItemUid for every Cataclysm runtime item; polymorph/revival/split/merge semantics. Definition IDs stay distinct from instance IDs. |
 | Persistence | Quiescent coherent snapshots, recoverable manifest commit, stable fixups, versioning and deterministic continuation. | Profile-owned payloads/partitions and migrations. Direct CDDA save import is not initially required. Cross-world profiles belong to #91; operation history to #96. |
@@ -116,7 +116,7 @@ The #65 update records this audit and fixes the stale existing-save compatibilit
 
 ## Residual risks and validation limits
 
-- #95 can reveal necessary explicit continuous-time deviations when reference avatar/monster/environment ordering meets concurrent actors. Preserve reference evidence and record the chosen deviation; do not silently discard it.
+- #95 resolved the concurrent actor/environment integration by preserving reference-relative Cataclysm causal/budget placement while generalizing the phase-plan host. Future phase changes remain explicit profile compatibility decisions.
 - #96 must settle retention and world-history/rollback semantics before broad exactly-once or terminal-outcome claims can be tested honestly.
 - Cataclysm positive idle-budget carry is documented; any future anti-burst cap is an explicit profile policy under #57, not an implementation shortcut that changes costs.
 - Background catch-up remains domain-specific. Monster compressed catch-up is not a promise to simulate every unloaded tactical interaction. Item/environment equivalence requires equivalent historical inputs; systems needing intermediate simulation must retain an appropriate lease or implement the declared bounded catch-up. Test domain integration before optimizing timewarp.
