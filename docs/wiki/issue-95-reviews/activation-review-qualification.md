@@ -1,3 +1,7 @@
+# Final resolution 2026-09-25
+
+This qualification remains historical evidence. #95 has since adopted [same-point semantic suspension for finite dynamic activation dependencies](../architecture-canonical-ordering-admission-activation.md): preserve committed prefix/RNG state, suspend at the same semantic frontier, activate/catch up privately, publish atomically and resume exactly once. The earlier private transactional rollback/prepare-commit proposal remains rejected.
+
 # Qualification to the activation review
 
 The synthesis challenged the proposed private prepare/commit continuation for an EOC that has already performed effects before discovering an unloaded target. The activation reviewer confirmed that this is not an existing contract.
