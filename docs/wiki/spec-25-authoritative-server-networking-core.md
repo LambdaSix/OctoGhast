@@ -33,7 +33,7 @@ This specification consumes, rather than reopens:
 - #86 / Spec 21 — Godot interaction/projection boundary and stale-UI handling;
 - #88 / Spec 23 — deterministic in-process/loopback conformance testing;
 - #89 / Spec 24 — host/platform/runtime resource layout;
-- #91 — cross-world profile/account/meta-progression identity and persistence where required.
+- #91 / Spec 28 — server-scoped `AccountId`, account/world membership, multi-character ownership and cross-world meta-progression persistence.
 - #92 — authentication, credential/provider and public-server security policy.
 
 ### Ownership table
@@ -43,15 +43,17 @@ This specification consumes, rather than reopens:
 | Socket accept/connect, framing, bytes, buffer pools | transport backend |
 | Connection lifecycle and parser state | networking Core |
 | Authentication-provider integration | #92 security/auth architecture; not gameplay |
-| Live connection -> stable PlayerId binding | server session layer |
-| PlayerId -> controlled CharacterId binding | authoritative server/world policy |
+| Authentication subject -> stable AccountId binding | #92 provider + Spec 28 server-account layer |
+| Live session -> AccountId binding | server session layer |
+| `(AccountId, WorldId) -> PlayerId` binding | Spec 28 account/world membership + Spec 20 world identity |
+| Session -> controlled CharacterId binding | authoritative server/world policy |
 | Gameplay validation and mutation | simulation/domain systems |
 | Canonical tick and equal-tick ordering | server simulation intake |
 | FOV/knowledge/interest authorization | projection/domain policy |
 | DTO construction and message classification | projection/protocol layer |
 | Godot nodes, interpolation, input devices | client presentation |
 | Saved world/player/entity state | Spec 20 persistence |
-| Cross-world account/profile state | #91 |
+| Server-scoped account/meta-progression state | Spec 28 / #91 |
 | Socket IDs, buffers, parser offsets, connection metrics | never world-save state |
 
 No network callback, Godot callback or serializer callback may directly mutate authoritative ECS/world state.
@@ -240,7 +242,7 @@ At each canonical intake boundary, with positive configured per-player cap `P` a
 
 Callbacks completing after the frozen cut wait for a later boundary. Logical selection uses deterministic counts/cost units, never elapsed CPU time.
 
-Reconnect retains stable PlayerId and the server's authoritative next-admission counter; connection/session transport sequences remain ephemeral. A duplicate/colliding logical request sequence is rejected or reconciled by protocol/#96 operation identity rather than ordered by a message-type discriminator.
+Reconnect retains stable `AccountId`, world-local `PlayerId` and the server's authoritative next-admission counter; connection/session transport sequences remain ephemeral. Multiple sessions for the same `(AccountId, WorldId)` feed the same logical `PlayerId` admission lane and therefore share its bounded quota. Their already-validated requests are merged by server-assigned logical admission sequence rather than granting each connection an independent fairness identity. A duplicate/colliding logical request sequence is rejected or reconciled by protocol/#96 operation identity rather than ordered by a message-type discriminator.
 
 After admission, player work joins the profile-owned execution plan with AI, activities, scheduler work and lifecycle hooks. PlayerId is not the domain contention key. Socket identity, callback/thread order and physical arrival timing are never execution tie-breakers.
 
@@ -256,9 +258,9 @@ Keep distinct:
 
 - `ConnectionId` — ephemeral transport instance;
 - `SessionId` — live server attachment/lifecycle identity;
-- `ProfileId`/account identity — cross-world identity when configured; owned with #91/auth provider;
-- `PlayerId` — stable world-local player identity persisted by Spec 20;
-- `CharacterId` — authoritative controlled world entity;
+- `AccountId` / `ServerAccountId` — stable server-scoped cross-world gameplay identity owned by Spec 28; authentication providers bind to it but do not own its gameplay state;
+- `PlayerId` — stable world-local membership identity persisted by Spec 20; one `(AccountId, WorldId)` maps to at most one PlayerId in the initial model;
+- `CharacterId` — authoritative controlled world entity; one PlayerId may own multiple Characters and distinct same-account sessions may control different Characters concurrently;
 - client-local presentation identity — never authoritative.
 
 ### 8.1 Connection state machine
@@ -293,9 +295,9 @@ Resource promotion occurs only after session policy has accepted world join.
 
 ### 8.3 Authentication ownership
 
-#90 does not define user-account credential storage. Internet-facing authentication, credential recovery, trust providers and abuse/security policy are a distinct cross-cutting concern. M1 in-process tests may use a trusted synthetic/local provider. LAN/friend and public-dedicated authentication MUST be specified by the #92 before public networking is considered production-ready.
+#90 does not define credential storage. Internet-facing authentication, credential recovery, trust providers and abuse/security policy are a distinct cross-cutting concern owned by #92. Spec 28 owns the resulting server-scoped `AccountId` and gameplay account state after authentication. M1 in-process tests may use a trusted synthetic/local provider. LAN/friend and public-dedicated authentication MUST be specified by #92 before public networking is considered production-ready.
 
-This does not weaken server authority: even a trusted local session still binds through PlayerId and uses normal request validation.
+This does not weaken server authority: even a trusted local session binds through `AccountId -> PlayerId -> CharacterId` and uses normal request validation.
 
 ### 8.4 Disconnect
 
@@ -305,8 +307,8 @@ On disconnect request or transport loss:
 - preserve requests already admitted to the canonical simulation queue;
 - allow a finite drain of already-enqueued reliable egress where the transport remains writable;
 - do not enqueue new nonessential replaceable/disposable output for the disconnecting connection;
-- detach `ConnectionId`/`SessionId` from PlayerId;
-- retain PlayerId, CharacterId and world state according to Spec 20/character policy;
+- detach `ConnectionId`/`SessionId` from its `AccountId`/`PlayerId`/control bindings while retaining the durable identities;
+- retain `AccountId` per Spec 28 and `PlayerId`, `CharacterId` and world state according to Spec 20/Character policy;
 - release connection-owned projection caches and transport resources.
 
 Default graceful-drain ceiling: 2 seconds host time. This is transport cleanup policy, not simulation time and does not pause the canonical clock.
@@ -317,11 +319,12 @@ Reconnect is session reattachment, not socket resurrection.
 
 After identity verification and world compatibility checks:
 
-1. bind the new connection/session to the existing stable PlayerId;
-2. resolve current controlled CharacterId according to persisted/live server policy;
-3. create a fresh projection baseline/snapshot for that player;
-4. reset transport-local sequence/parser/buffer state;
-5. continue canonical simulation from current server time—never rewind to the disconnect time.
+1. bind the new connection/session to the existing server-scoped `AccountId`;
+2. resolve `(AccountId, WorldId)` to the existing world-local `PlayerId` under Spec 28/20;
+3. resolve or acquire the requested owned `CharacterId` control binding; another session of the same account may concurrently control a different owned Character, but ordinary control of the same Character is exclusive;
+4. create a fresh projection baseline/snapshot for that session/player/Character view;
+5. reset transport-local sequence/parser/buffer state;
+6. continue canonical simulation from current server time—never rewind to the disconnect time.
 
 Client interpolation, stale UI selections and unsubmitted local actions are not restored as authoritative state.
 
