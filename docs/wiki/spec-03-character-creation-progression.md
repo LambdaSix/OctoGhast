@@ -23,7 +23,7 @@ This spec consumes, without reopening, the contracts in:
 - Spec 18 / #83: immutable definitions, typed IDs, JSON inheritance/finalization/validation.
 - Spec 20 / #85: authoritative world persistence, stable world-local player identity distinct from connection and controlled entity, deterministic save barriers.
 - #90: transport/session/projection ownership, bounded networking and deterministic request intake; progression systems do not own sockets or connection lifecycle.
-- #91: unresolved cross-world player-profile/meta-progression persistence; Spec 03 consumes that future contract rather than defining account/profile storage locally.
+- Spec 28 / #91: server-scoped `AccountId`, account/world membership and cross-world meta-progression persistence; Spec 03 consumes account eligibility without owning account storage.
 
 ## Authoritative pinned-CDDA evidence
 
@@ -223,7 +223,7 @@ Gameplay statistics and character-run achievements/conducts are authoritative an
 
 Pinned CDDA scenario/profession unlock requirements are **cross-run meta-progression**: `scenario::can_pick()` and `profession::can_pick()` query `past_achievements_info`, whose loader reads completed achievements from the user achievement directory and legacy past-game/memorial data. Therefore these unlocks are not ordinary current-world Character state.
 
-OctoGhast must keep the unlock check server-authoritative, but the durable owner of cross-world profile/meta-progression is deliberately deferred to #91. Until #91 is resolved, Spec 03 requires an abstract authoritative eligibility/profile service and must not serialize profile unlock history into a Character, socket/session object, Godot client cache, or world snapshot merely as a local convenience.
+OctoGhast keeps the unlock check server-authoritative through Spec 28. Cross-world unlock history belongs to the bound server-scoped `AccountId`; it must not be serialized into a Character, `PlayerId`, socket/session object, Godot client cache or world snapshot. `CreateCharacterIntent` revalidates eligibility against current account meta state and Cataclysm policy at commit time.
 
 ## 12. Commands, activities, queries and events
 
@@ -341,7 +341,7 @@ The following are intentional architectural adaptations rather than claims about
 - progression continues or catches up according to authoritative canonical time and activity/background policy, not renderer frames, open menus or connection lifetime;
 - Godot receives player-specific projected state/catalogs and never receives arbitrary ECS components or mutable registry objects;
 - connection/session identity is never progression identity or persistence identity;
-- server-owned world saves follow Spec 20, while cross-world profile/meta-progression ownership is explicitly separated into #91.
+- server-owned world saves follow Spec 20, while server-scoped account/meta-progression ownership follows Spec 28 / #91 with an independent commit/rollback boundary.
 
 ### 19.3 Generic Core contract
 
@@ -380,7 +380,7 @@ Such evolution is not a renderer-only change when it alters rules. It requires a
 
 Network timing cannot choose mutation/progression order. Requests are admitted at deterministic simulation boundaries; same-state contention is resolved by the shared command ordering rules. Slow-client backpressure, reconnect and parser/framing behaviour must not alter progression outcomes.
 
-Cross-world unlock/profile identity is not the same as world-local `PlayerId`, `CharacterId` or connection identity. The exact profile/account ownership contract is intentionally centralized in #91.
+Cross-world unlock identity is the server-scoped `AccountId` from Spec 28. For each world, `(AccountId, WorldId)` resolves to one durable world-local `PlayerId`; that membership may own multiple `CharacterId` values and may have multiple simultaneous sessions controlling distinct Characters. Connection/session identity remains transient.
 
 ### 19.6 Additional conformance scenarios
 
@@ -390,9 +390,9 @@ Cross-world unlock/profile identity is not the same as world-local `PlayerId`, `
 28. **Alternative spatial-start seam:** a non-Cataclysm test profile may supply a different deterministic start-placement policy without changing `CreateCharacterIntent`, connection/session ownership or ECS identity.
 29. **Transport equivalence:** the same creation/progression request sequence through in-process and loopback transports produces identical authoritative state, RNG consumption and domain events.
 30. **Observer invariance:** adding an uninvolved connected player/client does not change skill/proficiency/mutation/bionic/achievement outcomes or RNG consumption for another Character.
-31. **World-save/profile separation:** loading or rolling back an older world snapshot cannot silently roll back cross-world unlock/profile state; this scenario is blocked on #91 for its concrete storage/provider contract but is normative at the boundary.
-32. **Meta-progression policy fixture:** for fixed completed-achievement input, Cataclysm scenario/profession eligibility reproduces pinned `META_PROGRESS` and hard-requirement semantics; changing server/profile policy cannot be implemented by trusting client-reported unlock flags.
+31. **World-save/account separation:** loading or rolling back an older world snapshot cannot roll back independently committed Spec 28 account unlock state; replaying the same achievement completion is idempotent and must not duplicate meta-progression.
+32. **Meta-progression policy fixture:** for fixed account completed-achievement input, Cataclysm scenario/profession eligibility reproduces pinned `META_PROGRESS` semantics: disabling soft meta gates bypasses non-hard requirements but still enforces hard requirements; changing server/profile policy never trusts client-reported unlock flags.
 
 ### 19.7 Re-evaluation resolution
 
-No previously settled time, spatial, command/activity, persistence, EOC or networking decision is reopened. The original #68 evidence remains valid. The re-evaluation discovered one genuinely cross-cutting ownership gap—cross-world player profile/meta-progression persistence—and created #91 as its single authoritative home. Spec 03 is otherwise implementation-ready and can remain closed; implementation of profile-backed unlock persistence must consume #91 once that architecture is resolved.
+No previously settled time, spatial, command/activity, persistence, EOC or networking decision is reopened. The original #68 evidence remains valid. The cross-cutting ownership gap discovered by this re-evaluation is now resolved by Spec 28 / #91: server-scoped accounts own cross-world meta-progression, while Spec 20 worlds retain world-local `PlayerId`/Character state. Spec 03 remains specification-complete and implementation-ready against that contract.
