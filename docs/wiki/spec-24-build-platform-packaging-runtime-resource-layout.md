@@ -223,7 +223,7 @@ OctoGhast distinguishes:
 - server configuration that affects a specific hosted instance.
 
 **Mutable cross-world/profile state**
-- #91-owned player/profile/meta-progression;
+- Spec 28 / #91-owned server-account/meta-progression state;
 - client-local preferences such as selected language/presentation pack where applicable.
 
 **Mutable client-only state**
@@ -672,7 +672,7 @@ The historical .NET Framework/MonoGame/Rake output may still be buildable during
 - **Spec 22 / #87** — presentation-pack discovery/identity/fallback/localization; Spec 24 supplies physical resource roots and packaging.
 - **Spec 23 / #88** — headless testing, parity matrix and build/scenario provenance.
 - **#90** — transport/session/protocol lifecycle; Spec 24 packages transport implementations but does not choose wire semantics.
-- **#91** — cross-world profile/meta-progression storage; Spec 24 supplies writable roots but does not redefine ownership.
+- **Spec 28 / #91** — server-scoped account/meta-progression storage; Spec 24 supplies writable server/user roots but does not redefine identity, schema or ownership.
 
 ## 18. Explicit non-goals and future seams
 
@@ -710,5 +710,5 @@ A later implementation of this specification is complete when:
 
 Pinned CDDA demonstrates mature multi-platform build/release practice, explicit installed-versus-user paths, independently packaged data/gfx/lang resources and release-time validation. OctoGhast preserves those externally important capabilities while deliberately replacing CDDA-specific build architecture with .NET-owned hosts using 2dog/libgodot from project inception. The ECS/domain model remains owner of durable authoritative state, while bounded Godot server APIs may provide runtime computation/services behind explicit adapters and the Godot 2D client consumes player-specific projections.
 
-No new unresolved cross-cutting architecture decision was discovered. Completed Spec 25 / #90 owns production-network transport mechanics; #92 owns unresolved authentication/public-server security and #91 owns cross-world profile storage.
+No new unresolved cross-cutting architecture decision was discovered. Completed Spec 25 / #90 owns production-network transport mechanics; #92 owns unresolved authentication/public-server security, while Spec 28 / #91 now specifies server-scoped account/meta-progression storage.
 
