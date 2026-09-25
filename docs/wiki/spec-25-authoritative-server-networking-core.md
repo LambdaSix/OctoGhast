@@ -566,8 +566,8 @@ Session rebind uses durable PlayerId/CharacterId/world state while transport sta
 ### Spec 21 / UI
 UI consumes stable IDs, queries, results and projections and tolerates staleness.
 
-### #91 / profile
-World-local PlayerId remains distinct from cross-world profile/account identity.
+### Spec 28 / #91 — server account
+World-local `PlayerId` remains distinct from server-scoped `AccountId`. One `(AccountId, WorldId)` maps to at most one PlayerId; that membership may own multiple Characters and support multiple same-account sessions controlling distinct Characters.
 
 ### #60
 Implementation routes local player and AI-selected actions through common authoritative command resolution. Network and local clients differ only before command admission.
@@ -577,7 +577,7 @@ Vertical-slice tests prove in-process/loopback equivalence and bounded lifecycle
 
 ## 20. Explicitly deferred cross-cutting decisions
 
-The original review separated production authentication/security into #92 and cross-world profile ownership into #91. The subsequent corpus audit also found #95 (admission/execution/activation integration) and [#96](https://github.com/LambdaSix/OctoGhast/issues/96) (bounded command deduplication/outcome recovery). #95 is now resolved by the [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md); #96 remains the separate unresolved retry/outcome owner. The completed transport/framing/resource/projection evidence remains valid.
+The original review separated production authentication/security into #92 and cross-world account ownership into #91. Spec 28 has now resolved #91 with server-scoped `AccountId`; the subsequent corpus audit also found #95 (admission/execution/activation integration) and [#96](https://github.com/LambdaSix/OctoGhast/issues/96) (bounded command deduplication/outcome recovery). #95 is resolved by the [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md); #96 remains the separate unresolved retry/outcome owner. The completed transport/framing/resource/projection evidence remains valid.
 
 The following decisions remain established, subject to the explicit integration qualifications above:
 
@@ -645,10 +645,10 @@ Open many unauthenticated connections within admission limits. None receives act
 After an accepted reliable result is queued, request disconnect. The defined already-queued reliable prefix may drain within the finite host-time deadline; new nonessential output is not accumulated.
 
 ### NET25-18 — Abrupt disconnect persistence
-Drop a socket without drain. PlayerId and CharacterId/world state persist according to Spec 20; transport buffers are discarded.
+Drop a socket without drain. `AccountId` persists under Spec 28; `PlayerId` and `CharacterId`/world state persist according to Spec 20; transport/session buffers and bindings are discarded.
 
 ### NET25-19 — Reconnect
-Reconnect the same authorized player through a new ConnectionId. Bind to the existing PlayerId/current CharacterId, issue a fresh current projection, and do not rewind canonical time.
+Reconnect the same authorized account through a new `ConnectionId`. Bind to the existing `AccountId`, resolve its existing world-local `PlayerId`, acquire an authorized owned `CharacterId`, issue a fresh current projection, and do not rewind canonical time. A second same-account session may instead control a different owned Character.
 
 ### NET25-20 — No socket state in save
 Save/load a world with a connected player. Loaded state restores durable player/world identity and simulation state but no socket, parser offset, transport sequence or byte buffer.
