@@ -263,6 +263,10 @@ Required properties:
 - an EOC executes at most once for each authoritative scheduled occurrence, even when several players observe or overlap the affected region;
 - client requests may cause authoritative EOC activation only after normal server admission/order assignment; clients never advance, dequeue or execute authoritative EOCs locally.
 
+The [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md) additionally fixes cross-source integration. Recurring/queued EOCs retain due-coordinate plus persisted schedule-sequence ordering inside their owning scheduler lane; they are not re-sorted by PlayerId or ActorId. Synchronous event/lifecycle EOCs remain at their owning operation's semantic point.
+
+If a synchronous EOC has already committed earlier sequential effects or consumed authoritative RNG and later discovers a finite unloaded dependency, OctoGhast suspends canonical simulation at that same semantic point, activates/catches up the dependency privately to the required semantic frontier, publishes it atomically, then resumes the same invocation exactly once. Earlier effects/RNG are neither transactionally rolled back nor replayed. This is a deliberate server-availability tradeoff to preserve the pinned sequential-effect contract.
+
 A zero/negative recurrence can create pathological same-turn loops. The loader/runtime must match pinned accepted data where possible while retaining the global recursion/work budget safety mechanism.
 
 ## 12. Persistence
@@ -443,3 +447,6 @@ No unresolved cross-cutting decision was found by this re-evaluation. The bounda
 - the explicit pinned-reference / Cataclysm-profile / generic-Core / future-seam boundary plus cross-profile scenarios 30–35.
 
 Implementation completion is separate from specification completion.
+
+
+**EOC95-01 — dynamic activation continuation:** an EOC commits a variable mutation and consumes RNG, then computes a finite unloaded target. Vary worker completion order and assert one prefix mutation, one RNG trace, one activation publication and one resumed suffix. Saving cannot cut through the suspended invocation; it occurs at the next quiescent semantic boundary.
