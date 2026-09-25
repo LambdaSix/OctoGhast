@@ -443,21 +443,26 @@ Speed/cost formulas are Cataclysm policy. Budget accumulation, remainder account
 
 ## 5. Fixed-step progression and ordering
 
-The server exposes an operation equivalent to `AdvanceOneSimulationTick()`. Each tick uses a fixed delta. **Integration decision pending in [#95](https://github.com/LambdaSix/OctoGhast/issues/95):** the pipeline below must be reconciled with the preserved environment/actor causal constraints, Specs 04/09 execution keys, Spec 25 admission keys and Spec 26 activation phases before it becomes an executable total-order contract. The following is the existing phase outline, not permission for dependent implementations to choose conflicting contention winners:
+The server exposes an operation equivalent to `AdvanceOneSimulationTick()`. Each tick uses a fixed delta. The cross-system order is now governed by the [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md), which resolves #95.
 
-1. establish canonical tick N;
-2. admit previously received client requests at the defined boundary;
-3. accrue actor budgets and identify due absolute-time work;
-4. run due scheduler/world cadence;
-5. progress activities;
-6. resolve eligible player/AI work;
-7. settle due environment/world systems;
-8. publish authoritative events/projections;
-9. pump transport at the defined boundary for later admission.
+The Cataclysm profile uses a versioned deterministic phase/lane plan. At coarse level:
 
-Dependent specs may refine sub-phases, but pinned observable ordering constraints remain binding.
+1. service bounded permitted host controls and freeze the external admission cut;
+2. establish canonical chronology and run due global/scheduled work at its owning cadence;
+3. execute controlled-Character opportunities in stable ActorId order using carried budget from the previous controlled-Character settlement;
+4. settle map/environment work in its documented profile order;
+5. process monsters in stable CreatureId order, including their reference-relative per-turn/budget processing before their opportunity;
+6. process NPCs in stable ActorId order with their profile-defined per-turn/budget processing;
+7. settle/replenish controlled-Character budget exactly once for the **next** controlled opportunity and run late physiology/maintenance;
+8. commit lease/publication changes, build projections/events and expose a coherent save boundary.
 
-Same-tick work must never depend on ECS/hash iteration, thread scheduling, socket callback timing or Godot node order. Order by: explicit phase; due tick; subsystem stable priority where required; stable actor/entity ID; then monotonic server enqueue sequence. Player and AI requests use the same authoritative resolution path. Same initial state + RNG state + admitted input sequence must yield the same trace.
+This intentionally preserves the pinned reference placement of controlled-avatar replenishment instead of adopting a common early-credit phase. It also removes the privileged-avatar assumption: every controlled Character uses the same controlled band and settlement rule.
+
+Admission and execution are distinct. Spec 25 selects a bounded, fair external request set; PlayerId admission order does not decide gameplay contention. Once admitted, requests join the profile execution plan with AI, activities, scheduler work and lifecycle hooks. Queue-specific ordering remains authoritative where specified, including recurring EOC persisted schedule sequence and the pinned timed-event live-list rule.
+
+Same-tick work must never depend on ECS/hash iteration, thread scheduling, socket callback timing, filesystem readiness or Godot node order. Potentially non-commutative authoritative writers must have an explicit phase/lane/order relation or declared commutativity/independence; otherwise the profile plan is invalid. Stable actor/entity IDs and persisted enqueue/admission keys provide domain tie-breakers after phase/due/work-kind ordering.
+
+The canonical order is a semantic/replay contract, not a permanent single-thread requirement. Proven-independent work may execute physically in parallel only when worker scheduling cannot change RNG assignment, mutations or deterministic publication order.
 
 ## 6. Host pacing and catch-up
 
@@ -697,6 +702,15 @@ The game loop/scheduler must introduce no wall-clock-dependent random draws. RNG
 
 No new unresolved cross-cutting architecture decision was discovered. The re-evaluation narrows an accidental platform constraint (10 TPS) to the Cataclysm profile and separates single-avatar game-over/autosave assumptions from shared authoritative world lifecycle.
 
-### Post-spec integration gate
+### Post-spec integration resolution
 
-The earlier “no new unresolved decision” statements record the individual reviews. The corpus audit subsequently found #95. Existing fixed-step, no-dropped-ticks, profile-rate, negative-budget, authority and save invariants remain settled. Before integrated scheduling sign-off, #95 must fix a total execution/admission order, actor/environment causal phases, activation interval boundaries and paused control intake. Its scenarios augment tests 12–14, 25–26, 55 and 57; they do not erase pinned reference tests.
+The earlier “no new unresolved decision” statements remain historical records of the individual reviews. The later corpus audit identified #95; it is now resolved by the [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md). Existing fixed-step, no-dropped-ticks, profile-rate, negative-budget, authority and save invariants remain settled.
+
+Integrated scheduling now has an explicit separation between bounded external admission and profile-owned execution, reference-relative Cataclysm actor/environment/budget phases, half-open activation intervals with semantic frontiers, same-point suspension for dynamic activation dependencies, and bounded pause/resume control servicing. The #95 scenarios augment tests 12–14, 25–26, 55 and 57; they do not erase pinned reference tests.
+
+
+### #95 conformance additions
+
+- **TIME95-01 — environment changes autonomous speed:** an environment effect before the monster band changes state used by that monster's per-turn/budget calculation; controlled-Character replenishment remains for the next controlled opportunity.
+- **TIME95-02 — profile ambiguity rejection:** a test profile registering potentially conflicting authoritative writers without an explicit order or commutativity/independence declaration fails phase-plan validation.
+- **TIME95-03 — independent deterministic parallelism:** worker/thread permutations for proven-independent regions yield the same canonical mutation, RNG and publication trace.
