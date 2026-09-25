@@ -306,4 +306,7 @@ Spec 04 owns command/activity interruption and Spec 21 owns UI selection details
 
 - **INV-AUD-01 — move debt:** given an eligible actor and a legal transfer costing more than its positive current budget, preserve the pinned debit/negative balance and delay later opportunity; do not reject merely for lack of the full cost. Resource, capacity and access checks remain mandatory.
 - Request-ID retry guarantees above require the shared bounded contract in [#96](https://github.com/LambdaSix/OctoGhast/issues/96), including reconnect, saved pending work and expired deduplication history. They must not be implemented with an unbounded cache or guessed persistence policy.
-- Cross-source contention consumes [#95](https://github.com/LambdaSix/OctoGhast/issues/95); the same admitted trace must produce the same winner across inventory, activities and combat.
+- Cross-source contention consumes the resolved [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md): bounded PlayerId admission does not decide transfer ownership. Inventory mutation follows the profile phase/actor/work execution key and later contenders revalidate the committed ownership/location state.
+
+
+**INV95-01 — reversed PlayerId/ActorId contention:** admit two transfers for the same item in one intake cut with PlayerId order opposite controlled ActorId order. With equal phase/work priority, the stable actor/profile execution order determines the first valid transfer; the later request observes stale ownership/location and rejects without duplication or loss.
