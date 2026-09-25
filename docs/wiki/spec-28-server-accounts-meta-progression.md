@@ -2,7 +2,7 @@
 
 Status: architecture/specification complete  \
 Tracking issue: #91  \
-Related: #52, #64, #65, #68 / Spec 03, #85 / Spec 20, #90 / Spec 25, #92  \
+Related: #52, #64, #65, #68 / Spec 03, #85 / Spec 20, #90 / Spec 25, #92 / Spec 29  \
 Reference rules baseline: `LambdaSix/Cataclysm-DDA@e262adb299a7613b4aedc5f12c08fe0413c56a84`
 
 ## Purpose
@@ -51,7 +51,7 @@ The reference is conceptual only. ModernUO is GPL-3.0; OctoGhast must independen
 The following identities are distinct typed values:
 
 ```text
-authentication/provider subject        #92, replaceable
+authentication/provider subject        Spec 29, replaceable
         |
         v
 AccountId / ServerAccountId            Spec 28, durable and server-scoped
@@ -89,7 +89,7 @@ An account belongs to exactly one authoritative OctoGhast **server data root**. 
 
 Local single-player is the same logical model:
 
-- the local server creates/uses a trusted local account through #92's local/synthetic authentication provider;
+- the local server creates/uses a trusted local account through Spec 29's local/synthetic authentication provider;
 - all local single-player worlds under that same server/user-data root share the same `AccountId`;
 - therefore Cataclysm meta unlocks earned in one local world are visible to character creation in another local world, matching the pinned cross-world intent;
 - local mode does not bypass `SessionId -> AccountId -> PlayerId -> CharacterId` authority boundaries.
@@ -163,7 +163,7 @@ Rules:
 - ordinary control of one Character is exclusive to one active session at a time;
 - disconnect releases the transient control binding according to Spec 25/Character policy but does not delete the Character, PlayerId or AccountId;
 - another authorized session for the same account may acquire that Character after the previous control binding is released;
-- session count/rate/security limits are #90/#92 infrastructure policy, not Character-slot semantics.
+- session count/rate limits are Spec 25 infrastructure policy and authentication/security limits are Spec 29 policy, not Character-slot semantics.
 
 ## 7. Meta-progression model
 
@@ -244,7 +244,7 @@ Account deletion is explicit and server-authoritative.
 For the local single-player **profile delete** operation:
 
 - delete the local server account record and its account-scoped meta-progression;
-- remove the local authentication binding as defined by #92;
+- remove the local authentication binding as defined by Spec 29;
 - terminate/detach active sessions for that account;
 - do **not** implicitly delete world save files or mutate Characters inside those saves.
 
@@ -256,9 +256,9 @@ Deletion must not be implemented as “clear unlocks but keep the same account i
 
 ## 10. Authentication/provider boundary
 
-#92 owns credentials, provider subjects, tokens, transport protection, revocation and administrator authorization.
+[Spec 29](./spec-29-authentication-public-server-security.md) resolves #92 and owns credentials, provider subjects/bindings, invitations, protected transport trust, resumption secrets, authentication-specific abuse controls, account admission/bans and administrator authorization.
 
-Spec 28 owns the gameplay account after authentication:
+Spec 28 owns the durable gameplay account after authentication:
 
 ```text
 provider proves subject
@@ -268,9 +268,11 @@ provider proves subject
         -> control request resolves an owned CharacterId
 ```
 
-Changing an authentication provider must not require migrating Cataclysm unlock history into that provider. The server account is the durable gameplay owner; provider bindings are replaceable mappings/credentials.
+Changing an authentication provider must not require migrating Cataclysm unlock history into that provider. The server account is the durable gameplay owner; provider bindings are replaceable security mappings. One AccountId may have multiple explicitly linked Spec 29 provider identities, while any one provider identity binds to at most one AccountId within the server data root.
 
-A provider subject is not persisted into world entities as ownership identity.
+Spec 29's server-local invitation/bootstrap flow may establish a persistent individual identity without any mandatory central service. That bootstrap still resolves to the same AccountId model here.
+
+A provider subject is not persisted into world entities as ownership identity. Security-store revocation/rollback is independent of world-save rollback.
 
 ## 11. Projection and privacy
 
@@ -350,7 +352,7 @@ M0 does not require an export format, account federation, roaming identity or au
 | Meta payload | versioned profile-owned account extension | completed achievement IDs / unlock interpretation |
 | Eligibility query | authoritative pure account/profile query | exact `META_PROGRESS`, hard-requirement and arcade bypass behavior |
 | Networking | session/account/player/control bindings | no Cataclysm socket behavior |
-| Authentication | replaceable #92 provider boundary | no gameplay rule owns credentials |
+| Authentication | replaceable Spec 29 provider/security boundary | no gameplay rule owns credentials |
 | Persistence | independent atomic account record | achievement/meta serialization adapter |
 | Export | future capability seam | future Cataclysm-compatible account-meta payload if needed |
 
@@ -398,7 +400,7 @@ No Core API may assume fixed UO-style Character slots, CDDA achievement semantic
 
 **ACC28-20 — privacy.** Ask for character-creation eligibility and account summary. Assert only purpose-required account/eligibility fields are projected; raw history, other accounts and provider secrets are absent.
 
-**ACC28-21 — provider replacement.** Change the #92 authentication binding/provider for an existing account without changing `AccountId`. Assert the same memberships/meta remain and world saves need no rewrite.
+**ACC28-21 — provider replacement.** Change the Spec 29 authentication binding/provider for an existing account without changing `AccountId`. Assert the same memberships/meta remain and world saves need no rewrite.
 
 **ACC28-22 — export is not M0.** M0 conformance does not require an export file/API. Any later export/import implementation must pass explicit version/compatibility/trust tests before being considered supported.
 
@@ -442,3 +444,17 @@ The settled OctoGhast model is:
 - cross-server export is a future, post-M0 capability.
 
 No runtime implementation is included in this specification.
+
+
+## 19. Spec 29 authentication/security follow-through — 2026-09-25
+
+Spec 29 resolves the security half of the account boundary assumed by this specification.
+
+- `AccountId` remains the durable server-scoped gameplay identity; provider subjects are replaceable security bindings.
+- Local single-player's synthetic provider maps into the existing local AccountId rather than creating a privileged identity path.
+- Friend-server invitation bootstrap may create/bind a persistent server-local provider identity, but the resulting account/world/meta ownership remains entirely Spec 28 state.
+- External provider replacement, session revocation or security-store rollback rules never move Cataclysm meta-progression into the provider.
+- Server-local account denial can reject login even if an external provider still validates the subject.
+- Account deletion detaches/revokes authentication bindings and sessions while preserving the existing rule that world files are not implicitly deleted.
+
+ACC28-21 should be run with AUTH92-08/09/17, and ACC28-15 with AUTH92-24, so account identity and security binding lifecycle are proven together without duplicating ownership.
