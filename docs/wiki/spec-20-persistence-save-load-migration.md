@@ -573,8 +573,8 @@ Create two runtime entities with stable IDs and a durable reference between them
 ### P20-39 Profile/content-generation compatibility metadata
 Save a world with profile P, profile schema version V and content generation G. Reload with the identical compatible generation and succeed. Attempt load with a different profile, unsupported profile schema, or materially different content generation lacking an explicit compatibility/migration declaration and assert a structured compatibility failure before live-world publication.
 
-### P20-40 World rollback does not roll back cross-world profile state
-Persist world snapshot W1, advance #91-owned cross-world profile/meta-progression state, then load/rollback the world to W1. Assert the world-local `PlayerId`/world state rolls back while #91 profile/account/meta-progression state remains at its independently committed version and is neither overwritten nor duplicated by Spec 20.
+### P20-40 World rollback does not roll back server-account state
+Persist world snapshot W1, advance Spec 28 / #91 account meta-progression state, then load/rollback the world to W1. Assert the world-local `PlayerId`/world state rolls back while the server-scoped `AccountId` meta state remains at its independently committed revision and is neither overwritten nor duplicated by Spec 20.
 
 ### P20-41 One-player transport save equivalence
 Run the same one-player authoritative command trace through in-process transport and network transport, save at the same canonical tick, and compare profile-owned world state, stable identities, scheduler/activity/RNG continuation and compatibility metadata. Excluding permitted non-gameplay metadata, saves are semantically equivalent.
@@ -584,6 +584,9 @@ Disconnect a player, advance/save/reload with no socket/session state, then reco
 
 ### P20-43 Save-barrier cut with in-flight requests
 With multiple clients and profile-owned world state changing in different partitions, request a save while requests are in flight. Record the deterministic admission cut. Assert all admitted mutations through the cut are captured exactly once, unadmitted transport bytes are excluded, profile-specific position/state codecs observe one coherent snapshot, and reload matches a reference execution cut at that boundary.
+
+### P20-44 Account-affecting save barrier ordering
+Complete a Spec 28 account-affecting achievement, then request a world save while the derived account persistence mutation is still pending. Assert the world snapshot is not published as a successful post-completion snapshot until the already-issued account mutation has durably committed; if the account store fails, the world save fails/defers rather than embedding account state or falsely claiming a coherent durable cut. An account commit that precedes a later failed/rolled-back world save remains valid.
 
 ## 15C. Foundational Core/profile persistence re-evaluation
 
@@ -610,17 +613,17 @@ Core does **not** require integer/grid `WorldPosition`, Cataclysm submaps/overma
 
 The Cataclysm profile owns the compatibility meaning of grid-aligned positions, map-square/submap/overmap keys, terrain/furniture/trap/field/item partition state, CDDA actor/vehicle/narrative/EOC categories, content/package semantics and any pinned save-order/fixup requirements documented above. Those remain mandatory for the Cataclysm reference-parity milestone but are not platform invariants.
 
-### World-local player identity versus #91 profile/account state
+### World-local player identity versus Spec 28 server-account state
 
-`PlayerId` in this specification is a durable identity **within one authoritative world**. It is persisted with the world because it binds world-local knowledge/control relationships and reconnect semantics. It is not the cross-world profile/account/meta-progression identity owned by #91.
+`PlayerId` in this specification is a durable identity **within one authoritative world**. Spec 28 resolves one `(AccountId, WorldId)` membership to at most one such `PlayerId`; that world membership may own multiple Characters and may be used by multiple simultaneous sessions controlling distinct Characters. `AccountId` is the separate server-scoped cross-world identity.
 
-Spec 20 MUST NOT store #91-owned achievement history, cross-world unlocks or other profile/meta-progression as if they were part of a world snapshot. Loading or rolling back an older world snapshot may restore an older world-local `PlayerId -> CharacterId` association/state, but MUST NOT implicitly roll back independently committed #91 state.
+Spec 20 MUST NOT store Spec 28 achievement history, cross-world unlocks or other account meta-progression inside a world snapshot. Loading or rolling back an older world snapshot may restore an older world-local `PlayerId -> CharacterId` association/state, but MUST NOT implicitly roll back independently committed account state. Conversely, the account store may keep membership/derived locators but MUST NOT become a second authoritative copy of Character/world state.
 
 ### Future evolution seam
 
 A future rules profile may provide different deterministic codecs and schemas for `WorldPosition`, world partitions, entities or other authoritative state. As long as it supplies stable serialization, schema/version ownership, migration/compatibility policy and deterministic restoration hooks, it reuses the same Core save barrier, snapshot generation, manifest, identity map, migration orchestration and publication pipeline.
 
-No additional cross-cutting architecture ticket is required by this review. #91 remains the authoritative unresolved/active owner for cross-world profile/meta-progression persistence.
+No additional cross-cutting architecture ticket is required by this review. The formerly unresolved #91 account/meta-progression boundary is now resolved by Spec 28; Spec 20 remains authoritative only for world snapshots and world-local continuation.
 
 ## 16. Implementation sequence
 
