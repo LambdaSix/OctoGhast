@@ -224,21 +224,27 @@ Transport receipt is not gameplay acceptance.
 
 Transport/parser threads enqueue validated immutable request DTOs. The authoritative simulation drains admitted requests only at the Spec 01 deterministic server intake phase.
 
-### 7.2 Equal-tick ordering rule
+### 7.2 Bounded canonical admission rule
 
-**Post-spec qualification:** [#95](https://github.com/LambdaSix/OctoGhast/issues/95) owns reconciliation of this admission key with the actor execution keys in Specs 01/04/09, AI/system precedence and bounded candidate selection. The following recorded network-intake rule is not yet a complete cross-source contention contract.
+The former #95 qualification is resolved by the [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md). Network ordering selects a bounded external admission set; it does **not** decide which actor/work item wins domain contention.
 
-For requests assigned to the same canonical intake tick:
+At each canonical intake boundary, with positive configured per-player cap `P` and global cap `G`:
 
-1. sort by stable world-local `PlayerId`;
-2. then by that session's monotonically increasing client request sequence;
-3. then by protocol message-type stable numeric discriminator as a final total-order tie-breaker.
+1. freeze the stable sorted PlayerId ring and each authorized player's already-validated FIFO prefix;
+2. start at the persisted rotating PlayerId cursor;
+3. take at most one queue head per eligible PlayerId per pass;
+4. stop at `G`, when each eligible player reaches `P`, or when a complete pass selects nothing;
+5. advance the cursor to the successor of the last selected PlayerId, retaining it if nothing was selected;
+6. assign a server-maintained monotonic per-player admission sequence in that player's logical request order;
+7. revalidate authority and bounded semantic-queue capacity before admission; unselected work remains unadmitted under the overload policy.
 
-AI/system commands are inserted through the same command scheduler using a separate deterministic source class and stable actor/entity identity; they do not pretend to be network players.
+Callbacks completing after the frozen cut wait for a later boundary. Logical selection uses deterministic counts/cost units, never elapsed CPU time.
 
-Connection/socket identity and arrival-thread ordering are never tie-breakers.
+Reconnect retains stable PlayerId and the server's authoritative next-admission counter; connection/session transport sequences remain ephemeral. A duplicate/colliding logical request sequence is rejected or reconciled by protocol/#96 operation identity rather than ordered by a message-type discriminator.
 
-A reconnecting player retains `PlayerId` but begins a new connection-local transport sequence. The session layer maps accepted requests to a server-maintained per-player admission sequence so reconnect cannot create ambiguous ordering with already admitted work.
+After admission, player work joins the profile-owned execution plan with AI, activities, scheduler work and lifecycle hooks. PlayerId is not the domain contention key. Socket identity, callback/thread order and physical arrival timing are never execution tie-breakers.
+
+AI/system/lifecycle work does not consume the external-player ingress quota. Host work limits may yield between safe units but do not silently move required tick-N work to N+1.
 
 ### 7.3 Stale commands and contention
 
@@ -568,13 +574,13 @@ Vertical-slice tests prove in-process/loopback equivalence and bounded lifecycle
 
 ## 20. Explicitly deferred cross-cutting decisions
 
-The original review separated production authentication/security into #92 and cross-world profile ownership into #91. The subsequent corpus audit also found [#95](https://github.com/LambdaSix/OctoGhast/issues/95) (admission/execution/activation integration) and [#96](https://github.com/LambdaSix/OctoGhast/issues/96) (bounded command deduplication/outcome recovery). Those tickets own the unresolved decisions; the completed transport/framing/resource/projection evidence remains valid.
+The original review separated production authentication/security into #92 and cross-world profile ownership into #91. The subsequent corpus audit also found #95 (admission/execution/activation integration) and [#96](https://github.com/LambdaSix/OctoGhast/issues/96) (bounded command deduplication/outcome recovery). #95 is now resolved by the [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md); #96 remains the separate unresolved retry/outcome owner. The completed transport/framing/resource/projection evidence remains valid.
 
 The following decisions remain established, subject to the explicit integration qualifications above:
 
 - initial socket transport: TCP;
 - application framing: bounded length-prefixed typed binary envelope;
-- network intake key: PlayerId then admitted request sequence then stable type discriminator; #95 must settle its relation to actor execution and cross-source contention;
+- network intake: frozen rotating-PlayerId bounded selection with monotonic server per-player admission sequence; admission does not decide actor/domain contention;
 - reliability classes: reliable facts, replaceable state, disposable hints;
 - initial queue/frame caps: defined above and configurable within hard maxima;
 - coalescing: only replaceable state with stable semantic keys;
@@ -711,7 +717,7 @@ No gameplay/runtime implementation is performed by this specification.
 
 ## 24. Post-spec acceptance qualifications
 
-- **Ordering:** NET25-09/10 and AI NET25-27 require the shared decision/scenarios in [#95](https://github.com/LambdaSix/OctoGhast/issues/95), including conflicting PlayerId/CharacterId order, a bounded frozen candidate set and deferred work.
+- **Ordering:** NET25-09/10 and AI NET25-27 consume the resolved [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md): conflicting PlayerId/CharacterId order proves admission/execution separation, the candidate set is bounded/frozen, and deferral is replay-visible.
 - **Outcome recovery:** §6.3's terminal-outcome promise and §16's result-history wording depend on [#96](https://github.com/LambdaSix/OctoGhast/issues/96). A committed command whose reply was lost cannot be called rejected, nor safely replayed solely because a new session has a fresh transport sequence. Record the uncertainty until the chosen reconciliation contract proves the outcome; do not silently choose a retention/persistence policy here.
 - **Determinism:** network transport does not make different physical arrival histories identical. Equivalence tests control canonical admission ticks/order as well as payloads; admission decisions are traceable. No async callback may mutate the world.
 - **Projection integration:** consume Spec 26's enter/update/leave/privacy semantics and Spec 27's baseline epoch, per-object revision, sample tick and motion-continuity requirements. Coalescing must not resurrect hidden state or carry interpolation across an obsolete baseline.
@@ -719,3 +725,11 @@ No gameplay/runtime implementation is performed by this specification.
 **NET25-AUD-01:** issue the same authorized pure query repeatedly through both transports; authoritative world state/time/RNG stay unchanged while bounded infrastructure metrics may change.
 
 These are targeted integration amendments. No Cataclysm move cost, identity separation, queue bound, transport-neutrality or visibility requirement is relaxed.
+
+
+### #95 networking conformance additions
+
+- **NET25-95-01 — rotating bounded admission:** with `P=2`, `G=3`, deterministic frozen candidates and a persisted cursor, callback/thread permutations select the same requests and leave the same deferred heads.
+- **NET25-95-02 — reconnect sequencing:** reconnect resets transport/session sequencing but not the authoritative per-PlayerId admission counter; already admitted work cannot be leapfrogged.
+- **NET25-95-03 — PlayerId is not contention priority:** admit P10/C200 and P20/C100 together; equal domain phase/work priority resolves by the stable actor/profile key rather than PlayerId.
+- **NET25-95-04 — paused/barrier control:** bounded authorized resume/shutdown/control servicing remains available while canonical gameplay is paused or synchronously waiting for required activation; no transport callback mutates ECS/world state.
