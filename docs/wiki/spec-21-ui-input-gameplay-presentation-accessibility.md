@@ -300,7 +300,7 @@ This state is non-authoritative.
 
 Keybindings, accessibility settings, UI scale, panel layout, preferred units and similar presentation preferences may be persisted as client/profile preferences. They are not part of the authoritative world save.
 
-If future account/profile sync is added, it belongs with #91/profile persistence, not Spec 20's world-save transaction.
+If an option is explicitly made account-synced, its cross-world ownership belongs to Spec 28 / #91 rather than Spec 20's world-save transaction. Device-local preferences remain client state by default.
 
 ## 7. Gameplay screen catalogue and contracts
 
@@ -322,7 +322,7 @@ Main-menu UI is not authoritative world state.
 
 ## 7.2 Character creation
 
-Consumes Spec 03 and #91.
+Consumes Spec 03 and Spec 28 / #91.
 
 Required interaction state includes scenario/profession/background/traits/stats/skills/name/appearance/start choices exposed by the Cataclysm profile, tab/category navigation, validation summaries, randomization where supported, template/profile operations where supported, and final submission.
 
@@ -676,7 +676,7 @@ These preferences must be versioned/migratable. Missing/corrupt preference data 
 
 ### 13.3 Player identity
 
-Preferences may be device-local or profile-scoped, but must never use connection/socket identity as stable player identity. Cross-world profile/account ownership is #91.
+Preferences may be device-local or explicitly account-scoped, but must never use connection/socket identity as stable player identity. Server-scoped account ownership is Spec 28 / #91; rules/content-profile identity remains a separate concept.
 
 ## 14. Cross-system dependencies
 
@@ -699,7 +699,7 @@ Preferences may be device-local or profile-scoped, but must never use connection
 - **Specs 18–19 / #83/#84:** action/content IDs, definitions, localization/content packs.
 - **Spec 20 / #85:** save/reconnect/world ownership.
 - **Spec 25 / #90:** transport/session lifecycle, deterministic inbound handoff, bounded queues/backpressure and player/session binding. **#92** owns production authentication/security policy; **#96** owns request outcome/retry recovery across reconnect/save.
-- **#91:** cross-world profile/meta-progression where UI preferences or unlocks become account/profile-scoped.
+- **Spec 28 / #91:** server-scoped `AccountId`, account meta-progression and any explicitly account-synced UI preferences; ordinary device-local preferences remain client state.
 - **Spec 22 / #87:** visual assets, tiles, audio and localization implementation of these semantic presentation contracts.
 - **Spec 23 / #88:** automated parity harness for the black-box scenarios below.
 
