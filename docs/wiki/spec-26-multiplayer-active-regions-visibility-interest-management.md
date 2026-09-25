@@ -266,24 +266,27 @@ Reconnect recreates session/projection state from current authoritative world st
 
 All changes occur at deterministic simulation boundaries.
 
-### 7.1 Phase order
+### 7.1 Activation ordering and semantic frontier
 
-**Cross-spec integration gate:** [#95](https://github.com/LambdaSix/OctoGhast/issues/95) must reconcile this existing outline with Spec 01's phase plan and Spec 12's load-before-query rule. Commands requiring unavailable destination state need an explicit preflight/defer contract; catch-up and active work need one processed-through interval convention. Do not implement a local ordering choice from this outline alone.
+The former #95 gate is resolved by the [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md). Activation is a world-owned publication protocol, not a consequence that may occur only after a movement mutation has already queried unavailable destination state.
 
-Existing phase outline:
+For a known finite dependency:
 
-1. admit/resolve movement and other commands according to Spec 01/04 ordering;
-2. compute resulting authoritative player/entity positions;
-3. derive next required active-region set;
-4. identify regions entering, remaining in and leaving the active set;
-5. load/activate/catch up newly entering regions;
-6. update authoritative spatial indexes and derived caches;
-7. run active-world simulation for the canonical tick exactly once;
-8. compute observer-specific visibility/knowledge;
-9. build/diff projections;
-10. release/deactivate regions whose final lease has expired after all required mutation/persistence handoff is safe.
+1. an admitted operation identifies the authoritative finite footprint and fixed semantic target frontier before first use;
+2. already-active dependencies use the fast path;
+3. unavailable dependencies enter private `Loading -> CatchingUp -> Prepared` staging;
+4. if staging is not ready at the fixed frontier, the host waits without advancing canonical time, actor moves or gameplay RNG;
+5. successful staging publishes atomically to `Active`;
+6. the owning command/action revalidates against the fully available state and commits or rejects normally;
+7. derived lease changes, projections and safe releases occur at their declared close/publication boundaries.
 
-An implementation may pipeline work internally, but externally no observer may see a half-activated or duplicate-simulated region.
+A load/validation failure leaves the source WorldPosition/SpatialCell/index intact. A later stale command does not roll back an activation already published/shared as world state.
+
+If a synchronous action/activity/EOC has already committed a prefix and then discovers a finite unloaded dependency, the simulation suspends at that exact semantic frontier, activates/catches up privately, publishes, then resumes the same invocation exactly once. Earlier effects and RNG are not rolled back or replayed.
+
+The common interval convention is `N = [N,N+1)`. `processedThrough=P` means intervals strictly before P are complete. Progress is tracked per domain and, where necessary, by `(canonical tick, profile phase, lane/subphase)` so activation before/after an inclusive due phase processes each occurrence exactly once without reopening unrelated closed phases.
+
+An implementation may pipeline I/O/work internally, but filesystem/worker readiness never selects a gameplay tick and no observer may see a half-activated or duplicate-simulated region.
 
 ### 7.2 Activate
 
@@ -795,6 +798,14 @@ At the individual-spec review, no genuinely unresolved cross-cutting architectur
 
 ## 21. Post-spec integration acceptance
 
-[#95](https://github.com/LambdaSix/OctoGhast/issues/95) adds required scenarios for unavailable movement targets, activation at a periodic deadline, and same-tick actor/environment ordering. Until resolved, the active-region union/identity/privacy contracts are stable but the global phase integration is not fully implementation-ready.
+The #95 scenarios for unavailable movement targets, periodic-deadline activation and actor/environment ordering are now governed by the [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md). The active-region union/identity/privacy contracts and global phase integration are implementation-ready subject to the still-separate #96 retry/outcome decision where command recovery is involved.
 
 **AR26-AUD-01 — observer versus activation:** with a fixed active union, add/remove an overlapping projection-only observer and verify identical authoritative state/RNG. Separately change a server/player lease so new simulation work activates; replay that same lease trace twice and verify deterministic exactly-once catch-up. These assertions must not be conflated into a requirement that an expanded simulated world perform no new work.
+
+
+### #95 activation conformance additions
+
+- **AR26-95-01 — unavailable teleport:** failure preserves source position/index; success exposes fully caught-up destination occupancy before movement revalidation.
+- **AR26-95-02 — periodic deadline frontier:** activation immediately before/after a due phase processes the boundary occurrence exactly once.
+- **AR26-95-03 — dynamic semantic suspension:** a running operation that discovers a finite unloaded dependency after a committed prefix resumes once from the same frontier under varied worker completion schedules.
+- **AR26-95-04 — independent-region workers:** safe worker/thread scheduling permutations for independent active regions produce identical canonical mutation/publication traces.
