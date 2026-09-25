@@ -134,3 +134,21 @@ The #65 update records this audit and fixes the stale existing-save compatibilit
 - Reference source links, evidence sections and detailed behavioural fixtures were preserved. Document/link/scope checks validate these edits; no gameplay tests were executed because no runtime code was changed. The supplied upstream investigations were not independently re-proven.
 
 The resulting corpus is a useful implementation foundation with explicit integration gates, a strong unchanged Cataclysm reference target, and reusable Core contracts that do not require CDDA to remain OctoGhast's final product.
+
+
+## Post-audit Spec 29 security resolution — 2026-09-25
+
+The audit's historical statements that #92 remained an authentication/public-server-security gate are now resolved by [Spec 29 — Authentication, trust and public-server security](./spec-29-authentication-public-server-security.md).
+
+Spec 29 preserves the audit's existing authority/account boundaries while fixing the previously deferred security policy:
+
+- no mandatory OctoGhast-operated identity service;
+- trusted synthetic local authentication through the same account/session authority path;
+- provider or one-time invitation/bootstrap identity for LAN/friend servers;
+- mandatory protected transport and authenticated individual identity for public dedicated servers;
+- replaceable provider bindings to Spec 28 `AccountId`;
+- replay-resistant invitation/resumption lifecycle, independent revocation and server-local bans/capabilities;
+- layered auth-specific abuse controls and secret redaction;
+- security state excluded from world saves and authoritative simulation RNG.
+
+This closes #92 as an architecture/specification gate. It does not mark public-server runtime implementation or conformance complete. #96 remains the separate retry/outcome-recovery gate.
