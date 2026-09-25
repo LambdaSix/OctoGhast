@@ -710,5 +710,5 @@ A later implementation of this specification is complete when:
 
 Pinned CDDA demonstrates mature multi-platform build/release practice, explicit installed-versus-user paths, independently packaged data/gfx/lang resources and release-time validation. OctoGhast preserves those externally important capabilities while deliberately replacing CDDA-specific build architecture with .NET-owned hosts using 2dog/libgodot from project inception. The ECS/domain model remains owner of durable authoritative state, while bounded Godot server APIs may provide runtime computation/services behind explicit adapters and the Godot 2D client consumes player-specific projections.
 
-No new unresolved cross-cutting architecture decision was discovered. Completed Spec 25 / #90 owns production-network transport mechanics; #92 owns unresolved authentication/public-server security, while Spec 28 / #91 now specifies server-scoped account/meta-progression storage.
+No new unresolved cross-cutting architecture decision was discovered. Completed Spec 25 / #90 owns production-network transport mechanics; Spec 29 / #92 now specifies authentication/public-server security, while Spec 28 / #91 specifies server-scoped account/meta-progression storage.
 
