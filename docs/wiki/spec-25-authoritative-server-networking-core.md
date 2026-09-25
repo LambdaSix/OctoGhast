@@ -34,7 +34,7 @@ This specification consumes, rather than reopens:
 - #88 / Spec 23 — deterministic in-process/loopback conformance testing;
 - #89 / Spec 24 — host/platform/runtime resource layout;
 - #91 / Spec 28 — server-scoped `AccountId`, account/world membership, multi-character ownership and cross-world meta-progression persistence.
-- #92 — authentication, credential/provider and public-server security policy.
+- #92 / Spec 29 — authentication, provider binding, transport trust and public-server security policy.
 
 ### Ownership table
 
@@ -42,8 +42,8 @@ This specification consumes, rather than reopens:
 | --- | --- |
 | Socket accept/connect, framing, bytes, buffer pools | transport backend |
 | Connection lifecycle and parser state | networking Core |
-| Authentication-provider integration | #92 security/auth architecture; not gameplay |
-| Authentication subject -> stable AccountId binding | #92 provider + Spec 28 server-account layer |
+| Authentication-provider integration | Spec 29 / #92; not gameplay |
+| Authentication subject -> stable AccountId binding | Spec 29 provider/security binding + Spec 28 server-account layer |
 | Live session -> AccountId binding | server session layer |
 | `(AccountId, WorldId) -> PlayerId` binding | Spec 28 account/world membership + Spec 20 world identity |
 | Session -> controlled CharacterId binding | authoritative server/world policy |
@@ -295,9 +295,13 @@ Resource promotion occurs only after session policy has accepted world join.
 
 ### 8.3 Authentication ownership
 
-#90 does not define credential storage. Internet-facing authentication, credential recovery, trust providers and abuse/security policy are a distinct cross-cutting concern owned by #92. Spec 28 owns the resulting server-scoped `AccountId` and gameplay account state after authentication. M1 in-process tests may use a trusted synthetic/local provider. LAN/friend and public-dedicated authentication MUST be specified by #92 before public networking is considered production-ready.
+[Spec 29](./spec-29-authentication-public-server-security.md) resolves the authentication/security boundary previously deferred to #92. Spec 25 still does not own credential formats, provider SDKs, invitations, TLS trust policy, resumption secrets, account bans or privileged authorization.
 
-This does not weaken server authority: even a trusted local session binds through `AccountId -> PlayerId -> CharacterId` and uses normal request validation.
+Before resource promotion or world join, a remote connection must satisfy Spec 29's protected-transport, authenticated-individual-identity and server-local authorization requirements. Local single-player uses Spec 29's trusted synthetic provider and still binds through the normal `SessionId -> AccountId -> PlayerId -> CharacterId` path.
+
+Provider identity resolves to the durable server-scoped `AccountId` from Spec 28; a client-supplied remembered `PlayerId` or `CharacterId` is never trusted as proof of identity. Provider/session secrets remain outside gameplay messages and world persistence.
+
+This does not weaken server authority: every authenticated session still uses normal request authorization and gameplay validation.
 
 ### 8.4 Disconnect
 
@@ -575,11 +579,13 @@ Implementation routes local player and AI-selected actions through common author
 ### #62
 Vertical-slice tests prove in-process/loopback equivalence and bounded lifecycle behavior.
 
-## 20. Explicitly deferred cross-cutting decisions
+## 20. Cross-cutting decisions and remaining gate
 
-The original review separated production authentication/security into #92 and cross-world account ownership into #91. Spec 28 has now resolved #91 with server-scoped `AccountId`; the subsequent corpus audit also found #95 (admission/execution/activation integration) and [#96](https://github.com/LambdaSix/OctoGhast/issues/96) (bounded command deduplication/outcome recovery). #95 is resolved by the [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md); #96 remains the separate unresolved retry/outcome owner. The completed transport/framing/resource/projection evidence remains valid.
+The original review separated production authentication/security into #92 and cross-world account ownership into #91. Both are now resolved: [Spec 28](./spec-28-server-accounts-meta-progression.md) defines server-scoped `AccountId` and [Spec 29](./spec-29-authentication-public-server-security.md) defines provider/invitation authentication, protected transport trust, session security and authorization. #95 is also resolved by the [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md).
 
-The following decisions remain established, subject to the explicit integration qualifications above:
+[#96](https://github.com/LambdaSix/OctoGhast/issues/96) remains the separate unresolved retry/outcome owner for reconnect/restart-safe recovery of non-idempotent gameplay operations. Authentication proves which account reattached; it does not prove whether a lost-response gameplay command committed.
+
+The following networking decisions remain established, subject to that explicit outcome-recovery qualification:
 
 - initial socket transport: TCP;
 - application framing: bounded length-prefixed typed binary envelope;
@@ -714,7 +720,7 @@ Run a representative new-game-to-movement flow with exactly one player. The same
 6. Implement the initial TCP backend/framing/parser behind the same interfaces.
 7. Run NET25 in-process/loopback equivalence and hostile-input tests.
 8. Integrate Godot through Spec 21 without direct ECS access.
-9. Resolve the #92 before public internet deployment.
+9. Implement and pass Spec 29 security conformance before declaring public Internet deployment supported.
 
 No gameplay/runtime implementation is performed by this specification.
 
@@ -736,3 +742,18 @@ These are targeted integration amendments. No Cataclysm move cost, identity sepa
 - **NET25-95-02 — reconnect sequencing:** reconnect resets transport/session sequencing but not the authoritative per-PlayerId admission counter; already admitted work cannot be leapfrogged.
 - **NET25-95-03 — PlayerId is not contention priority:** admit P10/C200 and P20/C100 together; equal domain phase/work priority resolves by the stable actor/profile key rather than PlayerId.
 - **NET25-95-04 — paused/barrier control:** bounded authorized resume/shutdown/control servicing remains available while canonical gameplay is paused or synchronously waiting for required activation; no transport callback mutates ECS/world state.
+
+
+## 25. Spec 29 security follow-through — 2026-09-25
+
+Spec 29 resolves the authentication/public-server security gate without changing Spec 25's transport or gameplay-authority model.
+
+- Local single-player uses a trusted synthetic provider but still follows `SessionId -> AccountId -> PlayerId -> CharacterId`.
+- LAN/friend servers use protected transport plus either an external provider or one-time invitation/bootstrap into a persistent individual server-local identity.
+- Public dedicated servers require protected transport, explicit server identity validation and authenticated individual identity.
+- Provider proofs, invitation secrets and resumption credentials remain outside gameplay DTOs, ECS and world saves.
+- Successful authentication binds a server-owned session to Spec 28 `AccountId`; it never accepts a client-declared `PlayerId` as authority.
+- Spec 29 adds auth-specific source/subject/provider/global abuse budgets on top of Spec 25's parser/queue/request limits.
+- Session/account/provider/capability revocation is security policy; #96 remains the distinct owner of lost gameplay-operation outcome recovery.
+
+NET25 pre-auth/resource-promotion tests should be run together with AUTH92-02, AUTH92-06, AUTH92-11, AUTH92-20 and AUTH92-26 when remote transport implementation begins.
