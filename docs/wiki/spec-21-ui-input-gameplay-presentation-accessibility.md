@@ -698,7 +698,7 @@ Preferences may be device-local or explicitly account-scoped, but must never use
 - **Spec 17 / #82:** event/talker context, audience and message projection.
 - **Specs 18–19 / #83/#84:** action/content IDs, definitions, localization/content packs.
 - **Spec 20 / #85:** save/reconnect/world ownership.
-- **Spec 25 / #90:** transport/session lifecycle, deterministic inbound handoff, bounded queues/backpressure and player/session binding. **#92** owns production authentication/security policy; **#96** owns request outcome/retry recovery across reconnect/save.
+- **Spec 25 / #90:** transport/session lifecycle, deterministic inbound handoff, bounded queues/backpressure and player/session binding. **Spec 29 / #92** owns production authentication/security policy; **#96** owns request outcome/retry recovery across reconnect/save.
 - **Spec 28 / #91:** server-scoped `AccountId`, account meta-progression and any explicitly account-synced UI preferences; ordinary device-local preferences remain client state.
 - **Spec 22 / #87:** visual assets, tiles, audio and localization implementation of these semantic presentation contracts.
 - **Spec 23 / #88:** automated parity harness for the black-box scenarios below.
