@@ -230,7 +230,7 @@ Each activity actor MUST declare its commit/claim semantics:
 - **shared/cooperative claim** only where the feature spec explicitly defines combined work;
 - **optimistic revalidation** where several actors may work but completion revalidates authoritative state.
 
-Claims are server/world state, never client locks. **Cross-spec integration gate:** [#95](https://github.com/LambdaSix/OctoGhast/issues/95) must reconcile the following actor execution key with Spec 25's PlayerId admission key before shared contention semantics are frozen. The existing Spec 01 execution key is: phase, due tick, subsystem priority, stable actor/entity ID, monotonic admission sequence. The loser of contention receives a deterministic rejection/invalidation event and is not charged completion effects/resources that did not commit. Feature specs may define partial work costs already legitimately spent.
+Claims are server/world state, never client locks. The [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md) resolves the former #95 gate: Spec 25's PlayerId ordering selects a bounded external admission set only; it does not decide domain contention. Admitted activity/action work executes under the versioned profile plan using phase/lane, due coordinate, work-kind priority, stable actor/entity identity and authoritative origin sequence as applicable. The loser of contention receives a deterministic rejection/invalidation event and is not charged completion effects/resources that did not commit. Feature specs may define partial work costs already legitimately spent.
 
 Overlapping player active regions never duplicate an activity or target.
 
@@ -440,4 +440,9 @@ Key outcomes:
 
 ## Post-spec integration dependencies
 
-[#95](https://github.com/LambdaSix/OctoGhast/issues/95) owns the unresolved shared admission/execution/activation order. [#96](https://github.com/LambdaSix/OctoGhast/issues/96) owns bounded request identity, duplicate suppression and result recovery across reconnect/save; activity code must not invent a session-local substitute. Durable activity identity remains distinct from the request that started it. Both are integration gates discovered after the completed investigation, not changes to the pinned lifecycle/hooks/progress evidence.
+The former #95 shared ordering/activation gate is resolved by the [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md). Existing activity-before-input and immediate same-opportunity continuation semantics remain authoritative inside the actor opportunity; they are not frozen as separate external admission candidates.
+
+[#96](https://github.com/LambdaSix/OctoGhast/issues/96) still owns bounded request identity, duplicate suppression and result recovery across reconnect/save; activity code must not invent a session-local substitute. Durable activity identity remains distinct from the request that started it.
+
+
+**ACT95-01 — dynamic activation during sequential work:** if an already-running action/activity has committed a prefix and later discovers a finite unloaded dependency, preserve the prefix and RNG continuation, suspend at the same semantic point, activate/catch up to the required frontier, then resume exactly once. Do not replay or transactionally roll back the completed prefix.
