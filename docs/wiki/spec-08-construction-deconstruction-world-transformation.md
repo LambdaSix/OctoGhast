@@ -805,3 +805,9 @@ The completed pinned-CDDA investigation remains authoritative evidence; no contr
 - [x] Conformance scenarios 41–47 cover profile-independent timing, `WorldPosition`/`SpatialCell`, a future non-grid profile, contention, save/reconnect, atomic completion/projection and EOC/transport inheritance.
 
 No genuinely unresolved cross-cutting architectural decision was discovered, so no new architecture ticket is required. No gameplay/runtime implementation was performed.
+
+## #95 shared contention integration
+
+Construction consumes the [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md). External PlayerId admission is only a bounded selection mechanism; authoritative construction/site contention follows the Cataclysm profile phase/lane and stable actor/work order. A later project/action revalidates the site, resources and ownership after earlier committed work.
+
+**CON95-01 — reversed PlayerId/ActorId site contention:** admit two incompatible construction mutations for the same site in one canonical cut with PlayerId order opposite controlled ActorId order. With equal phase/work priority, the profile actor/work key determines the first commit; the later operation revalidates and receives the defined stale/conflict outcome without partial material/site mutation.
