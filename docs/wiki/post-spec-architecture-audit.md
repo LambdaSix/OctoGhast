@@ -2,6 +2,15 @@
 
 Audit date: 2026-09-24. Status: **conditionally ready to begin implementation; shared integration decisions remain open**.
 
+### Subsequent architecture resolutions
+
+This audit remains a record of the 2026-09-24 review state. Subsequent authoritative contracts qualify its open-gate language:
+
+- #95 was resolved on 2026-09-25 by [the canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md).
+- #91 was resolved on 2026-09-25 by [Spec 28 — Server-scoped accounts and cross-world meta-progression](./spec-28-server-accounts-meta-progression.md). Cross-world player gameplay identity is now `AccountId`, not `ProfileId`; one `(AccountId, WorldId)` resolves to a world-local `PlayerId`, account meta state is independently persisted, multiple Characters/sessions are supported, and Cataclysm `META_PROGRESS`/hard requirements consume that account state.
+- #96 remains the retry/outcome-history integration gate and #92 remains the production authentication/public-server-security gate.
+
+
 ## Scope and evidence
 
 Reviewed all 27 completed specification pages under `docs/wiki` at OctoGhast commit [`ea85fed2171251d325c18319e63f3f5269d1e15a`](https://github.com/LambdaSix/OctoGhast/commit/ea85fed2171251d325c18319e63f3f5269d1e15a), plus [`prospective-networking-core.md`](./prospective-networking-core.md). The latter is already a supersession pointer to Spec 25, not a competing prospective contract. Specs 26 and 27 are included because they complete the active-region and presentation parts of #65.
@@ -21,7 +30,7 @@ The review checked reference/profile/Core/adaptation/evolution separation; autho
 
 Stable work can proceed now: ECS/composition and dependency boundaries; typed durable identity; immutable definition generations and Cataclysm data adapters; pure rule/formula fixtures; profile-configured fixed-step primitives; position-to-cell mapping and atomic index/containment mutations; save-generation/manifest atomicity; bounded parsers/queues and transport abstraction; viewer-filtered projections; and Godot presentation over confirmed samples. These can be tested through explicit supplied ordering/policy interfaces without pretending the pending global policy is settled.
 
-Before integrated M0 movement/scheduler equivalence sign-off, resolve #95. Before promising safe replay/recovery of non-idempotent operations across reconnect/restart, resolve #96. Before durable cross-world achievement unlocks/account profiles, resolve #91. Before production LAN/friend/public-server trust and especially internet deployment, resolve #92. The audit does not mark M0 or any gameplay milestone complete.
+#95 and #91 have subsequently been resolved by their dedicated architecture specifications. Before promising safe replay/recovery of non-idempotent operations across reconnect/restart, resolve #96. Before production LAN/friend/public-server trust and especially internet deployment, resolve #92. The audit does not mark M0 or any gameplay milestone complete.
 
 Core over-fitting found here was limited but real: remaining integer-position/geometry wording, missing explicit creature-profile classification, an OO-versus-ECS choice left apparently open, and an inventory affordability sentence that could replace signed move debt with a different economy. Those passages are corrected. Existing rate, anatomy, item taxonomy, pockets, crafting, combat, construction, EOC and loader evolution seams remain intact.
 
@@ -54,7 +63,7 @@ Each row covers all five layers: **reference evidence; Cataclysm compatibility r
 |---|---|---|
 | [01 — loop/time](./spec-01-game-loop-time-scheduling.md) / #66 | **Cross-spec contradiction.** Reference turn loop retained; Cataclysm 10 TPS/100 moves separated from Core time; continuous multi-actor/server lifecycle adaptation sound; future exact rates allowed. Global phase/order integration incomplete. | Amended precedence/headless wording and #95 gate. Preserve tests 1–60 subject to stated reference/adaptation scope; integrated contention/phase tests pending. |
 | [02 — Character](./spec-02-character-model-stats-anatomy-needs.md) / #67 | **Editorial clarification.** Anatomy/stats/needs/formulas are profile rules; Core state/time/identity primitives, multi-actor physiology and alternative schemas are explicit. | Clarified implementation freedom within settled ECS/composition. Existing 21–28 boundary and physiology scenarios retained. |
-| [03 — creation/progression](./spec-03-character-creation-progression.md) / #68 | **No change required.** Creation, skills, mutations and achievement rules remain profile-local; Core transaction/identity and non-grid/alternative-creation seams explicit. | Existing #91 dependency is real, not a reason to reopen #68. Scenarios 25–32 correctly separate world saves from cross-world unlocks. |
+| [03 — creation/progression](./spec-03-character-creation-progression.md) / #68 | **No change required at audit time.** Creation, skills, mutations and achievement rules remain profile-local; Core transaction/identity and non-grid/alternative-creation seams explicit. | The then-open #91 dependency is now resolved by Spec 28; Spec 03 has been cross-referenced without reopening its pinned behavioural investigation. |
 | [04 — actions/activities](./spec-04-action-dispatch-activity-framework.md) / #69 | **Cross-spec contradiction.** Cataclysm primary activity/backlog and hook order separate from generic durable work; transport/UI adaptation and alternate lanes/rates are explicit. | Marked #95 order conflict and #96 request-vs-activity identity dependency. No lifecycle or EOC hook rewrite. |
 | [05 — items](./spec-05-item-model-lifecycle.md) / #70 | **No change required locally.** Taxonomy/charges/rot/stacking remain Cataclysm; Core identity/scheduling/projection and future models explicit. | Its all-item UID rule is preserved; the inconsistent consumer Spec 20 was fixed. Identity, split/merge and lifecycle scenarios remain authoritative. |
 | [06 — containment/transfer](./spec-06-inventory-pockets-containment-item-transfer.md) / #71 | **Cross-spec contradiction.** Pocket/capacity/selection/reach/cost policy is separated from generic ownership/transaction machinery. | Fixed affordability drift; added #95/#96 integration dependencies and INV-AUD-01. Conservation/stale-reference scenarios retained. |
@@ -80,7 +89,7 @@ Each row covers all five layers: **reference evidence; Cataclysm compatibility r
 | [26 — active regions](./spec-26-multiplayer-active-regions-visibility-interest-management.md) / #93 | **Cross-spec contradiction** on phase integration; **Architecture amendment required** on observer-invariance scope. Reference bubble is already profile-local. | Added #95 gate and AR26-AUD-01; union, exactly-once, knowledge/privacy and non-grid seams retained. |
 | [27 — presentation](./spec-27-godot-2d-presentation-boundary-interpolation.md) / #94 | **No change required.** Reference overlays versus intentional interpolation are explicit; Core sample/revision contract supports future rates/positions/projectiles. | Retain epochs, coalescing, hide/re-entry reset, cosmetic prediction and G27-01–32. Spec 25 now explicitly consumes this producer/consumer contract. |
 
-The prospective networking pointer requires no amendment: its link to Spec 25 and references to #91/#92 remain correct. New integration qualifications are in Spec 25 itself.
+The prospective networking pointer has subsequently been amended only to point #91 at completed Spec 28; Spec 25 remains the networking contract and #92 remains the authentication/security owner.
 
 ## Core versus Cataclysm ownership summary
 
@@ -91,7 +100,7 @@ The prospective networking pointer requires no amendment: its link to Spec 25 an
 | Ordering | Explicit deterministic intake/execution and persisted pending-work order, bounded resources. | Cataclysm causal/hook ordering is integrated by the resolved #95 architecture without hard-coding CDDA phases into Core. |
 | Space | WorldPosition, deterministic derived SpatialCell membership, atomic index mutation, world-owned region union. | Grid occupancy, 12/24/132 dimensions, z limits, line/path/collision/terrain rules. Future non-grid rules need explicit geometry policy, not renderer changes. |
 | Identity | World/player/entity/item/project identities independent of ECS storage, socket, session and Godot objects; typed durable codecs. | ItemUid for every Cataclysm runtime item; polymorph/revival/split/merge semantics. Definition IDs stay distinct from instance IDs. |
-| Persistence | Quiescent coherent snapshots, recoverable manifest commit, stable fixups, versioning and deterministic continuation. | Profile-owned payloads/partitions and migrations. Direct CDDA save import is not initially required. Cross-world profiles belong to #91; operation history to #96. |
+| Persistence | Quiescent coherent world snapshots, recoverable manifest commit, stable fixups, versioning and deterministic continuation; Spec 28 adds an independent atomic server-account store. | Profile-owned world payloads/partitions and migrations. Direct CDDA save import is not initially required. Cross-world player meta belongs to Spec 28 / #91; operation history to #96. |
 | Content | Frozen generation, stable typed lookup, provenance, deterministic build/finalization and compatibility gates. | CDDA JSON/copy-from/mutation/override/MOD_INFO semantics. Other schemas/providers remain possible. |
 | RNG | Authoritative deterministic state/streams, reproducible ordering and save continuation; no presentation/query RNG effects. | Concrete distributions/draw order and allowable reference tolerances. No universal requirement to copy CDDA's global PRNG. |
 | Events/work | Generic context, scheduling, stable references and audience routing; owners commit state. | EOCs, alpha/beta, one-primary-activity, CDDA progress/reproduction/combat/crafting rules. Future profiles may replace those models. |
@@ -110,7 +119,7 @@ Created:
 - **[#95](https://github.com/LambdaSix/OctoGhast/issues/95):** conflicting assumptions, affected specs, layered/admission-preserving/profile-plan options, decision criteria, bounded intake/activation/pause/save scenarios and M0 impact.
 - **[#96](https://github.com/LambdaSix/OctoGhast/issues/96):** session-only, durable-operation and hybrid alternatives; key/retention/rollback/atomicity/privacy criteria; lost-response, restart and hostile-duplicate scenarios.
 
-Existing **#91** remains the owner of cross-world profile/meta-progression; **#92** remains the owner of authentication/public-server security. Their scope was not changed. No completed investigation was reopened: the evidence was not found materially wrong, and the new integration decisions have dedicated owners.
+At audit time **#91** remained the owner of the unresolved cross-world profile/meta-progression decision and **#92** owned authentication/public-server security. #91 is now resolved by Spec 28 with server-scoped accounts; #92 remains open. No completed pinned investigation was reopened: subsequent changes are architecture/cross-reference amendments.
 
 The #65 update records this audit and fixes the stale existing-save compatibility tracker against Spec 20. #64 records conditional milestone readiness; #52/#57/#58/#90 receive only their directly affected integration dependencies. Completion checkboxes for the historical investigations remain intact. The programme's implementation/parity matrix is still a separate deliverable under Spec 23; this review register does not pretend to be measured runtime parity.
 
