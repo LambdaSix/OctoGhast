@@ -1,8 +1,18 @@
 # #95 — Synthesis of three Luna 5.6 High reviews
 
-**Status: proposed architecture, not an approved decision or implementation sign-off.**  
+**Status: historical review proposal. #95 was resolved on 2026-09-25; the normative decision is [../architecture-canonical-ordering-admission-activation.md](../architecture-canonical-ordering-admission-activation.md). Where this proposal differs from the adopted decision, the adopted decision controls.**  
 Reviewed OctoGhast `7057611f96ec08817203880869f256a94c55870f` on 2026-09-24.  
 Issue: [#95 — canonical ordering, bounded admission and activation](https://github.com/LambdaSix/OctoGhast/issues/95).
+
+## Final decision follow-up — 2026-09-25
+
+The final architecture adopted the review's layered bounded-admission/execution split, queue-local scheduler semantics, deterministic activation publication barriers, per-domain frontier markers and reserved host-control servicing.
+
+Two important proposal points were resolved differently/fully:
+- **budget placement:** Cataclysm preserves reference-relative budget settlement rather than adopting a universal common early-credit phase;
+- **dynamic activation:** a finite dependency discovered after committed sequential effects uses same-point semantic suspension and exact-once resume, not a universal private transaction/rollback.
+
+See [../architecture-canonical-ordering-admission-activation.md](../architecture-canonical-ordering-admission-activation.md).
 
 ## Outcome
 
@@ -10,7 +20,7 @@ Recommend **fair bounded admission, layered actor/work execution, a versioned Ca
 
 The three reviewers initially disagreed about execution order and left several timing ambiguities. After targeted challenges, they converged on layered ordering. This synthesis accepts that convergence, corrects remaining imprecise wording, and rejects treating every dynamic EOC as a private transaction.
 
-**Do not close #95 yet.** Its main options are now concrete enough for an architecture decision, but mid-operation activation after earlier EOC effects remains unresolved. The selected phase plan also needs an explicit ledger of reference-preserving order versus intentional adaptations before normative specs are amended. #96 remains a separate outcome/retry decision.
+At publication time, **#95 was not yet ready to close**: mid-operation activation after earlier EOC effects and the final phase/budget adaptation remained unresolved. Those choices were later resolved by the normative architecture page. #96 remains a separate outcome/retry decision.
 
 The review stage was read-only. This package is published as a proposed decision record; publication does not adopt its recommendations or amend normative specifications. No gameplay/runtime code is included.
 
