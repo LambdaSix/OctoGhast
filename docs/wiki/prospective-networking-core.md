@@ -8,6 +8,6 @@ The prospective design recorded here was completed through #90 and promoted to:
 
 Spec 25 resolves transport/session/simulation/projection layering, deterministic intake, identity separation, lifecycle state, framing/versioning, bounded queues, backpressure, initial TCP transport, projection security, in-process/loopback equivalence, reconnect and persistence exclusions.
 
-The one deliberately separate cross-cutting concern is production authentication/public-server security, now owned by #92. Cross-world profile/meta-progression identity remains owned by #91.
+The remaining separate cross-cutting security concern is production authentication/public-server security, owned by #92. Server-scoped account identity and cross-world meta-progression are now specified by [Spec 28](./spec-28-server-accounts-meta-progression.md) / #91.
 
 This file is retained only so existing links to the former prospective design continue to resolve.
