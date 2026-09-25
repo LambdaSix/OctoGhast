@@ -998,6 +998,15 @@ Spec 23 is implementation-ready when:
 
 ## Post-spec cross-contract scenarios
 
-The [post-spec audit](./post-spec-architecture-audit.md) supplements feature scenarios with integration gates in [#95](https://github.com/LambdaSix/OctoGhast/issues/95) (order/activation) and [#96](https://github.com/LambdaSix/OctoGhast/issues/96) (bounded retries/outcomes). Do not mark those matrix rows Conformant while the decision is pending.
+The [post-spec audit](./post-spec-architecture-audit.md) identified integration gates in #95 (order/activation) and [#96](https://github.com/LambdaSix/OctoGhast/issues/96) (bounded retries/outcomes). #95 is now resolved by the [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md); its matrix rows may be implemented/tested against that contract. #96 rows remain non-Conformant until its separate decision is resolved.
 
 **HAR23-AUD-01 — production adapter proof:** where authoritative results depend on a Godot server adapter, run real-adapter headless save/restart and deterministic continuation tests as well as isolated Core fixtures. No render/window/audio dependency is introduced; tolerance in a CDDA differential fixture does not automatically permit divergence in OctoGhast replay.
+
+
+### #95 deterministic integration scenarios
+
+- **HAR23-95-01:** reversed PlayerId/ActorId contention across inventory/combat/construction records bounded admission and profile execution as separate trace fields.
+- **HAR23-95-02:** callback/thread permutations with identical frozen candidates and cursor reproduce the same selected/deferred admission trace.
+- **HAR23-95-03:** a dynamic EOC activation suspension records prefix/frontier/activation/resume exactly once under varied worker completion timing.
+- **HAR23-95-04:** profile construction fails when potentially conflicting authoritative writers have no explicit order or declared commutativity/independence.
+- **HAR23-95-05:** independent-region worker scheduling permutations yield identical canonical mutation/RNG/publication traces.
