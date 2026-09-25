@@ -835,4 +835,7 @@ The pinned evidence and all M10 scenarios remain mandatory for the Cataclysm ref
 
 **M10-AUD-01:** instantiate a non-Cataclysm creature fixture with different capabilities, cadence and deterministic non-grid position; exercise spawn/move/save/load/despawn through the same Core contracts without registering Cataclysm monster fields. Separately retain M10's pinned spawn/cooldown/reproduction/death/revival fixtures unchanged.
 
-Global scheduling/activation integration follows [#95](https://github.com/LambdaSix/OctoGhast/issues/95); this does not reopen #75's completed evidence.
+Global scheduling/activation integration follows the [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md); this does not reopen #75's completed evidence. In the Cataclysm profile, map/environment work precedes the monster band and each monster's per-turn/speed-derived budget processing occurs at the profile's reference-relative monster opportunity rather than in a universal early-credit phase.
+
+
+**M10-95-01 — pre-monster environment causality:** apply an environment effect that changes an active monster's speed/state immediately before the monster band; its per-turn/budget calculation and resulting opportunity use the post-environment authoritative state.
