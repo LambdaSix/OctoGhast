@@ -42,7 +42,7 @@ In scope:
 Out of scope:
 
 - implementation of gameplay systems being tested;
-- production authentication/account design, owned by #90/#91 where applicable;
+- production authentication/security design, owned by #92, and server-account/meta-progression design, owned by Spec 28 / #91;
 - reproducing CDDA's exact developer UI;
 - shipping unrestricted remote debug mutation to ordinary players;
 - making the C++ reference executable a runtime dependency of OctoGhast;
@@ -971,7 +971,7 @@ The Cataclysm profile provides the pinned rules/data adapters and expected behav
 - **Specs 21/22:** client input/projection/presentation boundaries.
 - **Spec 17:** EOC/talker context and trace semantics.
 - **#90:** transport/session lifecycle, parser limits, bounded queues/backpressure and deterministic intake.
-- **#91:** cross-world profile/meta-progression state; test worlds must not accidentally rewrite real profile state.
+- **Spec 28 / #91:** server-scoped account/meta-progression state; test worlds must use isolated account fixtures and must not accidentally rewrite real user/server account state.
 
 ## 27. Unresolved architecture
 
