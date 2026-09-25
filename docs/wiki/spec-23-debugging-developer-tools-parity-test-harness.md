@@ -42,7 +42,7 @@ In scope:
 Out of scope:
 
 - implementation of gameplay systems being tested;
-- production authentication/security design, owned by #92, and server-account/meta-progression design, owned by Spec 28 / #91;
+- production authentication/security design, owned by Spec 29 / #92, and server-account/meta-progression design, owned by Spec 28 / #91;
 - reproducing CDDA's exact developer UI;
 - shipping unrestricted remote debug mutation to ordinary players;
 - making the C++ reference executable a runtime dependency of OctoGhast;
@@ -218,7 +218,7 @@ The harness has a dedicated trusted test principal. Interactive developer/admin 
 - destructive lifecycle operations;
 - transport fault injection.
 
-Spec 25 / #90 owns session mechanics; #92 owns production authentication/security policy. This spec owns capability requirements, not an account system. Ordinary players MUST NOT gain debug mutation simply by knowing a message type.
+Spec 25 / #90 owns session mechanics; Spec 29 / #92 owns production authentication/security policy. This spec owns capability requirements, not an account system. Ordinary players MUST NOT gain debug mutation simply by knowing a message type.
 
 ### 6.3 Continuous-time rule
 
@@ -977,7 +977,7 @@ The Cataclysm profile provides the pinned rules/data adapters and expected behav
 
 No new cross-cutting architecture decision is required by this investigation.
 
-The spec consumes existing decisions for canonical time, server authority, active regions, stable identity, persistence, projection and networking. Concrete authentication/role management for production remote administrators is owned by #92; Spec 23 requires capability separation but does not invent an account system.
+The spec consumes existing decisions for canonical time, server authority, active regions, stable identity, persistence, projection and networking. Concrete authentication/role management for production remote administrators is owned by Spec 29 / #92; Spec 23 requires capability separation but does not invent an account system.
 
 ## 28. Definition of done
 
