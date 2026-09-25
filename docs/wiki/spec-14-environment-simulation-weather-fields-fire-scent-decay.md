@@ -254,7 +254,7 @@ Within a canonical environment step, use deterministic ordering:
 5. commit derived cache invalidations;
 6. build player-specific projections/events.
 
-This records the required Cataclysm environment-before-later-actor causal constraint. [#95](https://github.com/LambdaSix/OctoGhast/issues/95) must reconcile it with Spec 01's phase outline and Spec 26 activation intervals; implementations must not silently choose opposite actor/environment ordering. The profile cadence does not impose 10 TPS on generic Core.
+This records the required Cataclysm environment-before-later-actor causal constraint. The [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md) resolves the former #95 gate: the Cataclysm profile keeps controlled-Character work before this environment band, then monsters and NPCs afterward; monster/NPC per-turn budget processing remains at their reference-relative actor bands, while controlled-Character replenishment is settled later for the next controlled opportunity. Activation/catch-up uses the shared semantic-frontier/half-open-interval convention. The profile cadence does not impose 10 TPS on generic Core.
 
 ## 9. Field state and creation semantics
 
@@ -664,3 +664,6 @@ No new cross-cutting architecture decision is required to complete #79. The appa
 
 Implementation work is intentionally out of scope.
 
+
+
+**ENV95-01 — activation at a periodic deadline:** activate a region immediately before and immediately after an environment due phase at boundary D. Per-domain frontier markers yield exactly one D occurrence and no duplicate active processing of `[D,D+1)`.
