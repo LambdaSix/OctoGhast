@@ -606,7 +606,7 @@ Do not persist in authoritative world saves:
 
 ### 16.2 Client/profile preferences
 
-Local preferences such as camera smoothing, reduced motion, animation speed, interpolation delay bounds and zoom may be stored as client/profile preferences per Specs 21/22/#91 policy, not world authority.
+Local preferences such as camera smoothing, reduced motion, animation speed, interpolation delay bounds and zoom remain client/device state by default. If a product later elects to account-sync a preference, that cross-world ownership follows Specs 21/22 and Spec 28 / #91; it is never world authority.
 
 ### 16.3 Reconnect
 
