@@ -52,6 +52,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
     </Reference>
@@ -62,6 +63,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\lib\Capsicum\Capsicum\Capsicum.csproj">
+      <Project>{15FC1429-8161-4A89-A1E1-5AF4C8AA134A}</Project>
+      <Name>Capsicum</Name>
+    </ProjectReference>
+    <Compile Include="Components\DefinitionReferenceComponent.cs" />
+    <Compile Include="Components\EntityIdentityComponent.cs" />
     <Compile Include="BodyPart.cs" />
     <Compile Include="Chronology\Calendar.cs" />
     <Compile Include="Chronology\Time.cs" />
@@ -69,13 +76,16 @@
     <Compile Include="Damage.cs" />
     <Compile Include="Entity\Item\EquipmentSide.cs" />
     <Compile Include="Entity\Item\GearLayer.cs" />
-    <Compile Include="Entity\Mobile.cs" />
     <Compile Include="Extensions\LinqExtensions.cs" />
     <Compile Include="Framework\Activities\IActivityManager.cs" />
     <Compile Include="Framework\Data\Loading\BaseTemplateType.cs" />
     <Compile Include="Framework\Data\Loading\EntityNamespacing.cs" />
     <Compile Include="Framework\Data\Loading\ITemplateTemplate.cs" />
     <Compile Include="Framework\Data\Loading\TemplateFactoryBase.cs" />
+    <Compile Include="Framework\Data\DefinitionCatalog.cs" />
+    <Compile Include="Framework\Data\DefinitionId.cs" />
+    <Compile Include="Framework\Data\IContentDefinition.cs" />
+    <Compile Include="Framework\Ecs\EntityId.cs" />
     <Compile Include="Framework\Items\Actions\DefaultItemUse.cs" />
     <Compile Include="Framework\Items\Actions\ItemUse.cs" />
     <Compile Include="Framework\Items\Actions\ItemUseAttribute.cs" />
@@ -102,7 +112,6 @@
     <Compile Include="Map\Tile.cs" />
     <Compile Include="OctoGhastGame.cs" />
     <Compile Include="Renderer\Camera.cs" />
-    <Compile Include="Renderer\CameraExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Renderer\Screens\Game\Controls\GameMapControl.cs" />
     <Compile Include="Renderer\Screens\Game\MainGame.cs" />
@@ -114,11 +123,16 @@
     <Compile Include="Renderer\Screens\Title\UIHelper.cs" />
     <Compile Include="Renderer\View\IGameViewModel.cs" />
     <Compile Include="Renderer\View\GameViewModel.cs" />
+    <Compile Include="Simulation\SimulationContracts.cs" />
+    <Compile Include="Simulation\SimulationTiming.cs" />
     <Compile Include="SystemManager\CommandSystem.cs" />
     <Compile Include="SystemManager\MessageSystem.cs" />
     <Compile Include="SystemManager\SchedulingSystem.cs" />
     <Compile Include="SystemManager\SystemPriority.cs" />
     <Compile Include="SystemMechanic\ChronologySystemMechanic.cs" />
+    <Compile Include="Simulation\Movement\MovementContracts.cs" />
+    <Compile Include="Simulation\Movement\MovementCommandProcessor.cs" />
+    <Compile Include="Simulation\Movement\MovementControlBoundary.cs" />
     <Compile Include="Chronology\TimeDuration.cs" />
     <Compile Include="Translation\Translation.cs" />
     <Compile Include="UnitQuantity.cs" />
