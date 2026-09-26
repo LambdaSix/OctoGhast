@@ -909,3 +909,24 @@ Spec 21 is implementation-ready when:
 - the black-box suite covers single-player one-server flow, co-op contention, disconnect/reconnect, resizing, accessibility and transport equivalence;
 - no unresolved cross-cutting architecture decision remains local to this specification.
 
+## #96 client outcome/recovery states — 2026-09-26
+
+The UI/client boundary consumes [Architecture — bounded command idempotency and outcome recovery](./architecture-bounded-command-idempotency-outcome-recovery.md).
+
+For submitted gameplay operations the client MUST be able to represent, where applicable:
+
+- `Pending` — submitted but no terminal authoritative outcome known locally;
+- `KnownSuccess`;
+- `KnownRejected`;
+- `Indeterminate` — the server cannot prove the old ambiguous attempt after the relevant restart/history cut;
+- `HistoryExpired`;
+- `HistoryMismatch`.
+
+For a `DurableOutcome` command, the client may retry/query the same operation key only within the server-declared recoverable history.
+
+For `StateReconciled` or `Indeterminate` cases, the client MUST refresh/reconcile authoritative projection before treating another attempt as new. It MUST NOT silently synthesize a fresh operation and present it as guaranteed continuation of the ambiguous one.
+
+A fresh attempt uses a fresh current-generation operation identity and represents fresh user intent/policy.
+
+Stored semantic outcomes are always re-projected according to the current viewer/control authorization. The client cannot request an old result to recover information it is no longer permitted to see.
+
