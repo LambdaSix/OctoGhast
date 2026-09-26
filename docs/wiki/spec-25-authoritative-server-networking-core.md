@@ -757,3 +757,46 @@ Spec 29 resolves the authentication/public-server security gate without changing
 - Session/account/provider/capability revocation is security policy; #96 remains the distinct owner of lost gameplay-operation outcome recovery.
 
 NET25 pre-auth/resource-promotion tests should be run together with AUTH92-02, AUTH92-06, AUTH92-11, AUTH92-20 and AUTH92-26 when remote transport implementation begins.
+
+## 19. #96 bounded operation identity/outcome integration — 2026-09-26
+
+The previously open retry/outcome gate is resolved by [Architecture — bounded command idempotency and outcome recovery](./architecture-bounded-command-idempotency-outcome-recovery.md).
+
+### 19.1 Correlation ID versus OperationKey
+
+The logical envelope's request/correlation ID is transport/protocol correlation metadata. It is **not** the durable deduplication namespace.
+
+Every gameplay-affecting command declares one of:
+
+- `StateReconciled`;
+- `IntrinsicIdempotent`;
+- `DurableOutcome`.
+
+A `DurableOutcome` request additionally carries the logical operation identity required by #96: world/history/player/generation context plus opaque `OperationId`, with the authoritative server validating/binding the world/player portions rather than trusting arbitrary client authority claims.
+
+### 19.2 Terminal outcomes
+
+The existing guarantee that every correlated gameplay request receives a terminal externally visible outcome is interpreted as follows:
+
+- while the session/history can prove the request state, the server returns a terminal success/rejection or an explicit pending/recovery status;
+- after restart/history cuts where the server cannot prove an old unknown operation, it returns explicit `Indeterminate`/`HistoryExpired`/`HistoryMismatch` semantics rather than silently replaying;
+- this is not an unlimited exactly-once guarantee.
+
+Reliable transport delivery remains distinct from authoritative operation commitment.
+
+### 19.3 Reconnect
+
+Reconnect resets transport-local/session message sequences as already specified, but it does not create a new world-local PlayerId or operation namespace.
+
+Multiple sessions sharing one PlayerId share that PlayerId's bounded operation-generation namespace. Reconnect/rebind MAY query/retry retained durable operations after normal authorization.
+
+### 19.4 Result delivery and privacy
+
+The durable store contains typed semantic outcomes, not old outbound packets. On result retry/query the current session is authenticated and the outcome is re-projected under current control/visibility/audience policy.
+
+### 19.5 Resource bounds
+
+Operation lookup/query/duplicate traffic participates in the existing bounded inbound/request-rate and abuse-control framework. Repeated lookup does not extend retention indefinitely.
+
+NET25 conformance now inherits OP96-01 through OP96-14 and the relevant Spec 20 save-atomicity scenario OP96-15.
+
