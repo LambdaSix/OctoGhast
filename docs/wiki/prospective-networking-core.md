@@ -11,3 +11,10 @@ Spec 25 resolves transport/session/simulation/projection layering, deterministic
 Production authentication/public-server security is now specified by [Spec 29](./spec-29-authentication-public-server-security.md) / #92. Server-scoped account identity and cross-world meta-progression are specified by [Spec 28](./spec-28-server-accounts-meta-progression.md) / #91.
 
 This file is retained only so existing links to the former prospective design continue to resolve.
+
+
+## 2026-09-26 bounded operation-outcome resolution
+
+The post-spec retry/outcome gap is now resolved by [`architecture-bounded-command-idempotency-outcome-recovery.md`](./architecture-bounded-command-idempotency-outcome-recovery.md) / #96.
+
+Transport correlation remains transient protocol metadata. Commands that require reconnect/restart-safe non-idempotent retry use the separate bounded durable `OperationKey`/generation/history contract; movement/input-style traffic may instead use state reconciliation. Networking queues, sessions, ACKs and raw packets remain excluded from world persistence.
