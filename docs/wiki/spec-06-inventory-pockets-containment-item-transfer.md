@@ -310,3 +310,19 @@ Spec 04 owns command/activity interruption and Spec 21 owns UI selection details
 
 
 **INV95-01 — reversed PlayerId/ActorId contention:** admit two transfers for the same item in one intake cut with PlayerId order opposite controlled ActorId order. With equal phase/work priority, the stable actor/profile execution order determines the first valid transfer; the later request observes stale ownership/location and rejects without duplication or loss.
+
+## #96 bounded transfer retry/outcome contract — 2026-09-26
+
+The previous statement that retrying the same request ID returns/associates with the already-determined result is now qualified by [Architecture — bounded command idempotency and outcome recovery](./architecture-bounded-command-idempotency-outcome-recovery.md).
+
+For transfer operations that advertise reconnect/restart-safe retry, the command MUST be classified `DurableOutcome` and use the shared `OperationKey`/generation/history contract. In that class:
+
+- the same durable operation may be resubmitted or queried across reconnect and committed save/restart without repeating ownership mutation, quantity change, transfer cost, EOC side effect or gameplay RNG;
+- duplicate receipt before admission, while queued/executing, or after terminal commit/rejection associates with the same logical operation;
+- a stale/contention rejection is terminal for that operation and does not become a new attempt if the item later becomes transferable;
+- reusing the key with a changed source, item, quantity, destination, actor or other semantic payload produces `OperationIdConflict` and no gameplay execution;
+- after retention/history expiry or older-snapshot branch mismatch, the old key never becomes a fresh transfer automatically;
+- current authorization/visibility is reapplied when projecting a stored semantic outcome.
+
+A transfer not classified `DurableOutcome` MUST use its declared `StateReconciled` or `IntrinsicIdempotent` policy and MUST NOT inherit an unlimited deduplication promise from transport correlation metadata.
+
