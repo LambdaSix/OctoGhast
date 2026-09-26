@@ -50,6 +50,9 @@
     <Compile Include="Vec.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rect.cs" />
+    <Compile Include="WorldPosition.cs" />
+    <Compile Include="SpatialCell.cs" />
+    <Compile Include="WorldSpatialIndex.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

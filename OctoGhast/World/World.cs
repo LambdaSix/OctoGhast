@@ -7,12 +7,8 @@ using InfiniMap;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Ninject.Infrastructure.Language;
-using OctoGhast.DataStructures.Lighting;
 using OctoGhast.DataStructures.Map;
-using OctoGhast.DataStructures.Renderer;
 using OctoGhast.Entity;
-using OctoGhast.Extensions.FastExpressionCompiler;
-using OctoGhast.Renderer.View;
 using OctoGhast.Spatial;
 using OctoGhast.SystemManager;
 using OctoGhast.UserInterface.Core;
@@ -181,52 +177,5 @@ namespace OctoGhast {
             set { Map[pos.X, pos.Y] = value; }
         }
 
-        /*
-        // TODO: Move this elsewhere, it's a client side concern.
-
-        // Returns true when able to place the Actor on the cell or false otherwise
-        public bool SetActorPosition(Mobile actor, int x, int y)
-        {
-            // Only allow actor placement if the cell is walkable
-            if (Map[x, y].IsWalkable)
-            {
-                // The cell the actor was previously on is now walkable
-                SetIsWalkable(actor.Position.X, actor.Position.Y, true);
-                // Update the actor's position
-                actor.MoveTo(new Vec(x, y));
-
-                // The new cell the actor is on is now not walkable
-                SetIsWalkable(actor.Position.X, actor.Position.Y, false);
-                // Don't forget to update the field of view if we just repositioned the player
-                if (actor is Player)
-                {
-                    UpdatePlayerFieldOfView();
-                }
-                return true;
-            }
-            return false;
-        }
-
-        public void UpdatePlayerFieldOfView() {
-            // Compute the field-of-view based on the player's location and awareness
-            CalculateFov(Camera.ViewFrustum.Center, 8, (x, y) => new Vec(x, y).ToView(Camera.ViewFrustum));
-        }
-
-        public LightMap<TileLightInfo> CalculateFov(Vec viewCenter, int lightRadius, Func<int, int, Vec> translateFunc)
-        {
-            var lightMap = new LightMap<TileLightInfo>(_screenHeight, _screenWidth);
-
-            // TODO: Loop a list of lights, calculate the FOV for each light then mix it's colour into the tile.
-
-            ShadowCaster.ComputeFieldOfViewWithShadowCasting(viewCenter.X, viewCenter.Y, lightRadius,
-                (x, y) => IsOpaque(new Vec(x, y)),
-                (x, y) => {
-                    var screenPos = translateFunc(x, y);
-                    lightMap[screenPos].IsLit = true;
-                    lightMap[screenPos].LightColor = new Color(128, 128, 128);
-                });
-            return lightMap;
-        }
-        */
     }
 }
