@@ -672,3 +672,46 @@ The former #95 shared order/cut is resolved by the [canonical ordering/admission
 
 
 **P20-95-01 — save/load ordered pending work:** save at a quiescent cut with admitted and deferred work, activation markers and phase-plan metadata. Reloading reproduces the same future ordering/outcomes for the same canonical inputs. Raw transport queues and worker objects are absent.
+
+## 18. #96 durable operation history and rollback integration — 2026-09-26
+
+[Architecture — bounded command idempotency and outcome recovery](./architecture-bounded-command-idempotency-outcome-recovery.md) adds one generic Core world-persistence category required for reconnect/restart-safe non-idempotent command recovery.
+
+### 18.1 Durable operation history
+
+For commands classified `DurableOutcome`, the world save persists the bounded semantic operation ledger needed to prove prior terminal outcomes. A record contains, at minimum, the world/history/player/generation/operation key, command semantic identity/version, canonical payload digest, lifecycle/terminal state, required authoritative origin/commit metadata and typed semantic outcome.
+
+This does **not** serialize sockets, sessions, parser state, transport sequences, acknowledgements, raw request/response packets or client projection caches. Those remain excluded exactly as specified elsewhere in this document.
+
+The operation ledger is Core/server persistence, not an ECS component on Player/Character entities.
+
+### 18.2 Atomic effect/outcome linkage
+
+Within one world history, a durable gameplay effect and the corresponding operation record form one logical snapshot commitment:
+
+- the previously committed snapshot contains neither;
+- the newly committed snapshot contains both;
+- an interrupted/uncommitted save falls back to the prior manifest and therefore contains neither as durable history.
+
+A save barrier MUST NOT cut between synchronous authoritative command commit and creation/update of the matching durable operation record.
+
+### 18.3 Operation generations
+
+Each world-local PlayerId/history has a bounded current `OperationGeneration`. Older generations become closed/retry-only and eventually expired. Unknown IDs from closed/expired generations are never admitted as fresh operations.
+
+On server/process resumption from a committed snapshot, the server rotates to a new current submission generation before admitting new `DurableOutcome` operations. Retained old-generation records remain queryable/retryable.
+
+This is required because a crash can lose both an in-memory committed effect and its unsaved operation record. An unknown operation from the pre-crash generation is therefore indeterminate historical work, not permission to execute automatically against the restored snapshot.
+
+### 18.4 World history epoch
+
+Normal restart of the latest committed world retains its `WorldHistoryEpoch`. Deliberately restoring an older snapshot, branching, or applying a repair that selects a different authoritative history MUST create and persist a new history epoch before gameplay submissions resume.
+
+An operation key from another history epoch returns a history-mismatch outcome and MUST NOT mutate the newly selected history.
+
+### 18.5 Bounded retention
+
+Operation history retention is bounded by configured record/byte/generation limits (and MAY additionally use age policy). Correctness MUST NOT depend only on wall-clock TTL. Deleting/compacting old records must preserve the invariant that an expired historical key can never be mistaken for a new operation.
+
+P20 conformance now includes OP96-02, OP96-03, OP96-07, OP96-11 and OP96-15.
+
