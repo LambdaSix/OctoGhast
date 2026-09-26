@@ -1,6 +1,5 @@
 ﻿using OctoGhast.DataStructures.Map;
 using OctoGhast.DataStructures.Renderer;
-using OctoGhast.Entity;
 using OctoGhast.Renderer.View;
 using OctoGhast.Spatial;
 using OctoGhast.UserInterface.Controls;
@@ -14,45 +13,49 @@ namespace OctoGhast.Renderer.Screens.Game.Controls
     {
         public IMapViewModel Model { get; set; }
 
-        public GameMapControlTemplate() {
+        public GameMapControlTemplate()
+        {
             Size = new Size(80, 24);
         }
     }
 
     public class GameMapControl : Panel
     {
-        IMapViewModel Model { get; set; }
+        private IMapViewModel Model { get; set; }
 
-        public IPlayer Player {
-            get { return Model.Player; }
-        }
-
-        public ICamera Camera {
+        private ICamera Camera
+        {
             get { return Model.Camera; }
         }
 
-        public IGameMap Map {
+        private IGameMap Map
+        {
             get { return Model.Map; }
         }
 
-        public GameMapControl(GameMapControlTemplate template) : base(template) {
+        public GameMapControl(GameMapControlTemplate template) : base(template)
+        {
             Model = template.Model;
             Size = template.CalculateSize();
         }
 
-        private Vec toWorld(int x, int y, Rect constraint) {
+        private Vec ToWorld(int x, int y, Rect constraint)
+        {
             return new Vec(constraint.TopLeft.X + x, constraint.TopLeft.Y + y);
         }
 
-        private Vec toWorld(Vec pos, Rect constraint) {
+        private Vec ToWorld(Vec pos, Rect constraint)
+        {
             return constraint.TopLeft + pos;
         }
 
-        protected override string DetermineTooltipText() {
-            return Model.TooltipFor(toWorld(ScreenToLocal(CurrentMousePosition), Camera.ViewFrustum));
+        protected override string DetermineTooltipText()
+        {
+            return Model.TooltipFor(ToWorld(ScreenToLocal(CurrentMousePosition), Camera.ViewFrustum));
         }
 
-        protected override void Redraw() {
+        protected override void Redraw()
+        {
             base.Redraw();
 
             var lightMap = Model.CalculateLightMap();
@@ -61,25 +64,26 @@ namespace OctoGhast.Renderer.Screens.Game.Controls
             {
                 for (int x = 0; x < Camera.ViewFrustum.Width; x++)
                 {
-                    var worldPos = toWorld(x, y, Camera.ViewFrustum);
+                    var worldPos = ToWorld(x, y, Camera.ViewFrustum);
 
                     if (!Model.DrawLighting || lightMap[x, y].IsLit)
                     {
                         var tile = Map[worldPos];
                         var color = lightMap[x, y].LightColor ?? new Color(Microsoft.Xna.Framework.Color.Gray);
-
-                        Canvas.PrintChar(x, y, (char) tile.Glyph, new Pigment(color, new Color(XColor.Black)));
+                        Canvas.PrintChar(x, y, (char)tile.Glyph,
+                            new Pigment(color, new Color(XColor.Black)));
                     }
-                    else {
-                        Canvas.PrintChar(x, y, ' ', new Pigment(new Color(XColor.Black), new Color(XColor.Black)));
+                    else
+                    {
+                        Canvas.PrintChar(x, y, ' ',
+                            new Pigment(new Color(XColor.Black), new Color(XColor.Black)));
                     }
                 }
             }
 
-            var playerFrustum = Rect.FromCenter(Player.Position, Camera.Size);
-
-            var playerX = playerFrustum.TopRight.X - Player.Position.X;
-            var playerY = playerFrustum.BottomLeft.Y - Player.Position.Y;
+            var playerFrustum = Rect.FromCenter(Model.PlayerPosition, Camera.Size);
+            var playerX = playerFrustum.TopRight.X - Model.PlayerPosition.X;
+            var playerY = playerFrustum.BottomLeft.Y - Model.PlayerPosition.Y;
             var distanceFromCamera = playerFrustum.TopLeft - Camera.ViewFrustum.TopLeft;
 
             Canvas.PrintChar(playerX + distanceFromCamera.X, playerY + distanceFromCamera.Y, '@',
