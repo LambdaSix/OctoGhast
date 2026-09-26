@@ -1010,3 +1010,30 @@ The [post-spec audit](./post-spec-architecture-audit.md) identified integration 
 - **HAR23-95-03:** a dynamic EOC activation suspension records prefix/frontier/activation/resume exactly once under varied worker completion timing.
 - **HAR23-95-04:** profile construction fails when potentially conflicting authoritative writers have no explicit order or declared commutativity/independence.
 - **HAR23-95-05:** independent-region worker scheduling permutations yield identical canonical mutation/RNG/publication traces.
+
+## #96 command-outcome fault-injection coverage — 2026-09-26
+
+The harness MUST implement the conformance surface defined by [Architecture — bounded command idempotency and outcome recovery](./architecture-bounded-command-idempotency-outcome-recovery.md), including OP96-01 through OP96-15.
+
+Required fault/cut points include:
+
+- duplicate before admission;
+- duplicate while queued;
+- duplicate while executing;
+- disconnect after authoritative commit but before result delivery;
+- save before/after effect and operation-record creation;
+- failure before manifest commit;
+- clean committed save/restart;
+- crash after in-memory commit but before a save containing it;
+- generation rollover/retention expiry;
+- deliberate older-snapshot restore/history-epoch change;
+- same-account concurrent-session duplicate submission;
+- changed-payload key reuse;
+- changed controlled Character;
+- current-authorization privacy filtering of historical outcomes;
+- hostile duplicate/result-query load.
+
+Tests MUST assert effect count, move/action cost count, resource consumption count and gameplay RNG draw trace—not merely final visible state—so a duplicated hidden attempt cannot pass.
+
+Every applicable scenario MUST run through both the in-process transport boundary and the loopback/network logical protocol path. Serializer/framing differences must not change canonical semantic fingerprint or outcome behaviour.
+
