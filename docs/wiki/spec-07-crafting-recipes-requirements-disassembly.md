@@ -737,3 +737,20 @@ Reference parity is a completeness waypoint, not a permanent crafting-design cei
 
 No genuine unresolved cross-cutting architectural decision was discovered by this re-evaluation. Spec 25 / #90 owns completed networking-core mechanics; Spec 07 declares the crafting semantics that boundary carries. The later corpus audit identified #95 ordering integration and #96 retry/outcome recovery as dedicated cross-spec decisions. #95 is now resolved by the [canonical ordering/admission/activation architecture](./architecture-canonical-ordering-admission-activation.md); #96 remains the separate retry/outcome follow-up.
 
+## #96 bounded crafting/disassembly outcome integration — 2026-09-26
+
+[Architecture — bounded command idempotency and outcome recovery](./architecture-bounded-command-idempotency-outcome-recovery.md) now owns retry identity and persistence for consequential client-submitted operations.
+
+Craft/start/disassembly commands MUST explicitly declare `StateReconciled`, `IntrinsicIdempotent`, or `DurableOutcome`. Any operation for which reconnect/restart retry is advertised and repetition could consume ingredients, tools/charges, time/cost, create outputs/byproducts, grant skill/proficiency effects, or consume gameplay RNG MUST use `DurableOutcome`.
+
+For one logical durable operation:
+
+- duplicate submission or outcome query never creates another crafting/disassembly attempt;
+- ingredient/resource consumption and output creation occur at most once for that operation;
+- failure/rejection and all RNG-derived results remain associated with the original attempt;
+- reconnect or committed save/restart cannot reroll success/failure/output choices;
+- changed-payload key reuse is rejected before gameplay execution;
+- an old/expired/rolled-back history key never silently executes as a new craft.
+
+The durable operation record is not the crafting Activity state. Once an activity has started, its in-progress state remains owned/persisted by the crafting/activity contracts; the operation ledger records the submitted command outcome.
+
