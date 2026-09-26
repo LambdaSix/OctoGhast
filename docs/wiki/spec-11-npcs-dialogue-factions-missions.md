@@ -566,3 +566,19 @@ This spec does not require:
 - redesigning sockets/backpressure owned by #90.
 
 Reference parity requires equivalent externally observable Cataclysm-profile behaviour and data semantics at the pinned baseline. Any later intentional gameplay divergence should be recorded as a profile/product decision rather than silently changing this reference contract.
+
+## #96 consequential dialogue/mission outcome integration — 2026-09-26
+
+The existing no-reroll/replay promise for resolved dialogue choices now consumes [Architecture — bounded command idempotency and outcome recovery](./architecture-bounded-command-idempotency-outcome-recovery.md).
+
+A consequential dialogue, trade, mission or other social command that advertises safe retry after reconnect/restart MUST declare `DurableOutcome`. For that logical operation:
+
+- a resolved choice/trade/mission mutation is not reevaluated or rerolled merely because the original response was lost;
+- duplicate receipt while queued/executing or after terminal resolution associates with the same operation;
+- a terminal rejection remains the same rejection on retry even if later world conditions differ;
+- reuse with different dialogue choice, trade terms, actor/context or other semantic payload is rejected as an operation-key conflict;
+- stored outcomes are re-projected under current authorization/audience rules, so prior visibility does not entitle a later session/control context to hidden NPC/faction/mission information;
+- history expiry/rollback never converts the old key into a fresh consequential choice.
+
+Pure dialogue queries that do not mutate gameplay remain outside the durable operation ledger.
+
