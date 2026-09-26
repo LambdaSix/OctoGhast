@@ -446,3 +446,20 @@ The former #95 shared ordering/activation gate is resolved by the [canonical ord
 
 
 **ACT95-01 — dynamic activation during sequential work:** if an already-running action/activity has committed a prefix and later discovers a finite unloaded dependency, preserve the prefix and RNG continuation, suspend at the same semantic point, activate/catch up to the required frontier, then resume exactly once. Do not replay or transactionally roll back the completed prefix.
+
+## 19. #96 bounded operation-outcome integration — 2026-09-26
+
+The cross-cutting retry/outcome architecture is now resolved by [Architecture — bounded command idempotency and outcome recovery](./architecture-bounded-command-idempotency-outcome-recovery.md).
+
+This specification consumes that contract as follows:
+
+- Every gameplay-affecting command/action request MUST declare exactly one retry policy: `StateReconciled`, `IntrinsicIdempotent`, or `DurableOutcome`. Missing classification is a specification/registration error.
+- A transport correlation/request ID is not itself a durable operation identity.
+- For `DurableOutcome` starts/cancels/resumes, `OperationId` identifies the logical submitted operation. It is distinct from the authoritative Activity instance identity and from any backlog/resume equivalence identity.
+- Duplicate receipt, reconnect retry, result query, or committed save/restart recovery of one durable operation MUST NOT execute activity-start side effects, move/action costs, resource consumption, EOCs or gameplay RNG more than once.
+- An admitted deterministic rejection is a terminal outcome for that logical operation and remains the outcome on retry; later world changes do not convert it into a fresh attempt.
+- Activities that have successfully started continue to use this spec's existing durable activity lifecycle/persistence. The operation ledger records the command outcome; it is not a second copy of activity runtime state.
+- `StateReconciled` actions use fresh authoritative state after ambiguous delivery rather than blind replay.
+
+A04 conformance inherits OP96-01 through OP96-15 where commands are client-requested and retryable.
+
