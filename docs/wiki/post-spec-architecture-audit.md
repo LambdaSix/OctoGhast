@@ -26,11 +26,11 @@ The review checked reference/profile/Core/adaptation/evolution separation; autho
 **Implementation can begin in bounded areas. The corpus is not yet an unqualified integrated implementation baseline.** The architecture is consistent about one authoritative world, profile-owned rules, transport-neutral requests and explicit projections. Two new shared decisions must be settled before final scheduler/network/persistence integration is frozen:
 
 - [#95 — Canonical ordering, bounded admission and activation phases](https://github.com/LambdaSix/OctoGhast/issues/95).
-- [#96 — Bounded command idempotency and outcome recovery across reconnect/save](https://github.com/LambdaSix/OctoGhast/issues/96).
+- [#96 — Bounded command idempotency and outcome recovery across reconnect/save](https://github.com/LambdaSix/OctoGhast/issues/96) — **resolved 2026-09-26** by [`architecture-bounded-command-idempotency-outcome-recovery.md`](./architecture-bounded-command-idempotency-outcome-recovery.md).
 
 Stable work can proceed now: ECS/composition and dependency boundaries; typed durable identity; immutable definition generations and Cataclysm data adapters; pure rule/formula fixtures; profile-configured fixed-step primitives; position-to-cell mapping and atomic index/containment mutations; save-generation/manifest atomicity; bounded parsers/queues and transport abstraction; viewer-filtered projections; and Godot presentation over confirmed samples. These can be tested through explicit supplied ordering/policy interfaces without pretending the pending global policy is settled.
 
-#95 and #91 have subsequently been resolved by their dedicated architecture specifications. Before promising safe replay/recovery of non-idempotent operations across reconnect/restart, resolve #96. Before production LAN/friend/public-server trust and especially internet deployment, resolve #92. The audit does not mark M0 or any gameplay milestone complete.
+#95 and #91 have subsequently been resolved by their dedicated architecture specifications. Reconnect/restart-safe non-idempotent operation recovery now consumes the resolved #96 bounded operation-generation/history contract. Before production LAN/friend/public-server trust and especially internet deployment, resolve #92. The audit does not mark M0 or any gameplay milestone complete.
 
 Core over-fitting found here was limited but real: remaining integer-position/geometry wording, missing explicit creature-profile classification, an OO-versus-ECS choice left apparently open, and an inventory affordability sentence that could replace signed move debt with a different economy. Those passages are corrected. Existing rate, anatomy, item taxonomy, pockets, crafting, combat, construction, EOC and loader evolution seams remain intact.
 
@@ -126,7 +126,7 @@ The #65 update records this audit and fixes the stale existing-save compatibilit
 ## Residual risks and validation limits
 
 - #95 resolved the concurrent actor/environment integration by preserving reference-relative Cataclysm causal/budget placement while generalizing the phase-plan host. Future phase changes remain explicit profile compatibility decisions.
-- #96 must settle retention and world-history/rollback semantics before broad exactly-once or terminal-outcome claims can be tested honestly.
+- #96 now settles bounded retention, operation generations and world-history/rollback semantics; conformance must test the explicit success/rejection/indeterminate/history-expired/history-mismatch outcomes rather than claim unlimited exactly-once delivery.
 - Cataclysm positive idle-budget carry is documented; any future anti-burst cap is an explicit profile policy under #57, not an implementation shortcut that changes costs.
 - Background catch-up remains domain-specific. Monster compressed catch-up is not a promise to simulate every unloaded tactical interaction. Item/environment equivalence requires equivalent historical inputs; systems needing intermediate simulation must retain an appropriate lease or implement the declared bounded catch-up. Test domain integration before optimizing timewarp.
 - Godot-backed authoritative service results require real-adapter determinism, save/restart and supported-platform tests. CDDA differential tolerances do not automatically relax OctoGhast's own replay contract.
@@ -152,3 +152,14 @@ Spec 29 preserves the audit's existing authority/account boundaries while fixing
 - security state excluded from world saves and authoritative simulation RNG.
 
 This closes #92 as an architecture/specification gate. It does not mark public-server runtime implementation or conformance complete. #96 remains the separate retry/outcome-recovery gate.
+
+
+## #96 architecture resolution — 2026-09-26
+
+[#96](https://github.com/LambdaSix/OctoGhast/issues/96) is resolved by [Architecture — bounded command idempotency and outcome recovery](./architecture-bounded-command-idempotency-outcome-recovery.md).
+
+The adopted hybrid policy requires every gameplay-affecting command to declare `StateReconciled`, `IntrinsicIdempotent`, or `DurableOutcome`. Durable logical operation identity is separate from connection/session/transport sequence/Character/Account identities and is scoped by `WorldId + WorldHistoryEpoch + PlayerId + OperationGeneration + OperationId`.
+
+Bounded generations make old unknown IDs retry-only/expired rather than fresh commands; process restart rotates the submission generation; deliberate older-snapshot restore changes the world-history epoch. Persisted semantic outcomes are atomically linked to their world effects, while transport/session state remains excluded from saves. Specs 04/06/07/11/20/21/23/25 consume the shared contract.
+
+This removes #96 as an unresolved architecture gate. Runtime implementation and OP96 conformance remain future work.
